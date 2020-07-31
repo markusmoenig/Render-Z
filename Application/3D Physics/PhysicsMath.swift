@@ -26,6 +26,176 @@ import Foundation
  * orientation.
  */
 
+infix operator + : AdditionPrecedence
+infix operator += : AdditionPrecedence
+infix operator - : AdditionPrecedence
+infix operator -= : AdditionPrecedence
+infix operator * : MultiplicationPrecedence
+infix operator % : MultiplicationPrecedence
+
+class _Vector3 {
+
+    var x                   : Float
+    var y                   : Float
+    var z                   : Float
+
+    init(_ x: Float = 0,_ y: Float = 0,_ z: Float = 0)
+    {
+        self.x = x
+        self.y = y
+        self.z = z
+    }
+    
+    subscript(index: Int) -> Float {
+        get {
+            if index == 0 {
+                return x
+            } else
+            if index == 1 {
+                return y
+            }
+            return z
+        }
+        set(value) {
+            if index == 0 {
+                x = value
+            } else
+            if index == 1 {
+                y = value
+            } else {
+                z = value
+            }
+        }
+    }
+    
+    // +
+    static func + (left: _Vector3, right: _Vector3) -> _Vector3 {
+        return _Vector3(left.x + right.x, left.y + right.y, left.z + right.z)
+    }
+    
+    // +=
+    static func += (left: inout _Vector3, right: _Vector3) {
+        left.x = left.x + right.x
+        left.y = left.y + right.y
+        left.z = left.z + right.z
+    }
+    
+    // -
+    static func - (left: _Vector3, right: _Vector3) -> _Vector3 {
+        return _Vector3(left.x - right.x, left.y - right.y, left.z - right.z)
+    }
+    
+    static prefix func - (vector: _Vector3) -> _Vector3 {
+      return _Vector3(-vector.x, -vector.y, -vector.z)
+    }
+    
+    // -=
+    static func -= (left: inout _Vector3, right: _Vector3) {
+        left.x = left.x - right.x
+        left.y = left.y - right.y
+        left.z = left.z - right.z
+    }
+    
+    // *
+    static func * (left: _Vector3, right: _Vector3) -> _Vector3 {
+        return _Vector3(left.x * right.x, left.y * right.y, left.z * right.z)
+    }
+    
+    static func * (left: _Vector3, right: Float) -> _Vector3 {
+        return _Vector3(left.x * right, left.y * right, left.z * right)
+    }
+    
+    static func *= (left: inout _Vector3, right: Float) {
+        left.x = left.x * right
+        left.y = left.y * right
+        left.z = left.z * right
+    }
+    
+    func componentProduct(_ vector: _Vector3) -> _Vector3
+    {
+        return _Vector3(x * vector.x, y * vector.y, z * vector.z)
+    }
+    
+    func componentProductUpdate(_ vector: _Vector3)
+    {
+        x *= vector.x
+        y *= vector.y
+        z *= vector.z
+    }
+    
+    func vectorProduct(_ vector: _Vector3) -> _Vector3
+    {
+        return _Vector3(y*vector.z - z*vector.y,
+                        z*vector.x - x*vector.z,
+                        x*vector.y - y*vector.x)
+    }
+    
+    static func % (left: _Vector3, right: _Vector3) -> _Vector3 {
+        return _Vector3(left.y * right.z - left.z * right.y,
+                        left.z * right.x - left.x * right.z,
+                        left.x * right.y - left.y * right.x)
+    }
+    
+    func scalarProduct(_ vector: _Vector3) -> Float
+    {
+        return x*vector.x + y*vector.y + z*vector.z
+    }
+    
+    static func * (left: _Vector3, right: _Vector3) -> Float {
+        return left.x * right.x + left.y * right.y + left.z * right.z
+    }
+    
+    func addScaledVector(_ vector: _Vector3,_ scale: Float) {
+        x += vector.x * scale
+        y += vector.y * scale
+        z += vector.z * scale
+    }
+    
+    func magnitude() -> Float
+    {
+        return sqrt(x*x+y*y+z*z)
+    }
+    
+    func squareMagnitude() -> Float
+    {
+        return x*x+y*y+z*z
+    }
+    
+    func trim(_ size: Float)
+    {
+        if squareMagnitude() > size*size {
+            normalise()
+            x *= size;
+            y *= size;
+            z *= size;
+        }
+    }
+    
+    func normalise()
+    {
+        let l = magnitude()
+        if (l > 0) {
+            x *= 1.0 / l
+            y *= 1.0 / l
+            z *= 1.0 / l
+        }
+    }
+    
+    func clear()
+    {
+        x = 0
+        y = 0
+        z = 0
+    }
+
+    func invert()
+    {
+        x = -x
+        y = -y
+        z = -z
+    }
+}
+
 class _Quaternion {
     
     var r                   : Float
@@ -91,7 +261,7 @@ class _Quaternion {
      *
      * @param scale The amount of the vector to add.
      */
-    func addScaledVector(_ vector: float3,_ scale: Float)
+    func addScaledVector(_ vector: _Vector3,_ scale: Float)
     {
         let q = _Quaternion(0,
             vector.x * scale,
@@ -105,7 +275,7 @@ class _Quaternion {
         k += q.k * 0.5
     }
     
-    func rotateByVector(_ vector: float3)
+    func rotateByVector(_ vector: _Vector3)
     {
         let q = _Quaternion(0, vector.x, vector.y, vector.z);
         multiply(q)
@@ -178,9 +348,9 @@ class _Matrix4
      *
      * @param vector The vector to transform.
      */
-    func multiplyWithVector(_ vector: float3) -> float3
+    func multiplyWithVector(_ vector: _Vector3) -> _Vector3
     {
-        return float3(
+        return _Vector3(
             vector.x * data[0] +
             vector.y * data[1] +
             vector.z * data[2] + data[3],
@@ -200,7 +370,7 @@ class _Matrix4
      *
      * @param vector The vector to transform.
      */
-    func transform(_ vector: float3) -> float3
+    func transform(_ vector: _Vector3) -> _Vector3
     {
         return multiplyWithVector(vector)
     }
@@ -281,9 +451,9 @@ class _Matrix4
      *
      * @param vector The vector to transform.
      */
-    func transformDirection(_ vector: float3) -> float3
+    func transformDirection(_ vector: _Vector3) -> _Vector3
     {
-        return float3(
+        return _Vector3(
             vector.x * data[0] +
             vector.y * data[1] +
             vector.z * data[2],
@@ -314,9 +484,9 @@ class _Matrix4
      *
      * @param vector The vector to transform.
      */
-    func transformInverseDirection(_ vector: float3) -> float3
+    func transformInverseDirection(_ vector: _Vector3) -> _Vector3
     {
-        return float3(
+        return _Vector3(
             vector.x * data[0] +
             vector.y * data[4] +
             vector.z * data[8],
@@ -344,13 +514,13 @@ class _Matrix4
      *
      * @param vector The vector to transform.
      */
-    func transformInverse(_ vector: float3) -> float3
+    func transformInverse(_ vector: _Vector3) -> _Vector3
     {
-        var tmp = vector
+        let tmp = vector
         tmp.x -= data[3]
         tmp.y -= data[7]
         tmp.z -= data[11]
-        return float3(
+        return _Vector3(
             tmp.x * data[0] +
             tmp.y * data[4] +
             tmp.z * data[8],
@@ -373,16 +543,16 @@ class _Matrix4
      *
      * @return The vector.
      */
-    func getAxisVector(_ i: Int) -> float3
+    func getAxisVector(_ i: Int) -> _Vector3
     {
-        return float3(data[i], data[i+4], data[i+8])
+        return _Vector3(data[i], data[i+4], data[i+8])
     }
     
     /**
      * Sets this matrix to be the rotation matrix corresponding to
      * the given quaternion.
      */
-    func setOrientationAndPos(_ q: _Quaternion,_ pos: float3)
+    func setOrientationAndPos(_ q: _Quaternion,_ pos: _Vector3)
     {
         data[0] = 1 - (2*q.j*q.j + 2*q.k*q.k)
         data[1] = 2*q.i*q.j + 2*q.k*q.r
@@ -440,7 +610,7 @@ class _Matrix4
         )
     }
     
-    func extractEulerAngleXYZ() -> float3
+    func extractEulerAngleXYZ() -> _Vector3
     {
         var rotXangle : Float = 0
         var rotYangle : Float = 0
@@ -452,7 +622,7 @@ class _Matrix4
         let sinXangle = sin(rotXangle)
         let cosXangle = cos(rotXangle)
         rotZangle = atan2(cosXangle * row(1).x + sinXangle * row(2).x, cosXangle * row(1).y + sinXangle * row(2).y)
-        return float3(rotXangle, rotYangle, rotZangle)
+        return _Vector3(rotXangle, rotYangle, rotZangle)
     }
 }
 
@@ -483,7 +653,7 @@ class _Matrix3
      * Creates a new matrix with the given three vectors making
      * up its columns.
      */
-    init(_ compOne: float3,_ compTwo: float3,_ compThree: float3)
+    init(_ compOne: _Vector3,_ compTwo: _Vector3,_ compThree: _Vector3)
     {
         data = Array(repeating: 0, count: 9)
         setComponents(compOne, compTwo, compThree)
@@ -529,9 +699,9 @@ class _Matrix3
      * a rectangular block aligned with the body's coordinate
      * system with the given axis half-sizes and mass.
      */
-    func setBlockInertiaTensor(_ halfSizes: float3,_ mass: Float)
+    func setBlockInertiaTensor(_ halfSizes: _Vector3,_ mass: Float)
     {
-        let squares : float3 = halfSizes * halfSizes
+        let squares : _Vector3 = halfSizes * halfSizes
         
         setInertiaTensorCoeffs(0.3 * mass*(squares.y + squares.z),
             0.3 * mass*(squares.x + squares.z),
@@ -544,7 +714,7 @@ class _Matrix3
      * of the vector product. So if a,b are vectors. a x b = A_s b
      * where A_s is the skew symmetric form of a.
      */
-    func setSkewSymmetric(_ vector: float3)
+    func setSkewSymmetric(_ vector: _Vector3)
     {
         data[0] = 0
         data[4] = 0
@@ -561,7 +731,7 @@ class _Matrix3
      * Sets the matrix values from the given three vector components.
      * These are arranged as the three columns of the vector.
      */
-    func setComponents(_ compOne: float3,_ compTwo: float3,_ compThree: float3)
+    func setComponents(_ compOne: _Vector3,_ compTwo: _Vector3,_ compThree: _Vector3)
     {
         data[0] = compOne.x
         data[1] = compTwo.x
@@ -579,9 +749,9 @@ class _Matrix3
      *
      * @param vector The vector to transform.
      */
-    func multiplyVector(_ vector: float3) -> float3
+    func multiplyVector(_ vector: _Vector3) -> _Vector3
     {
-        return float3(
+        return _Vector3(
             vector.x * data[0] + vector.y * data[1] + vector.z * data[2],
             vector.x * data[3] + vector.y * data[4] + vector.z * data[5],
             vector.x * data[6] + vector.y * data[7] + vector.z * data[8]
@@ -593,7 +763,7 @@ class _Matrix3
      *
      * @param vector The vector to transform.
      */
-    func transform(_ vector: float3) -> float3
+    func transform(_ vector: _Vector3) -> _Vector3
     {
         return multiplyVector(vector)
     }
@@ -603,9 +773,9 @@ class _Matrix3
      *
      * @param vector The vector to transform.
      */
-    func transformTranspose(_ vector: float3) -> float3
+    func transformTranspose(_ vector: _Vector3) -> _Vector3
     {
-        return float3(
+        return _Vector3(
             vector.x * data[0] + vector.y * data[3] + vector.z * data[6],
             vector.x * data[1] + vector.y * data[4] + vector.z * data[7],
             vector.x * data[2] + vector.y * data[5] + vector.z * data[8]
@@ -617,9 +787,9 @@ class _Matrix3
       *
       * @param i The row to return.
       */
-     func getRowVector(_ i: Int) -> float3
+     func getRowVector(_ i: Int) -> _Vector3
      {
-         return float3(data[i*3], data[i*3+1], data[i*3+2])
+         return _Vector3(data[i*3], data[i*3+1], data[i*3+2])
      }
     
     /**
@@ -629,9 +799,9 @@ class _Matrix3
      *
      * @return The vector.
      */
-    func getAxisVector(_ i: Int) -> float3
+    func getAxisVector(_ i: Int) -> _Vector3
     {
-        return float3(data[i], data[i+3], data[i+6]);
+        return _Vector3(data[i], data[i+3], data[i+6]);
     }
     
     /**
@@ -872,7 +1042,7 @@ func _transformInertiaTensor(_ iitWorld: _Matrix3,_ q: _Quaternion,_ iitBody: _M
         t62*rotmat.data[10]
 }
 
-func _calculateTransformMatrix(_ transformMatrix : _Matrix4,_ position: float3,_ orientation: _Quaternion)
+func _calculateTransformMatrix(_ transformMatrix : _Matrix4,_ position: _Vector3,_ orientation: _Quaternion)
 {
     transformMatrix.data[0] = 1-2*orientation.j*orientation.j -
         2*orientation.k*orientation.k;

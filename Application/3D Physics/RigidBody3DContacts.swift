@@ -63,9 +63,9 @@ class RigiBody3DContactResolver
     
     func adjustVelocities(_ contacts: [RigidBody3DContact],_ duration: Float)
     {
-        var velocityChange = [float3(0,0,0), float3(0,0,0)]
-        var rotationChange = [float3(0,0,0), float3(0,0,0)]
-        var deltaVel = float3(0,0,0)
+        var velocityChange = [_Vector3(), _Vector3()]
+        var rotationChange = [_Vector3(), _Vector3()]
+        var deltaVel = _Vector3()
 
         // iteratively handle impacts in order of severity.
         velocityIterationsUsed = 0
@@ -98,7 +98,7 @@ class RigiBody3DContactResolver
                         for d in 0..<2 {
                             
                             if contacts[i].body[b] === contacts[index].body[d] {
-                                deltaVel = velocityChange[d] + cross(rotationChange[d], contacts[i].relativeContactPosition[b])
+                                deltaVel = velocityChange[d] + rotationChange[d].vectorProduct(contacts[i].relativeContactPosition[b])
 
                                 // The sign of the change is negative if we're dealing
                                 // with the second body in a contact.
@@ -117,11 +117,11 @@ class RigiBody3DContactResolver
     func adjustPositions(_ contacts: [RigidBody3DContact],_ duration: Float)
     {
         var index : Int = 0
-        var linearChange = [float3(0,0,0), float3(0,0,0)]
-        var angularChange = [float3(0,0,0), float3(0,0,0)]
+        var linearChange = [_Vector3(), _Vector3()]
+        var angularChange = [_Vector3(), _Vector3()]
 
         var max : Float = 0
-        var deltaPosition = float3(0,0,0)
+        var deltaPosition = _Vector3()
 
         // iteratively resolve interpenetrations in order of severity.
         positionIterationsUsed = 0;
@@ -154,13 +154,13 @@ class RigiBody3DContactResolver
                     if contacts[i].body[b] != nil {
                         for d in 0..<2 {
                             
-                            deltaPosition = linearChange[d] + cross(angularChange[d], contacts[i].relativeContactPosition[b])
+                            deltaPosition = linearChange[d] + angularChange[d].vectorProduct(contacts[i].relativeContactPosition[b])
 
                             // The sign of the change is positive if we're
                             // dealing with the second body in a contact
                             // and negative otherwise (because we're
                             // subtracting the resolution)..
-                            contacts[i].penetration += dot(deltaPosition, contacts[i].contactNormal) * (b == 1 ? 1.0 : -1.0 )
+                            contacts[i].penetration += deltaPosition.scalarProduct(contacts[i].contactNormal) * (b == 1 ? 1.0 : -1.0 )
                         }
                     }
                 }
@@ -178,19 +178,19 @@ class RigidBody3DContact
     var restitution             : Float = 0.3
     var friction                : Float = 0.1
 
-    var contactNormal           : float3
-    var contactPoint            : float3
+    var contactNormal           : _Vector3
+    var contactPoint            : _Vector3
 
     var penetration             : Float
 
     //
     
     var contactToWorld          = _Matrix3()
-    var contactVelocity         = float3(0,0,0)
+    var contactVelocity         = _Vector3(0,0,0)
     var desiredDeltaVelocity    : Float = 0
-    var relativeContactPosition = [float3(0,0,0), float3(0,0,0)]
+    var relativeContactPosition = [_Vector3(0,0,0), _Vector3(0,0,0)]
     
-    init(body: [RigidBody3D?], contactPoint: float3, normal: float3, penetration: Float)
+    init(body: [RigidBody3D?], contactPoint: _Vector3, normal: _Vector3, penetration: Float)
     {
         self.body = body
         self.contactNormal = normal
@@ -227,7 +227,7 @@ class RigidBody3DContact
     
     func calculateContactBasis()
     {
-        var contactTangent : [float3] = [float3(0,0,0), float3(0,0,0)]
+        let contactTangent : [_Vector3] = [_Vector3(), _Vector3()]
 
         // Check whether the Z-axis is nearer to the X or Y axis
         if abs(contactNormal.x) > abs(contactNormal.y) {
@@ -266,12 +266,12 @@ class RigidBody3DContact
         contactToWorld.setComponents(contactNormal, contactTangent[0], contactTangent[1])
     }
     
-    func calculateLocalVelocity(_ bodyIndex: Int,_ duration: Float) -> float3
+    func calculateLocalVelocity(_ bodyIndex: Int,_ duration: Float) -> _Vector3
     {
         let thisBody: RigidBody3D = body[bodyIndex]!
             
         // Work out the velocity of the contact point.
-        var velocity = cross(thisBody.getRotation(), relativeContactPosition[bodyIndex])
+        var velocity = thisBody.getRotation() % relativeContactPosition[bodyIndex]
         velocity += thisBody.getVelocity()
 
         // Turn the velocity into contact-coordinates.
@@ -304,12 +304,12 @@ class RigidBody3DContact
         var velocityFromAcc: Float = 0;
 
         if body[0]!.getAwake() {
-            velocityFromAcc += dot(body[0]!.getLastFrameAcceleration() * duration, contactNormal)
+            velocityFromAcc += body[0]!.getLastFrameAcceleration() * duration * contactNormal
             //velocityFromAcc += dot(body.0.getLastFrameAcceleration(), contactNormal) * duration
         }
 
         if body[1] != nil && body[1]!.getAwake() {
-            velocityFromAcc -= dot(body[1]!.getLastFrameAcceleration() * duration, contactNormal)
+            velocityFromAcc -= body[1]!.getLastFrameAcceleration() * duration * contactNormal
             //velocityFromAcc -= dot(body.1!.getLastFrameAcceleration(), contactNormal) * duration
         }
 
@@ -345,7 +345,7 @@ class RigidBody3DContact
         calculateDesiredDeltaVelocity(duration)
     }
     
-    func applyVelocityChange(_ velocityChange: inout [float3],_ rotationChange: inout [float3])
+    func applyVelocityChange(_ velocityChange: inout [_Vector3],_ rotationChange: inout [_Vector3])
     {
         // Get hold of the inverse mass and inverse inertia tensor, both in
         // world coordinates.
@@ -357,7 +357,7 @@ class RigidBody3DContact
         }
 
         // We will calculate the impulse for each contact axis
-        var impulseContact = float3(0,0,0)
+        var impulseContact = _Vector3()
 
         if friction == 0.0 {
             // Use the short format for frictionless contacts
@@ -372,11 +372,11 @@ class RigidBody3DContact
         let impulse = contactToWorld.transform(impulseContact)
 
         // Split in the impulse into linear and rotational components
-        let impulsiveTorque = cross(relativeContactPosition[0], impulse)
+        let impulsiveTorque = relativeContactPosition[0] % impulse
 
         rotationChange[0] = inverseInertiaTensor[0].transform(impulsiveTorque);
-        velocityChange[0] = float3(0,0,0)
-        velocityChange[0] += impulse * body[0]!.getInverseMass()
+        velocityChange[0].clear()
+        velocityChange[0].addScaledVector(impulse, body[0]!.getInverseMass())
 
         // Apply the changes
         body[0]!.addVelocity(velocityChange[0])
@@ -384,11 +384,11 @@ class RigidBody3DContact
 
         if let body1 = body[1] {
             // Work out body one's linear and angular changes
-            let impulsiveTorque = cross(impulse, relativeContactPosition[1])
+            let impulsiveTorque = impulse % relativeContactPosition[1]
 
             rotationChange[1] = inverseInertiaTensor[1].transform(impulsiveTorque)
-            velocityChange[1] = float3(0,0,0)
-            velocityChange[1] += impulse * -body1.getInverseMass()
+            velocityChange[1].clear()
+            velocityChange[1].addScaledVector(impulse, -body1.getInverseMass())
 
             // And apply them.
             body1.addVelocity(velocityChange[1])
@@ -396,20 +396,20 @@ class RigidBody3DContact
         }
     }
     
-    func calculateFrictionlessImpulse(_ inverseInertiaTensor: [_Matrix3]) -> float3
+    func calculateFrictionlessImpulse(_ inverseInertiaTensor: [_Matrix3]) -> _Vector3
     {
-        var impulseContact = float3(0,0,0)
+        let impulseContact = _Vector3()
 
         // Build a vector that shows the change in velocity in
         // world space for a unit impulse in the direction of the contact
         // normal.
-        var deltaVelWorld = cross(relativeContactPosition[0], contactNormal)
+        var deltaVelWorld = relativeContactPosition[0] % contactNormal
 
         deltaVelWorld = inverseInertiaTensor[0].transform(deltaVelWorld)
-        deltaVelWorld = cross(deltaVelWorld,relativeContactPosition[0])
+        deltaVelWorld = deltaVelWorld % relativeContactPosition[0]
 
         // Work out the change in velocity in contact coordiantes.
-        var deltaVelocity = dot(deltaVelWorld, contactNormal)
+        var deltaVelocity: Float = deltaVelWorld * contactNormal
 
         // Add the linear component of velocity change
         deltaVelocity += body[0]!.getInverseMass()
@@ -417,13 +417,13 @@ class RigidBody3DContact
         // Check if we need to the second body's data
         if let body1 = body[1] {
             // Go through the same transformation sequence again
-            var deltaVelWorld = cross(relativeContactPosition[1], contactNormal)
+            var deltaVelWorld = relativeContactPosition[1] % contactNormal
             
             deltaVelWorld = inverseInertiaTensor[1].transform(deltaVelWorld)
-            deltaVelWorld = cross(deltaVelWorld, relativeContactPosition[1])
+            deltaVelWorld = deltaVelWorld % relativeContactPosition[1]
 
             // Add the change in velocity due to rotation
-            deltaVelocity += dot(deltaVelWorld, contactNormal)
+            deltaVelocity += deltaVelWorld * contactNormal
 
             // Add the change in velocity due to linear motion
             deltaVelocity += body1.getInverseMass()
@@ -436,9 +436,9 @@ class RigidBody3DContact
         return impulseContact
     }
     
-    func calculateFrictionImpulse(_ inverseInertiaTensor: [_Matrix3]) -> float3
+    func calculateFrictionImpulse(_ inverseInertiaTensor: [_Matrix3]) -> _Vector3
     {
-        var impulseContact = float3(0,0,0)
+        var impulseContact = _Vector3()
         var inverseMass = body[0]!.getInverseMass()
 
         // The equivalent of a cross product in matrices is multiplication
@@ -488,7 +488,7 @@ class RigidBody3DContact
         let impulseMatrix = deltaVelocity.inverse()
 
         // Find the target velocities to kill
-        let velKill = float3(desiredDeltaVelocity, -contactVelocity.y, -contactVelocity.z)
+        let velKill = _Vector3(desiredDeltaVelocity, -contactVelocity.y, -contactVelocity.z)
 
         // Find the impulse to kill target velocities
         impulseContact = impulseMatrix.transform(velKill)
@@ -511,7 +511,7 @@ class RigidBody3DContact
         return impulseContact
     }
     
-    func applyPositionChange(_ linearChange: inout [float3],_ angularChange: inout [float3],_ penetration: Float)
+    func applyPositionChange(_ linearChange: inout [_Vector3],_ angularChange: inout [_Vector3],_ penetration: Float)
     {
         let angularLimit : Float = 0.2
         var angularMove : [Float] = [0, 0]
@@ -526,15 +526,15 @@ class RigidBody3DContact
 
         for i in 0..<2 {
             if let body = self.body[i] {
-                var inverseInertiaTensor = _Matrix3()
-                body.getInverseInertiaTensorWorld(&inverseInertiaTensor)
+                let inverseInertiaTensor = _Matrix3()
+                body.getInverseInertiaTensorWorld(inverseInertiaTensor)
 
                 // Use the same procedure as for calculating frictionless
                 // velocity change to work out the angular inertia.
-                var angularInertiaWorld = cross(relativeContactPosition[i], contactNormal)
+                var angularInertiaWorld = relativeContactPosition[i] % contactNormal
                 angularInertiaWorld = inverseInertiaTensor.transform(angularInertiaWorld)
-                angularInertiaWorld = cross(angularInertiaWorld, relativeContactPosition[i])
-                angularInertia[i] = dot(angularInertiaWorld, contactNormal)
+                angularInertiaWorld = angularInertiaWorld % relativeContactPosition[i]
+                angularInertia[i] = angularInertiaWorld * contactNormal
 
                 // The linear component is simply the inverse mass
                 linearInertia[i] = body.getInverseMass()
@@ -561,8 +561,8 @@ class RigidBody3DContact
 
                 // To avoid angular projections that are too great (when mass is large
                 // but inertia tensor is small) limit the angular move.
-                var projection = relativeContactPosition[i]
-                projection += contactNormal * dot(-relativeContactPosition[i], contactNormal)
+                let projection = relativeContactPosition[i]
+                projection.addScaledVector(contactNormal, -relativeContactPosition[i].scalarProduct(contactNormal))
 
                 // Use the small angle approximation for the sine of the angle (i.e.
                 // the magnitude would be sine(angularLimit) * projection.magnitude
@@ -585,15 +585,15 @@ class RigidBody3DContact
                 if (angularMove[i] == 0)
                 {
                     // Easy case - no angular movement means no rotation.
-                    angularChange[i] = float3(0,0,0)
+                    angularChange[i].clear()
                 }
                 else
                 {
                     // Work out the direction we'd like to rotate in.
-                    let targetAngularDirection = cross(relativeContactPosition[i], contactNormal)
+                    let targetAngularDirection = relativeContactPosition[i].vectorProduct(contactNormal)
 
-                    var inverseInertiaTensor = _Matrix3()
-                    body.getInverseInertiaTensorWorld(&inverseInertiaTensor)
+                    let inverseInertiaTensor = _Matrix3()
+                    body.getInverseInertiaTensorWorld(inverseInertiaTensor)
 
                     // Work out the direction we'd need to rotate to achieve that
                     angularChange[i] = inverseInertiaTensor.transform(targetAngularDirection) * (angularMove[i] / angularInertia[i])

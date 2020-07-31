@@ -17,10 +17,10 @@ class RigidBody3D
     var linearDamping               : Float = 0.99
     var angularDamping              : Float = 0
     
-    var position                    = float3(0,0,0)
+    var position                    = _Vector3()
     var orientation                 = _Quaternion()
-    var velocity                    = float3(0,0,0)
-    var rotation                    = float3(0,0,0)
+    var velocity                    = _Vector3()
+    var rotation                    = _Vector3()
 
     var inverseInertiaTensorWorld   = _Matrix3()
 
@@ -32,11 +32,11 @@ class RigidBody3D
 
     var transformMatrix             = _Matrix4()
 
-    var forceAccum                  = float3(0,0,0)
-    var torqueAccum                 = float3(0,0,0)
-    var acceleration                = float3(0,-9.8,0)
+    var forceAccum                  = _Vector3()
+    var torqueAccum                 = _Vector3()
+    var acceleration                = _Vector3(0,-9.8,0)
 
-    var lastFrameAcceleration       = float3(0,0,0)
+    var lastFrameAcceleration       = _Vector3()
     
     static var sleepEpsilon         : Float = 0.1
     
@@ -99,7 +99,7 @@ class RigidBody3D
         // Update the kinetic energy store, and possibly put the body to
         // sleep.
         if canSleep {
-            let currentMotion : Float = dot(velocity,velocity) + dot(rotation,rotation)
+            let currentMotion : Float = velocity.scalarProduct(velocity) + rotation.scalarProduct(rotation)
 
             let bias : Float = pow(0.5, duration)
             motion = bias * motion + (1.0 - bias) * currentMotion
@@ -189,16 +189,15 @@ class RigidBody3D
         return inverseInertiaTensor
     }
 
-    func getInverseInertiaTensorWorld(_ inverseInertiaTensor: inout _Matrix3)
+    func getInverseInertiaTensorWorld(_ inverseInertiaTensor: _Matrix3)
     {
-        inverseInertiaTensor.data = inverseInertiaTensorWorld.data
+        inverseInertiaTensor.data = self.inverseInertiaTensorWorld.data
     }
 
     func getInverseInertiaTensorWorld() -> _Matrix3
     {
         return inverseInertiaTensorWorld
     }
-
 
     func setDamping(_ linearDamping: Float,_ angularDamping: Float)
     {
@@ -226,7 +225,7 @@ class RigidBody3D
         return angularDamping
     }
 
-    func setPosition(_ position: float3)
+    func setPosition(_ position: _Vector3)
     {
         self.position = position
     }
@@ -238,7 +237,7 @@ class RigidBody3D
         position.z = z
     }
 
-    func getPosition() -> float3
+    func getPosition() -> _Vector3
     {
         return position
     }
@@ -343,27 +342,27 @@ class RigidBody3D
         return transformMatrix
     }
 
-    func getPointInLocalSpace(_ point: float3) -> float3
+    func getPointInLocalSpace(_ point: _Vector3) -> _Vector3
     {
         return transformMatrix.transformInverse(point)
     }
 
-    func getPointInWorldSpace(_ point: float3) -> float3
+    func getPointInWorldSpace(_ point: _Vector3) -> _Vector3
     {
         return transformMatrix.transform(point)
     }
     
-    func getDirectionInLocalSpace(_ direction: float3) -> float3
+    func getDirectionInLocalSpace(_ direction: _Vector3) -> _Vector3
     {
         return transformMatrix.transformInverseDirection(direction)
     }
 
-    func getDirectionInWorldSpace(_ direction: float3) -> float3
+    func getDirectionInWorldSpace(_ direction: _Vector3) -> _Vector3
     {
         return transformMatrix.transformDirection(direction)
     }
 
-    func setVelocity(_ velocity: float3)
+    func setVelocity(_ velocity: _Vector3)
     {
         self.velocity = velocity
     }
@@ -375,17 +374,17 @@ class RigidBody3D
         velocity.z = z
     }
 
-    func getVelocity() -> float3
+    func getVelocity() -> _Vector3
     {
         return velocity
     }
     
-    func addVelocity(_ deltaVelocity: float3)
+    func addVelocity(_ deltaVelocity: _Vector3)
     {
         velocity += deltaVelocity
     }
 
-    func setRotation(rotation: float3)
+    func setRotation(rotation: _Vector3)
     {
         self.rotation = rotation
     }
@@ -397,12 +396,12 @@ class RigidBody3D
         rotation.z = z
     }
     
-    func getRotation() -> float3
+    func getRotation() -> _Vector3
     {
         return rotation
     }
 
-    func addRotation(_ deltaRotation: float3)
+    func addRotation(_ deltaRotation: _Vector3)
     {
         rotation += deltaRotation
     }
@@ -421,8 +420,8 @@ class RigidBody3D
             motion = RigidBody3D.sleepEpsilon * 2.0
         } else {
             isAwake = false
-            velocity = float3(0,0,0)
-            rotation = float3(0,0,0)
+            velocity.clear()
+            rotation.clear()
         }
     }
 
@@ -435,49 +434,49 @@ class RigidBody3D
         }
     }
 
-    func getLastFrameAcceleration() -> float3
+    func getLastFrameAcceleration() -> _Vector3
     {
         return lastFrameAcceleration
     }
 
     func clearAccumulators()
     {
-        forceAccum = float3(0,0,0)
-        torqueAccum = float3(0,0,0)
+        forceAccum.clear()
+        torqueAccum.clear()
     }
 
-    func addForce(_ force: float3)
+    func addForce(_ force: _Vector3)
     {
         forceAccum += force
         isAwake = true
     }
 
-    func addForceAtBodyPoint(_ force: float3,_ point: float3)
+    func addForceAtBodyPoint(_ force: _Vector3,_ point: _Vector3)
     {
         // Convert to coordinates relative to center of mass.
         let pt = getPointInWorldSpace(point)
         addForceAtPoint(force, pt)
     }
 
-    func addForceAtPoint(_ force: float3,_ point: float3)
+    func addForceAtPoint(_ force: _Vector3,_ point: _Vector3)
     {
         // Convert to coordinates relative to center of mass.
         var pt = point
         pt -= position
 
         forceAccum += force
-        torqueAccum += cross(pt, force)
+        torqueAccum += pt % force
 
         isAwake = true
     }
 
-    func addTorque(_ torque: float3)
+    func addTorque(_ torque: _Vector3)
     {
         torqueAccum += torque
         isAwake = true
     }
 
-    func setAcceleration(_ acceleration: float3)
+    func setAcceleration(_ acceleration: _Vector3)
     {
         self.acceleration = acceleration
     }
@@ -489,7 +488,7 @@ class RigidBody3D
         acceleration.z = z
     }
 
-    func getAcceleration() -> float3
+    func getAcceleration() -> _Vector3
     {
         return acceleration
     }

@@ -131,7 +131,7 @@ class Physics3D
                     //objectSpheres.particle3D = particle
                     objectSpheres.body3D = body
                     self.objectSpheres.append(objectSpheres)
-                    body.setPosition(float3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
+                    body.setPosition(_Vector3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
                     body.setMass(mass: 5)
                     rigidBodyWorld.addBody(body)
                 }
@@ -175,9 +175,10 @@ class Physics3D
                     if oS.penetrationDepth < 0 {
                         //print( oS.penetrationDepth )
                         let penetration = -oS.penetrationDepth
-                        var contactPoint : float3 = float3(oS.position.x, oS.position.y, oS.position.z)
-                        contactPoint += -oS.hitNormal * (oS.position.w - penetration)
-                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: contactPoint, normal: oS.hitNormal, penetration: penetration)
+                        var contactPoint : _Vector3 = _Vector3(oS.position.x, oS.position.y, oS.position.z)
+                        let hitNormal : _Vector3 = _Vector3(oS.hitNormal.x, oS.hitNormal.y, oS.hitNormal.z)
+                        contactPoint += -hitNormal * (oS.position.w - penetration)
+                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: contactPoint, normal: hitNormal, penetration: penetration)
                         rigidBodyWorld.contacts.append(contact)
                     }
                 }
@@ -191,10 +192,10 @@ class Physics3D
                         //let contact = Particle3DContact(particle: (oS.particle3D!, nil), normal: oS.hitNormal, penetration: oS.penetrationDepth)
                         //particleWorld.contacts.append(contact)
                         let penetration = -oS.penetrationDepth
-
-                        var contactPoint : float3 = float3(oS.position.x, oS.position.y, oS.position.z)
-                        contactPoint += -oS.hitNormal * (oS.position.w - penetration)
-                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: contactPoint, normal: oS.hitNormal, penetration: penetration)
+                        var contactPoint : _Vector3 = _Vector3(oS.position.x, oS.position.y, oS.position.z)
+                        let hitNormal : _Vector3 = _Vector3(oS.hitNormal.x, oS.hitNormal.y, oS.hitNormal.z)
+                        contactPoint += -hitNormal * (oS.position.w - penetration)
+                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: contactPoint, normal: hitNormal, penetration: penetration)
                         rigidBodyWorld.contacts.append(contact)
                     }
                 }
@@ -214,7 +215,7 @@ class Physics3D
                 node.simdOrientation.real = body.orientation.r
                 node.simdOrientation.imag = float3(body.orientation.i, body.orientation.j, body.orientation.k)
 
-                //print(body.orientation.r,body.orientation.i, body.orientation.j, body.orientation.k)
+                print(body.orientation.r,body.orientation.i, body.orientation.j, body.orientation.k)
                 
                 //print(body.getTransform().data)
                 

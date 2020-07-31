@@ -29,85 +29,6 @@
 		2B169BE1246B67D000366E19 /* TerrainEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BDF246B67D000366E19 /* TerrainEditor.swift */; };
 		2B169BE3246E19DE00366E19 /* UploadDialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BE2246E195400366E19 /* UploadDialogs.swift */; };
 		2B169BE4246E19DF00366E19 /* UploadDialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BE2246E195400366E19 /* UploadDialogs.swift */; };
-		2B1ACBE023597D2600ED19AD /* TVOS_Framework.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B1ACBDE23597D2600ED19AD /* TVOS_Framework.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B1ACBE423597D5900ED19AD /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119F21EAD46B001C94E9 /* App.swift */; };
-		2B1ACBE523597D5900ED19AD /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
-		2B1ACBE623597D5900ED19AD /* LeftRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119821EAD46B001C94E9 /* LeftRegion.swift */; };
-		2B1ACBE723597D5900ED19AD /* TopRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119721EAD46B001C94E9 /* TopRegion.swift */; };
-		2B1ACBE823597D5900ED19AD /* RightRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119C21EAD46B001C94E9 /* RightRegion.swift */; };
-		2B1ACBE923597D5900ED19AD /* BottomRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119B21EAD46B001C94E9 /* BottomRegion.swift */; };
-		2B1ACBEA23597D5900ED19AD /* EditorRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119D21EAD46B001C94E9 /* EditorRegion.swift */; };
-		2B1ACBEB23597D5900ED19AD /* EditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E921ED623F001C94E9 /* EditorWidget.swift */; };
-		2B1ACBEC23597D5900ED19AD /* AppShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119921EAD46B001C94E9 /* AppShaders.metal */; };
-		2B1ACBED23597D5900ED19AD /* Mad4Metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119E21EAD46B001C94E9 /* Mad4Metal.metal */; };
-		2B1ACBEE23597D5E00ED19AD /* Data.h in Headers */ = {isa = PBXBuildFile; fileRef = 2BF5D363221E7E2D00EAAA76 /* Data.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B1ACBEF23597D6600ED19AD /* GameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50672298FC7900D3B6C5 /* GameApp.swift */; };
-		2B1ACBF023597D6600ED19AD /* GameRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; };
-		2B1ACBF123597D6600ED19AD /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
-		2B1ACBF223597D7800ED19AD /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
-		2B1ACBF323597D7800ED19AD /* SceneRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */; };
-		2B1ACBF423597D7800ED19AD /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
-		2B1ACBF523597D7800ED19AD /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22F222F5D5C00A47812 /* Physics.swift */; };
-		2B1ACBF623597D7800ED19AD /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
-		2B1ACBF723597D7800ED19AD /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F821F55D20001C94E9 /* Object.swift */; };
-		2B1ACBF823597D7800ED19AD /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
-		2B1ACBF923597D7800ED19AD /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2262222260600A47812 /* Scene.swift */; };
-		2B1ACBFA23597D7800ED19AD /* SceneMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2292222301300A47812 /* SceneMaxDelegate.swift */; };
-		2B1ACBFB23597D7E00ED19AD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
-		2B1ACBFC23597D7E00ED19AD /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D4226D640300E20ADD /* Game.swift */; };
-		2B1ACBFD23597D7E00ED19AD /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E021EC1A92001C94E9 /* Shape.swift */; };
-		2B1ACBFE23597D7E00ED19AD /* Material.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95F224367AF0047A94A /* Material.swift */; };
-		2B1ACBFF23597D7E00ED19AD /* ShapeSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */; };
-		2B1ACC0023597D7E00ED19AD /* MaterialSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E965224481AB0047A94A /* MaterialSelector.swift */; };
-		2B1ACC0123597D7E00ED19AD /* ShapeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F521F02EAD001C94E9 /* ShapeList.swift */; };
-		2B1ACC0223597D7E00ED19AD /* MaterialList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E9682245C1EF0047A94A /* MaterialList.swift */; };
-		2B1ACC0323597D7E00ED19AD /* ShapeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11EF21EEC618001C94E9 /* ShapeFactory.swift */; };
-		2B1ACC0423597D7E00ED19AD /* MaterialFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E962224466CC0047A94A /* MaterialFactory.swift */; };
-		2B1ACC0523597D7E00ED19AD /* Gizmo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FE21F808B1001C94E9 /* Gizmo.swift */; };
-		2B1ACC0623597D7E00ED19AD /* GizmoInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */; };
-		2B1ACC0723597D7E00ED19AD /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
-		2B1ACC0823597D8200ED19AD /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67101221259F500B95241 /* Node.swift */; };
-		2B1ACC0923597D8200ED19AD /* NodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22C2226669000A47812 /* NodeUI.swift */; };
-		2B1ACC0A23597D8200ED19AD /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
-		2B1ACC0B23597D8200ED19AD /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
-		2B1ACC0C23597D8200ED19AD /* GameNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */; };
-		2B1ACC0D23597D8200ED19AD /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
-		2B1ACC0E23597D8200ED19AD /* BehaviorLeaves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */; };
-		2B1ACC0F23597D8200ED19AD /* NodeGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710422125D7D00B95241 /* NodeGraph.swift */; };
-		2B1ACC1023597D8200ED19AD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
-		2B1ACC1123597D8200ED19AD /* Node.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67107221291D200B95241 /* Node.metal */; };
-		2B1ACC1223597D8200ED19AD /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
-		2B1ACC1323597D8200ED19AD /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
-		2B1ACC1423597D9600ED19AD /* MMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; };
-		2B1ACC1523597D9A00ED19AD /* MMRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B121EADB46001C94E9 /* MMRenderer.swift */; };
-		2B1ACC1623597D9A00ED19AD /* MMWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B221EADB46001C94E9 /* MMWidget.swift */; };
-		2B1ACC1723597D9A00ED19AD /* MMRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B321EADB46001C94E9 /* MMRegion.swift */; };
-		2B1ACC1823597D9A00ED19AD /* MMDrawable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B421EADB46001C94E9 /* MMDrawable.swift */; };
-		2B1ACC1923597D9A00ED19AD /* MMUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B521EADB46001C94E9 /* MMUtils.swift */; };
-		2B1ACC1A23597D9A00ED19AD /* MMFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B821EADB46001C94E9 /* MMFont.swift */; };
-		2B1ACC1B23597D9A00ED19AD /* MMLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B921EADB46001C94E9 /* MMLabel.swift */; };
-		2B1ACC1C23597D9A00ED19AD /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
-		2B1ACC1D23597D9A00ED19AD /* MMSliderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02717C235403FC009178F6 /* MMSliderWidget.swift */; };
-		2B1ACC1E23597D9A00ED19AD /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
-		2B1ACC1F23597D9A00ED19AD /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
-		2B1ACC2023597D9A00ED19AD /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
-		2B1ACC2123597D9A00ED19AD /* MMCompute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BA21EADB46001C94E9 /* MMCompute.swift */; };
-		2B1ACC2223597D9A00ED19AD /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
-		2B1ACC2323597D9A00ED19AD /* MMScrollArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */; };
-		2B1ACC2423597D9A00ED19AD /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
-		2B1ACC2523597D9A00ED19AD /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
-		2B1ACC2623597D9A00ED19AD /* MMSkin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BC21EADB46001C94E9 /* MMSkin.swift */; };
-		2B1ACC2723597D9A00ED19AD /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
-		2B1ACC2823597D9A00ED19AD /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
-		2B1ACC2923597D9A00ED19AD /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
-		2B1ACC2A23597D9A00ED19AD /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
-		2B1ACC2B23597D9A00ED19AD /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
-		2B1ACC2E23597F3A00ED19AD /* MMBaseView__tvos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1ACC2D23597F0F00ED19AD /* MMBaseView__tvos.swift */; };
-		2B1ACC2F23597FD700ED19AD /* GameApp.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50672298FC7900D3B6C5 /* GameApp.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B1ACC3023597FD700ED19AD /* GameRegion.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B1ACC3123597FD700ED19AD /* GameWidget.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B1ACC3223597FE100ED19AD /* MMView.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B1ACC3323597FE100ED19AD /* MMBaseView__tvos.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B1ACC2D23597F0F00ED19AD /* MMBaseView__tvos.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B1F2E13235EA08200838D46 /* Marble.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B1F2E12235EA08200838D46 /* Marble.shape-z */; };
 		2B1F2E14235EA08200838D46 /* Marble.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B1F2E12235EA08200838D46 /* Marble.shape-z */; };
 		2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FDA242306A400B9CCF1 /* gizmo_on.tiff */; };
@@ -223,9 +144,6 @@
 		2B716BEF24A039D0002DA1FD /* ThumbnailShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B716BED24A039CF002DA1FD /* ThumbnailShader.swift */; };
 		2B7A3BE823B2F1F9002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
 		2B7A3BE923B2F1FA002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
-		2B7A3BEA23B2F1FA002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
-		2B7A3BEB23B2F1FA002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
-		2B7A3BEC23B2F1FB002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
 		2B7A3BF423B4583A002EC5FC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BF323B4583A002EC5FC /* AppDelegate.swift */; };
 		2B7A3BF623B4583A002EC5FC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BF523B4583A002EC5FC /* ViewController.swift */; };
 		2B7A3BF823B4583E002EC5FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A3BF723B4583E002EC5FC /* Assets.xcassets */; };
@@ -334,174 +252,6 @@
 		2B91CBE72358477300DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
 		2B91CBE9235848AC00DED7B1 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE8235848AC00DED7B1 /* Pong.shape-z */; };
 		2B91CBEA235848AC00DED7B1 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE8235848AC00DED7B1 /* Pong.shape-z */; };
-		2B91CBF42358629300DED7B1 /* OSX_Framework.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B91CBF22358629300DED7B1 /* OSX_Framework.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CC6E235869A300DED7B1 /* MMBaseView_mac.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B721EADB46001C94E9 /* MMBaseView_mac.swift */; };
-		2B91CC6F235869BD00DED7B1 /* MMWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B221EADB46001C94E9 /* MMWidget.swift */; };
-		2B91CC70235869C800DED7B1 /* MMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; };
-		2B91CC71235869DB00DED7B1 /* MMRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B121EADB46001C94E9 /* MMRenderer.swift */; };
-		2B91CC72235869DF00DED7B1 /* MMRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B321EADB46001C94E9 /* MMRegion.swift */; };
-		2B91CC73235869E100DED7B1 /* MMDrawable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B421EADB46001C94E9 /* MMDrawable.swift */; };
-		2B91CC74235869E400DED7B1 /* MMUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B521EADB46001C94E9 /* MMUtils.swift */; };
-		2B91CC75235869E700DED7B1 /* MMFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B821EADB46001C94E9 /* MMFont.swift */; };
-		2B91CC76235869E900DED7B1 /* MMLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B921EADB46001C94E9 /* MMLabel.swift */; };
-		2B91CC77235869EE00DED7B1 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
-		2B91CC78235869EE00DED7B1 /* MMSliderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02717C235403FC009178F6 /* MMSliderWidget.swift */; };
-		2B91CC79235869EE00DED7B1 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
-		2B91CC7A235869EE00DED7B1 /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
-		2B91CC7B235869EE00DED7B1 /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
-		2B91CC7C235869EE00DED7B1 /* MMCompute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BA21EADB46001C94E9 /* MMCompute.swift */; };
-		2B91CC7D235869EE00DED7B1 /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
-		2B91CC7E235869EE00DED7B1 /* MMScrollArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */; };
-		2B91CC7F235869EE00DED7B1 /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
-		2B91CC80235869EE00DED7B1 /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
-		2B91CC81235869EE00DED7B1 /* MMSkin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BC21EADB46001C94E9 /* MMSkin.swift */; };
-		2B91CC82235869EE00DED7B1 /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
-		2B91CC83235869EE00DED7B1 /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
-		2B91CC84235869EE00DED7B1 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
-		2B91CC85235869EE00DED7B1 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
-		2B91CC86235869EE00DED7B1 /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
-		2B91CC8723586AC800DED7B1 /* NodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22C2226669000A47812 /* NodeUI.swift */; };
-		2B91CC8823586AD100DED7B1 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67101221259F500B95241 /* Node.swift */; };
-		2B91CC8923586AEC00DED7B1 /* Data.h in Headers */ = {isa = PBXBuildFile; fileRef = 2BF5D363221E7E2D00EAAA76 /* Data.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CC8A23586B4500DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
-		2B91CC8B23586B4500DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
-		2B91CC8C23586B4500DED7B1 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
-		2B91CC8D23586B4500DED7B1 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
-		2B91CC8E23586B4500DED7B1 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
-		2B91CC8F23586B4500DED7B1 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
-		2B91CC9023586B4E00DED7B1 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
-		2B91CC9123586B4E00DED7B1 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
-		2B91CC9223586B4E00DED7B1 /* GameNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */; };
-		2B91CC9323586B4E00DED7B1 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
-		2B91CC9423586B4E00DED7B1 /* BehaviorLeaves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */; };
-		2B91CC9523586B4E00DED7B1 /* NodeGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710422125D7D00B95241 /* NodeGraph.swift */; };
-		2B91CC9623586B4E00DED7B1 /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
-		2B91CC9723586B4E00DED7B1 /* Node.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67107221291D200B95241 /* Node.metal */; };
-		2B91CC9823586B4E00DED7B1 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
-		2B91CC9923586B4E00DED7B1 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
-		2B91CC9A23586B5400DED7B1 /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
-		2B91CC9B23586B5400DED7B1 /* SceneRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */; };
-		2B91CC9C23586B5400DED7B1 /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
-		2B91CC9D23586B5400DED7B1 /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22F222F5D5C00A47812 /* Physics.swift */; };
-		2B91CC9E23586B5400DED7B1 /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
-		2B91CC9F23586B5400DED7B1 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F821F55D20001C94E9 /* Object.swift */; };
-		2B91CCA023586B5400DED7B1 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
-		2B91CCA123586B5400DED7B1 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2262222260600A47812 /* Scene.swift */; };
-		2B91CCA223586B5400DED7B1 /* SceneMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2292222301300A47812 /* SceneMaxDelegate.swift */; };
-		2B91CCA523586B5400DED7B1 /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
-		2B91CCA623586B5400DED7B1 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D4226D640300E20ADD /* Game.swift */; };
-		2B91CCA723586B5400DED7B1 /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E021EC1A92001C94E9 /* Shape.swift */; };
-		2B91CCA823586B5400DED7B1 /* Material.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95F224367AF0047A94A /* Material.swift */; };
-		2B91CCA923586B5400DED7B1 /* ShapeSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */; };
-		2B91CCAA23586B5400DED7B1 /* MaterialSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E965224481AB0047A94A /* MaterialSelector.swift */; };
-		2B91CCAB23586B5400DED7B1 /* ShapeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F521F02EAD001C94E9 /* ShapeList.swift */; };
-		2B91CCAC23586B5400DED7B1 /* MaterialList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E9682245C1EF0047A94A /* MaterialList.swift */; };
-		2B91CCAD23586B5400DED7B1 /* ShapeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11EF21EEC618001C94E9 /* ShapeFactory.swift */; };
-		2B91CCAE23586B5400DED7B1 /* MaterialFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E962224466CC0047A94A /* MaterialFactory.swift */; };
-		2B91CCAF23586B5400DED7B1 /* Gizmo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FE21F808B1001C94E9 /* Gizmo.swift */; };
-		2B91CCB023586B5400DED7B1 /* GizmoInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */; };
-		2B91CCB123586B5400DED7B1 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
-		2B91CCB223586B5800DED7B1 /* GameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50672298FC7900D3B6C5 /* GameApp.swift */; };
-		2B91CCB323586B5800DED7B1 /* GameRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; };
-		2B91CCB423586B5800DED7B1 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
-		2B91CCB523586B5D00DED7B1 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119F21EAD46B001C94E9 /* App.swift */; };
-		2B91CCB623586B5D00DED7B1 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
-		2B91CCB723586B5D00DED7B1 /* LeftRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119821EAD46B001C94E9 /* LeftRegion.swift */; };
-		2B91CCB823586B5D00DED7B1 /* TopRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119721EAD46B001C94E9 /* TopRegion.swift */; };
-		2B91CCB923586B5D00DED7B1 /* RightRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119C21EAD46B001C94E9 /* RightRegion.swift */; };
-		2B91CCBA23586B5D00DED7B1 /* BottomRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119B21EAD46B001C94E9 /* BottomRegion.swift */; };
-		2B91CCBB23586B5D00DED7B1 /* EditorRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119D21EAD46B001C94E9 /* EditorRegion.swift */; };
-		2B91CCBC23586B5D00DED7B1 /* EditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E921ED623F001C94E9 /* EditorWidget.swift */; };
-		2B91CCBD23586B5D00DED7B1 /* AppShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119921EAD46B001C94E9 /* AppShaders.metal */; };
-		2B91CCBE23586B5D00DED7B1 /* Mad4Metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119E21EAD46B001C94E9 /* Mad4Metal.metal */; };
-		2B91CCC123586B6800DED7B1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
-		2B91CCC223586B7100DED7B1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
-		2B91CCF22359457100DED7B1 /* MMView.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CCF32359457100DED7B1 /* MMBaseView_mac.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11B721EADB46001C94E9 /* MMBaseView_mac.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CD0B2359458D00DED7B1 /* GameApp.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50672298FC7900D3B6C5 /* GameApp.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CD0C2359458D00DED7B1 /* GameRegion.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CD0D2359458D00DED7B1 /* GameWidget.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CD83235959CC00DED7B1 /* IOS_Framework.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B91CD81235959CC00DED7B1 /* IOS_Framework.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CD8C23595A3700DED7B1 /* Data.h in Headers */ = {isa = PBXBuildFile; fileRef = 2BF5D363221E7E2D00EAAA76 /* Data.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CD8D23595A4A00DED7B1 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119F21EAD46B001C94E9 /* App.swift */; };
-		2B91CD8E23595A4A00DED7B1 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
-		2B91CD8F23595A4A00DED7B1 /* LeftRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119821EAD46B001C94E9 /* LeftRegion.swift */; };
-		2B91CD9023595A4A00DED7B1 /* TopRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119721EAD46B001C94E9 /* TopRegion.swift */; };
-		2B91CD9123595A4A00DED7B1 /* RightRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119C21EAD46B001C94E9 /* RightRegion.swift */; };
-		2B91CD9223595A4A00DED7B1 /* BottomRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119B21EAD46B001C94E9 /* BottomRegion.swift */; };
-		2B91CD9323595A4A00DED7B1 /* EditorRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119D21EAD46B001C94E9 /* EditorRegion.swift */; };
-		2B91CD9423595A4A00DED7B1 /* EditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E921ED623F001C94E9 /* EditorWidget.swift */; };
-		2B91CD9523595A4A00DED7B1 /* AppShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119921EAD46B001C94E9 /* AppShaders.metal */; };
-		2B91CD9623595A5000DED7B1 /* Mad4Metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119E21EAD46B001C94E9 /* Mad4Metal.metal */; };
-		2B91CD9723595A5C00DED7B1 /* GameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50672298FC7900D3B6C5 /* GameApp.swift */; };
-		2B91CD9823595A5C00DED7B1 /* GameRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; };
-		2B91CD9923595A5C00DED7B1 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
-		2B91CD9A23595A6300DED7B1 /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
-		2B91CD9B23595A6300DED7B1 /* SceneRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */; };
-		2B91CD9C23595A6300DED7B1 /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
-		2B91CD9D23595A6300DED7B1 /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22F222F5D5C00A47812 /* Physics.swift */; };
-		2B91CD9E23595A6300DED7B1 /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
-		2B91CD9F23595A6300DED7B1 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F821F55D20001C94E9 /* Object.swift */; };
-		2B91CDA023595A6300DED7B1 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
-		2B91CDA123595A6300DED7B1 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2262222260600A47812 /* Scene.swift */; };
-		2B91CDA223595A6300DED7B1 /* SceneMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2292222301300A47812 /* SceneMaxDelegate.swift */; };
-		2B91CDA523595A6300DED7B1 /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
-		2B91CDA623595A6300DED7B1 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D4226D640300E20ADD /* Game.swift */; };
-		2B91CDA723595A6300DED7B1 /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E021EC1A92001C94E9 /* Shape.swift */; };
-		2B91CDA823595A6300DED7B1 /* Material.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95F224367AF0047A94A /* Material.swift */; };
-		2B91CDA923595A6300DED7B1 /* ShapeSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */; };
-		2B91CDAA23595A6300DED7B1 /* MaterialSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E965224481AB0047A94A /* MaterialSelector.swift */; };
-		2B91CDAB23595A6300DED7B1 /* ShapeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F521F02EAD001C94E9 /* ShapeList.swift */; };
-		2B91CDAC23595A6300DED7B1 /* MaterialList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E9682245C1EF0047A94A /* MaterialList.swift */; };
-		2B91CDAD23595A6300DED7B1 /* ShapeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11EF21EEC618001C94E9 /* ShapeFactory.swift */; };
-		2B91CDAE23595A6300DED7B1 /* MaterialFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E962224466CC0047A94A /* MaterialFactory.swift */; };
-		2B91CDAF23595A6300DED7B1 /* Gizmo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FE21F808B1001C94E9 /* Gizmo.swift */; };
-		2B91CDB023595A6300DED7B1 /* GizmoInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */; };
-		2B91CDB123595A6300DED7B1 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
-		2B91CDB223595A8400DED7B1 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67101221259F500B95241 /* Node.swift */; };
-		2B91CDB323595A8400DED7B1 /* NodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22C2226669000A47812 /* NodeUI.swift */; };
-		2B91CDB423595A8400DED7B1 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
-		2B91CDB523595A8400DED7B1 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
-		2B91CDB623595A8400DED7B1 /* GameNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */; };
-		2B91CDB723595A8400DED7B1 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
-		2B91CDB823595A8400DED7B1 /* BehaviorLeaves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */; };
-		2B91CDB923595A8400DED7B1 /* NodeGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710422125D7D00B95241 /* NodeGraph.swift */; };
-		2B91CDBA23595A8400DED7B1 /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
-		2B91CDBB23595A8400DED7B1 /* Node.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67107221291D200B95241 /* Node.metal */; };
-		2B91CDBC23595A8400DED7B1 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
-		2B91CDBD23595A8400DED7B1 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
-		2B91CDBE23595A8B00DED7B1 /* MMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; };
-		2B91CDBF23595A8F00DED7B1 /* MMBaseView__ios.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */; };
-		2B91CDC023595A9400DED7B1 /* MMRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B121EADB46001C94E9 /* MMRenderer.swift */; };
-		2B91CDC123595A9400DED7B1 /* MMWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B221EADB46001C94E9 /* MMWidget.swift */; };
-		2B91CDC223595A9400DED7B1 /* MMRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B321EADB46001C94E9 /* MMRegion.swift */; };
-		2B91CDC323595A9400DED7B1 /* MMDrawable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B421EADB46001C94E9 /* MMDrawable.swift */; };
-		2B91CDC423595A9400DED7B1 /* MMUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B521EADB46001C94E9 /* MMUtils.swift */; };
-		2B91CDC523595A9400DED7B1 /* MMFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B821EADB46001C94E9 /* MMFont.swift */; };
-		2B91CDC623595A9400DED7B1 /* MMLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B921EADB46001C94E9 /* MMLabel.swift */; };
-		2B91CDC723595A9400DED7B1 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
-		2B91CDC823595A9400DED7B1 /* MMSliderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02717C235403FC009178F6 /* MMSliderWidget.swift */; };
-		2B91CDC923595A9400DED7B1 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
-		2B91CDCA23595A9400DED7B1 /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
-		2B91CDCB23595A9400DED7B1 /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
-		2B91CDCC23595A9400DED7B1 /* MMCompute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BA21EADB46001C94E9 /* MMCompute.swift */; };
-		2B91CDCD23595A9400DED7B1 /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
-		2B91CDCE23595A9400DED7B1 /* MMScrollArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */; };
-		2B91CDCF23595A9400DED7B1 /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
-		2B91CDD023595A9400DED7B1 /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
-		2B91CDD123595A9400DED7B1 /* MMSkin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BC21EADB46001C94E9 /* MMSkin.swift */; };
-		2B91CDD223595A9400DED7B1 /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
-		2B91CDD323595A9400DED7B1 /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
-		2B91CDD423595A9400DED7B1 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
-		2B91CDD523595A9400DED7B1 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
-		2B91CDD623595A9400DED7B1 /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
-		2B91CDD723595AC900DED7B1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF113021EAD38E001C94E9 /* ViewController.swift */; };
-		2B91CDD823595AE300DED7B1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */; };
-		2B91CDE123595D3400DED7B1 /* GameApp.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50672298FC7900D3B6C5 /* GameApp.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CDE223595D3400DED7B1 /* GameRegion.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CDE323595D3500DED7B1 /* GameWidget.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CDE423595D3500DED7B1 /* MMView.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		2B91CDE523595D3500DED7B1 /* MMBaseView__ios.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
 		2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B9B299123BA327900C2F387 /* rz_toolbar.tiff */; };
 		2B9B299C23BAD15700C2F387 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B299B23BAD15700C2F387 /* Node.swift */; };
@@ -726,9 +476,6 @@
 		2BF5D3662220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
 		2BF632ED2361579C00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
 		2BF632EE2361579C00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
-		2BF632EF2361579D00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
-		2BF632F02361579D00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
-		2BF632F12361579E00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
 		2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 		2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 		2BFC2A1924C2EBD80036C047 /* Physics3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC2A1824C2EBD80036C047 /* Physics3D.swift */; };
@@ -747,9 +494,6 @@
 		2B14E15223BF278800B45B9D /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.2.sdk/System/Library/Frameworks/CloudKit.framework; sourceTree = DEVELOPER_DIR; };
 		2B169BDF246B67D000366E19 /* TerrainEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainEditor.swift; sourceTree = "<group>"; };
 		2B169BE2246E195400366E19 /* UploadDialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadDialogs.swift; sourceTree = "<group>"; };
-		2B1ACBDC23597D2600ED19AD /* TVOS_Framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TVOS_Framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		2B1ACBDE23597D2600ED19AD /* TVOS_Framework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TVOS_Framework.h; sourceTree = "<group>"; };
-		2B1ACBDF23597D2600ED19AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2B1ACC2D23597F0F00ED19AD /* MMBaseView__tvos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMBaseView__tvos.swift; sourceTree = "<group>"; };
 		2B1F2E12235EA08200838D46 /* Marble.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Marble.shape-z"; sourceTree = "<group>"; };
 		2B2B5FDA242306A400B9CCF1 /* gizmo_on.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = gizmo_on.tiff; sourceTree = "<group>"; };
@@ -870,12 +614,6 @@
 		2B91CBE22358477300DED7B1 /* Square.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Square.tiff; sourceTree = "<group>"; };
 		2B91CBE32358477300DED7B1 /* Square.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Square.json; sourceTree = "<group>"; };
 		2B91CBE8235848AC00DED7B1 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
-		2B91CBF02358629300DED7B1 /* OSX_Framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = OSX_Framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		2B91CBF22358629300DED7B1 /* OSX_Framework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OSX_Framework.h; sourceTree = "<group>"; };
-		2B91CBF32358629300DED7B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		2B91CD7F235959CC00DED7B1 /* IOS_Framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = IOS_Framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		2B91CD81235959CC00DED7B1 /* IOS_Framework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IOS_Framework.h; sourceTree = "<group>"; };
-		2B91CD82235959CC00DED7B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeBuilder.swift; sourceTree = "<group>"; };
 		2B9B299123BA327900C2F387 /* rz_toolbar.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = rz_toolbar.tiff; sourceTree = "<group>"; };
 		2B9B299B23BAD15700C2F387 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
@@ -995,32 +733,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		2B1ACBD923597D2600ED19AD /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		2B7A3BEE23B4583A002EC5FC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				2B14F3E724812B260055FA10 /* CloudKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2B91CBED2358629300DED7B1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2B91CD7C235959CC00DED7B1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1051,15 +768,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		2B1ACBDD23597D2600ED19AD /* TVOS Framework */ = {
-			isa = PBXGroup;
-			children = (
-				2B1ACBDE23597D2600ED19AD /* TVOS_Framework.h */,
-				2B1ACBDF23597D2600ED19AD /* Info.plist */,
-			);
-			path = "TVOS Framework";
-			sourceTree = "<group>";
-		};
 		2B59875A23D3E8C0007E335F /* Gizmos */ = {
 			isa = PBXGroup;
 			children = (
@@ -1209,24 +917,6 @@
 			path = "3D Pipeline";
 			sourceTree = "<group>";
 		};
-		2B91CBF12358629300DED7B1 /* OSX Framework */ = {
-			isa = PBXGroup;
-			children = (
-				2B91CBF22358629300DED7B1 /* OSX_Framework.h */,
-				2B91CBF32358629300DED7B1 /* Info.plist */,
-			);
-			path = "OSX Framework";
-			sourceTree = "<group>";
-		};
-		2B91CD80235959CC00DED7B1 /* IOS Framework */ = {
-			isa = PBXGroup;
-			children = (
-				2B91CD81235959CC00DED7B1 /* IOS_Framework.h */,
-				2B91CD82235959CC00DED7B1 /* Info.plist */,
-			);
-			path = "IOS Framework";
-			sourceTree = "<group>";
-		};
 		2B9B29A523BB44BF00C2F387 /* Render-Z iOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -1289,9 +979,6 @@
 				2BBF10F821EAD2AF001C94E9 /* Shape-Z */,
 				2BBF112D21EAD38E001C94E9 /* Shape-Z iOS */,
 				2BBF11B021EADB46001C94E9 /* Mad4Metal */,
-				2B91CBF12358629300DED7B1 /* OSX Framework */,
-				2B91CD80235959CC00DED7B1 /* IOS Framework */,
-				2B1ACBDD23597D2600ED19AD /* TVOS Framework */,
 				2BBF10F721EAD2AF001C94E9 /* Products */,
 				2B5CCB0522169D95005BAA2B /* Frameworks */,
 			);
@@ -1302,9 +989,6 @@
 			children = (
 				2BBF10F621EAD2AF001C94E9 /* _Shape-Z.app */,
 				2BBF112C21EAD38D001C94E9 /* Shape-Z.app */,
-				2B91CBF02358629300DED7B1 /* OSX_Framework.framework */,
-				2B91CD7F235959CC00DED7B1 /* IOS_Framework.framework */,
-				2B1ACBDC23597D2600ED19AD /* TVOS_Framework.framework */,
 				2B7A3BF123B4583A002EC5FC /* Shape-Z.app */,
 				2B9B29A423BB44BF00C2F387 /* Shape-Z.app */,
 			);
@@ -1515,70 +1199,7 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXHeadersBuildPhase section */
-		2B1ACBD723597D2600ED19AD /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				2B1ACC3223597FE100ED19AD /* MMView.swift in Headers */,
-				2B1ACC3323597FE100ED19AD /* MMBaseView__tvos.swift in Headers */,
-				2B1ACC2F23597FD700ED19AD /* GameApp.swift in Headers */,
-				2B1ACC3023597FD700ED19AD /* GameRegion.swift in Headers */,
-				2B1ACC3123597FD700ED19AD /* GameWidget.swift in Headers */,
-				2B1ACBEE23597D5E00ED19AD /* Data.h in Headers */,
-				2B1ACBE023597D2600ED19AD /* TVOS_Framework.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2B91CBEB2358629300DED7B1 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				2B91CD0B2359458D00DED7B1 /* GameApp.swift in Headers */,
-				2B91CD0C2359458D00DED7B1 /* GameRegion.swift in Headers */,
-				2B91CD0D2359458D00DED7B1 /* GameWidget.swift in Headers */,
-				2B91CCF22359457100DED7B1 /* MMView.swift in Headers */,
-				2B91CCF32359457100DED7B1 /* MMBaseView_mac.swift in Headers */,
-				2B91CC8923586AEC00DED7B1 /* Data.h in Headers */,
-				2B91CBF42358629300DED7B1 /* OSX_Framework.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2B91CD7A235959CC00DED7B1 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				2B91CDE123595D3400DED7B1 /* GameApp.swift in Headers */,
-				2B91CDE223595D3400DED7B1 /* GameRegion.swift in Headers */,
-				2B91CDE323595D3500DED7B1 /* GameWidget.swift in Headers */,
-				2B91CDE423595D3500DED7B1 /* MMView.swift in Headers */,
-				2B91CDE523595D3500DED7B1 /* MMBaseView__ios.swift in Headers */,
-				2B91CD8C23595A3700DED7B1 /* Data.h in Headers */,
-				2B91CD83235959CC00DED7B1 /* IOS_Framework.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXHeadersBuildPhase section */
-
 /* Begin PBXNativeTarget section */
-		2B1ACBDB23597D2600ED19AD /* TVOS Framework */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 2B1ACBE323597D2600ED19AD /* Build configuration list for PBXNativeTarget "TVOS Framework" */;
-			buildPhases = (
-				2B1ACBD723597D2600ED19AD /* Headers */,
-				2B1ACBD823597D2600ED19AD /* Sources */,
-				2B1ACBD923597D2600ED19AD /* Frameworks */,
-				2B1ACBDA23597D2600ED19AD /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "TVOS Framework";
-			productName = "TVOS Framework";
-			productReference = 2B1ACBDC23597D2600ED19AD /* TVOS_Framework.framework */;
-			productType = "com.apple.product-type.framework";
-		};
 		2B7A3BF023B4583A002EC5FC /* Shape-Z */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2B7A3BFE23B4583E002EC5FC /* Build configuration list for PBXNativeTarget "Shape-Z" */;
@@ -1595,42 +1216,6 @@
 			productName = "Render-Z";
 			productReference = 2B7A3BF123B4583A002EC5FC /* Shape-Z.app */;
 			productType = "com.apple.product-type.application";
-		};
-		2B91CBEF2358629300DED7B1 /* OSX Framework */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 2B91CBF92358629300DED7B1 /* Build configuration list for PBXNativeTarget "OSX Framework" */;
-			buildPhases = (
-				2B91CBEB2358629300DED7B1 /* Headers */,
-				2B91CBEC2358629300DED7B1 /* Sources */,
-				2B91CBED2358629300DED7B1 /* Frameworks */,
-				2B91CBEE2358629300DED7B1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "OSX Framework";
-			productName = "OSX Framework";
-			productReference = 2B91CBF02358629300DED7B1 /* OSX_Framework.framework */;
-			productType = "com.apple.product-type.framework";
-		};
-		2B91CD7E235959CC00DED7B1 /* IOS Framework */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 2B91CD88235959CC00DED7B1 /* Build configuration list for PBXNativeTarget "IOS Framework" */;
-			buildPhases = (
-				2B91CD7A235959CC00DED7B1 /* Headers */,
-				2B91CD7B235959CC00DED7B1 /* Sources */,
-				2B91CD7C235959CC00DED7B1 /* Frameworks */,
-				2B91CD7D235959CC00DED7B1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "IOS Framework";
-			productName = "IOS Framework";
-			productReference = 2B91CD7F235959CC00DED7B1 /* IOS_Framework.framework */;
-			productType = "com.apple.product-type.framework";
 		};
 		2B9B29A323BB44BF00C2F387 /* Shape-Z iOS */ = {
 			isa = PBXNativeTarget;
@@ -1693,17 +1278,8 @@
 				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = "Markus Moenig";
 				TargetAttributes = {
-					2B1ACBDB23597D2600ED19AD = {
-						CreatedOnToolsVersion = 11.1;
-					};
 					2B7A3BF023B4583A002EC5FC = {
 						CreatedOnToolsVersion = 11.3;
-					};
-					2B91CBEF2358629300DED7B1 = {
-						CreatedOnToolsVersion = 11.1;
-					};
-					2B91CD7E235959CC00DED7B1 = {
-						CreatedOnToolsVersion = 11.1;
 					};
 					2B9B29A323BB44BF00C2F387 = {
 						CreatedOnToolsVersion = 11.3;
@@ -1757,21 +1333,11 @@
 				2B9B29A323BB44BF00C2F387 /* Shape-Z iOS */,
 				2BBF10F521EAD2AF001C94E9 /* _Shape-Z */,
 				2BBF112B21EAD38D001C94E9 /* _Shape-Z iOS */,
-				2B91CBEF2358629300DED7B1 /* OSX Framework */,
-				2B91CD7E235959CC00DED7B1 /* IOS Framework */,
-				2B1ACBDB23597D2600ED19AD /* TVOS Framework */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		2B1ACBDA23597D2600ED19AD /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		2B7A3BEF23B4583A002EC5FC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1817,26 +1383,6 @@
 				2B9CB6F32485CC9900CFFA51 /* Z_green.tiff in Resources */,
 				2B8C51B124B6A35F0070E8D8 /* material.tiff in Resources */,
 				2B8C51BA24B6A55D0070E8D8 /* render.tiff in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2B91CBEE2358629300DED7B1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				2B91CC8D23586B4500DED7B1 /* GameCuben.tiff in Resources */,
-				2B91CC8F23586B4500DED7B1 /* OpenSans.tiff in Resources */,
-				2B91CC8A23586B4500DED7B1 /* Square.json in Resources */,
-				2B91CC8B23586B4500DED7B1 /* Square.tiff in Resources */,
-				2B91CC8E23586B4500DED7B1 /* OpenSans.json in Resources */,
-				2B91CC8C23586B4500DED7B1 /* GameCuben.json in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2B91CD7D235959CC00DED7B1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1955,87 +1501,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		2B1ACBD823597D2600ED19AD /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				2B1ACBFE23597D7E00ED19AD /* Material.swift in Sources */,
-				2B1ACC1123597D8200ED19AD /* Node.metal in Sources */,
-				2B1ACBEB23597D5900ED19AD /* EditorWidget.swift in Sources */,
-				2B1ACBF023597D6600ED19AD /* GameRegion.swift in Sources */,
-				2B1ACC1523597D9A00ED19AD /* MMRenderer.swift in Sources */,
-				2B1ACC0823597D8200ED19AD /* Node.swift in Sources */,
-				2B1ACBF623597D7800ED19AD /* DiskBuilder.swift in Sources */,
-				2B1ACBF123597D6600ED19AD /* GameWidget.swift in Sources */,
-				2B1ACBE923597D5900ED19AD /* BottomRegion.swift in Sources */,
-				2B1ACC2123597D9A00ED19AD /* MMCompute.swift in Sources */,
-				2B1ACC2023597D9A00ED19AD /* MMTabWidget.swift in Sources */,
-				2B1ACBE423597D5900ED19AD /* App.swift in Sources */,
-				2B1ACC1B23597D9A00ED19AD /* MMLabel.swift in Sources */,
-				2B1ACC1E23597D9A00ED19AD /* MMFloatPopUp.swift in Sources */,
-				2B1ACC0D23597D8200ED19AD /* Behavior.swift in Sources */,
-				2B1ACC2A23597D9A00ED19AD /* MMScreen.swift in Sources */,
-				2B1ACC0323597D7E00ED19AD /* ShapeFactory.swift in Sources */,
-				2B1ACBE723597D5900ED19AD /* TopRegion.swift in Sources */,
-				2B1ACC2923597D9A00ED19AD /* MMFile.swift in Sources */,
-				2B1ACC1423597D9600ED19AD /* MMView.swift in Sources */,
-				2B1ACBFC23597D7E00ED19AD /* Game.swift in Sources */,
-				2B7A3BEC23B2F1FB002EC5FC /* MMTreeWidget.swift in Sources */,
-				2B1ACBF323597D7800ED19AD /* SceneRenderer.swift in Sources */,
-				2B1ACC1323597D8200ED19AD /* Variables.swift in Sources */,
-				2B1ACC1C23597D9A00ED19AD /* MMFloatWidget.swift in Sources */,
-				2B1ACC0623597D7E00ED19AD /* GizmoInfoArea.swift in Sources */,
-				2B1ACC1D23597D9A00ED19AD /* MMSliderWidget.swift in Sources */,
-				2B1ACC2B23597D9A00ED19AD /* MMInfoArea.swift in Sources */,
-				2B1ACC0923597D8200ED19AD /* NodeUI.swift in Sources */,
-				2B1ACBE523597D5900ED19AD /* Dialogs.swift in Sources */,
-				2B1ACC2323597D9A00ED19AD /* MMScrollArea.swift in Sources */,
-				2B1ACC1A23597D9A00ED19AD /* MMFont.swift in Sources */,
-				2B1ACBFD23597D7E00ED19AD /* Shape.swift in Sources */,
-				2B1ACC1623597D9A00ED19AD /* MMWidget.swift in Sources */,
-				2B1ACBFF23597D7E00ED19AD /* ShapeSelector.swift in Sources */,
-				2B1ACC1823597D9A00ED19AD /* MMDrawable.swift in Sources */,
-				2B1ACC0723597D7E00ED19AD /* Gizmo.metal in Sources */,
-				2B1ACBF723597D7800ED19AD /* Object.swift in Sources */,
-				2B1ACC0223597D7E00ED19AD /* MaterialList.swift in Sources */,
-				2B1ACBF823597D7800ED19AD /* ObjectMaxDelegate.swift in Sources */,
-				2B1ACC1223597D8200ED19AD /* NodeList.swift in Sources */,
-				2B1ACBF923597D7800ED19AD /* Scene.swift in Sources */,
-				2B1ACBEF23597D6600ED19AD /* GameApp.swift in Sources */,
-				2B1ACBE823597D5900ED19AD /* RightRegion.swift in Sources */,
-				2B1ACC2623597D9A00ED19AD /* MMSkin.swift in Sources */,
-				2B1ACC0523597D7E00ED19AD /* Gizmo.swift in Sources */,
-				2B1ACC1F23597D9A00ED19AD /* MMColorWidget.swift in Sources */,
-				2B1ACC2523597D9A00ED19AD /* MMListWidget.swift in Sources */,
-				2B1ACBF223597D7800ED19AD /* Builder.swift in Sources */,
-				2B1ACBF423597D7800ED19AD /* DebugBuilder.swift in Sources */,
-				2B1ACBFB23597D7E00ED19AD /* LayerAreaMaxDelegate.swift in Sources */,
-				2B1ACC0A23597D8200ED19AD /* ObjectNodes.swift in Sources */,
-				2B1ACC2E23597F3A00ED19AD /* MMBaseView__tvos.swift in Sources */,
-				2B1ACC0C23597D8200ED19AD /* GameNodes.swift in Sources */,
-				2B1ACC0E23597D8200ED19AD /* BehaviorLeaves.swift in Sources */,
-				2B1ACC0423597D7E00ED19AD /* MaterialFactory.swift in Sources */,
-				2B1ACBEC23597D5900ED19AD /* AppShaders.metal in Sources */,
-				2B1ACC2223597D9A00ED19AD /* MMFragment.swift in Sources */,
-				2B1ACC0123597D7E00ED19AD /* ShapeList.swift in Sources */,
-				2B1ACC2423597D9A00ED19AD /* MMScrollButton.swift in Sources */,
-				2B1ACC0F23597D8200ED19AD /* NodeGraph.swift in Sources */,
-				2B1ACC2823597D9A00ED19AD /* MMTimeline.swift in Sources */,
-				2BF632F12361579E00750990 /* MMTabButtonWidget.swift in Sources */,
-				2B1ACC1923597D9A00ED19AD /* MMUtils.swift in Sources */,
-				2B1ACBE623597D5900ED19AD /* LeftRegion.swift in Sources */,
-				2B1ACBFA23597D7800ED19AD /* SceneMaxDelegate.swift in Sources */,
-				2B1ACC2723597D9A00ED19AD /* MMAnimate.swift in Sources */,
-				2B1ACBF523597D7800ED19AD /* Physics.swift in Sources */,
-				2B1ACC0023597D7E00ED19AD /* MaterialSelector.swift in Sources */,
-				2B1ACBEA23597D5900ED19AD /* EditorRegion.swift in Sources */,
-				2B1ACC1023597D8200ED19AD /* ReferenceList.swift in Sources */,
-				2B1ACC1723597D9A00ED19AD /* MMRegion.swift in Sources */,
-				2B1ACC0B23597D8200ED19AD /* SceneNodes.swift in Sources */,
-				2B1ACBED23597D5900ED19AD /* Mad4Metal.metal in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		2B7A3BED23B4583A002EC5FC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2131,172 +1596,6 @@
 				2B169BE0246B67D000366E19 /* TerrainEditor.swift in Sources */,
 				2B7A3C1023B46546002EC5FC /* MMLabel.swift in Sources */,
 				2B9B299F23BAD2DC00C2F387 /* NodeUI.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2B91CBEC2358629300DED7B1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				2B91CCA823586B5400DED7B1 /* Material.swift in Sources */,
-				2B91CC9B23586B5400DED7B1 /* SceneRenderer.swift in Sources */,
-				2B91CCBA23586B5D00DED7B1 /* BottomRegion.swift in Sources */,
-				2B91CC7C235869EE00DED7B1 /* MMCompute.swift in Sources */,
-				2B91CCC223586B7100DED7B1 /* ViewController.swift in Sources */,
-				2B91CCA523586B5400DED7B1 /* LayerAreaMaxDelegate.swift in Sources */,
-				2B91CC9723586B4E00DED7B1 /* Node.metal in Sources */,
-				2B91CC7A235869EE00DED7B1 /* MMColorWidget.swift in Sources */,
-				2B91CC75235869E700DED7B1 /* MMFont.swift in Sources */,
-				2B91CC85235869EE00DED7B1 /* MMScreen.swift in Sources */,
-				2B91CCB423586B5800DED7B1 /* GameWidget.swift in Sources */,
-				2B91CC79235869EE00DED7B1 /* MMFloatPopUp.swift in Sources */,
-				2B91CCB623586B5D00DED7B1 /* Dialogs.swift in Sources */,
-				2B91CC71235869DB00DED7B1 /* MMRenderer.swift in Sources */,
-				2B91CC76235869E900DED7B1 /* MMLabel.swift in Sources */,
-				2B91CCB523586B5D00DED7B1 /* App.swift in Sources */,
-				2B91CCBC23586B5D00DED7B1 /* EditorWidget.swift in Sources */,
-				2B91CC9123586B4E00DED7B1 /* SceneNodes.swift in Sources */,
-				2B91CC7E235869EE00DED7B1 /* MMScrollArea.swift in Sources */,
-				2B91CC9223586B4E00DED7B1 /* GameNodes.swift in Sources */,
-				2B91CC9523586B4E00DED7B1 /* NodeGraph.swift in Sources */,
-				2B91CC9323586B4E00DED7B1 /* Behavior.swift in Sources */,
-				2B91CC9E23586B5400DED7B1 /* DiskBuilder.swift in Sources */,
-				2B91CCB823586B5D00DED7B1 /* TopRegion.swift in Sources */,
-				2B91CC73235869E100DED7B1 /* MMDrawable.swift in Sources */,
-				2B91CCAA23586B5400DED7B1 /* MaterialSelector.swift in Sources */,
-				2B91CCB923586B5D00DED7B1 /* RightRegion.swift in Sources */,
-				2B91CC80235869EE00DED7B1 /* MMListWidget.swift in Sources */,
-				2B91CCA123586B5400DED7B1 /* Scene.swift in Sources */,
-				2B91CCA223586B5400DED7B1 /* SceneMaxDelegate.swift in Sources */,
-				2B91CC77235869EE00DED7B1 /* MMFloatWidget.swift in Sources */,
-				2B91CCAC23586B5400DED7B1 /* MaterialList.swift in Sources */,
-				2B91CCB023586B5400DED7B1 /* GizmoInfoArea.swift in Sources */,
-				2B91CCA023586B5400DED7B1 /* ObjectMaxDelegate.swift in Sources */,
-				2B91CC70235869C800DED7B1 /* MMView.swift in Sources */,
-				2BF632EF2361579D00750990 /* MMTabButtonWidget.swift in Sources */,
-				2B91CCAE23586B5400DED7B1 /* MaterialFactory.swift in Sources */,
-				2B91CC7D235869EE00DED7B1 /* MMFragment.swift in Sources */,
-				2B91CC74235869E400DED7B1 /* MMUtils.swift in Sources */,
-				2B7A3BEA23B2F1FA002EC5FC /* MMTreeWidget.swift in Sources */,
-				2B91CC7F235869EE00DED7B1 /* MMScrollButton.swift in Sources */,
-				2B91CCBB23586B5D00DED7B1 /* EditorRegion.swift in Sources */,
-				2B91CCC123586B6800DED7B1 /* AppDelegate.swift in Sources */,
-				2B91CC82235869EE00DED7B1 /* MMAnimate.swift in Sources */,
-				2B91CC9A23586B5400DED7B1 /* Builder.swift in Sources */,
-				2B91CCB123586B5400DED7B1 /* Gizmo.metal in Sources */,
-				2B91CC9F23586B5400DED7B1 /* Object.swift in Sources */,
-				2B91CC81235869EE00DED7B1 /* MMSkin.swift in Sources */,
-				2B91CC86235869EE00DED7B1 /* MMInfoArea.swift in Sources */,
-				2B91CCAF23586B5400DED7B1 /* Gizmo.swift in Sources */,
-				2B91CC7B235869EE00DED7B1 /* MMTabWidget.swift in Sources */,
-				2B91CC84235869EE00DED7B1 /* MMFile.swift in Sources */,
-				2B91CCA923586B5400DED7B1 /* ShapeSelector.swift in Sources */,
-				2B91CC9023586B4E00DED7B1 /* ObjectNodes.swift in Sources */,
-				2B91CCAD23586B5400DED7B1 /* ShapeFactory.swift in Sources */,
-				2B91CC6E235869A300DED7B1 /* MMBaseView_mac.swift in Sources */,
-				2B91CC8823586AD100DED7B1 /* Node.swift in Sources */,
-				2B91CCA723586B5400DED7B1 /* Shape.swift in Sources */,
-				2B91CC8723586AC800DED7B1 /* NodeUI.swift in Sources */,
-				2B91CC6F235869BD00DED7B1 /* MMWidget.swift in Sources */,
-				2B91CC9D23586B5400DED7B1 /* Physics.swift in Sources */,
-				2B91CC9623586B4E00DED7B1 /* ReferenceList.swift in Sources */,
-				2B91CCA623586B5400DED7B1 /* Game.swift in Sources */,
-				2B91CCB323586B5800DED7B1 /* GameRegion.swift in Sources */,
-				2B91CC78235869EE00DED7B1 /* MMSliderWidget.swift in Sources */,
-				2B91CCB223586B5800DED7B1 /* GameApp.swift in Sources */,
-				2B91CCBD23586B5D00DED7B1 /* AppShaders.metal in Sources */,
-				2B91CC83235869EE00DED7B1 /* MMTimeline.swift in Sources */,
-				2B91CC9C23586B5400DED7B1 /* DebugBuilder.swift in Sources */,
-				2B91CCAB23586B5400DED7B1 /* ShapeList.swift in Sources */,
-				2B91CC72235869DF00DED7B1 /* MMRegion.swift in Sources */,
-				2B91CC9923586B4E00DED7B1 /* Variables.swift in Sources */,
-				2B91CCBE23586B5D00DED7B1 /* Mad4Metal.metal in Sources */,
-				2B91CC9423586B4E00DED7B1 /* BehaviorLeaves.swift in Sources */,
-				2B91CCB723586B5D00DED7B1 /* LeftRegion.swift in Sources */,
-				2B91CC9823586B4E00DED7B1 /* NodeList.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2B91CD7B235959CC00DED7B1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				2B91CDD123595A9400DED7B1 /* MMSkin.swift in Sources */,
-				2B91CDA823595A6300DED7B1 /* Material.swift in Sources */,
-				2B91CDBB23595A8400DED7B1 /* Node.metal in Sources */,
-				2B91CDC623595A9400DED7B1 /* MMLabel.swift in Sources */,
-				2B91CD9423595A4A00DED7B1 /* EditorWidget.swift in Sources */,
-				2B91CD9823595A5C00DED7B1 /* GameRegion.swift in Sources */,
-				2B91CDB223595A8400DED7B1 /* Node.swift in Sources */,
-				2B91CDA623595A6300DED7B1 /* Game.swift in Sources */,
-				2B91CDD723595AC900DED7B1 /* ViewController.swift in Sources */,
-				2B91CD9E23595A6300DED7B1 /* DiskBuilder.swift in Sources */,
-				2B91CDC223595A9400DED7B1 /* MMRegion.swift in Sources */,
-				2B91CD9923595A5C00DED7B1 /* GameWidget.swift in Sources */,
-				2B91CDC023595A9400DED7B1 /* MMRenderer.swift in Sources */,
-				2B91CDCC23595A9400DED7B1 /* MMCompute.swift in Sources */,
-				2B91CDAE23595A6300DED7B1 /* MaterialFactory.swift in Sources */,
-				2B91CDC723595A9400DED7B1 /* MMFloatWidget.swift in Sources */,
-				2B91CDC323595A9400DED7B1 /* MMDrawable.swift in Sources */,
-				2B91CDC923595A9400DED7B1 /* MMFloatPopUp.swift in Sources */,
-				2B91CDB723595A8400DED7B1 /* Behavior.swift in Sources */,
-				2B91CDC423595A9400DED7B1 /* MMUtils.swift in Sources */,
-				2B91CDD323595A9400DED7B1 /* MMTimeline.swift in Sources */,
-				2B91CD9223595A4A00DED7B1 /* BottomRegion.swift in Sources */,
-				2B91CD8D23595A4A00DED7B1 /* App.swift in Sources */,
-				2B91CDBE23595A8B00DED7B1 /* MMView.swift in Sources */,
-				2B91CD9023595A4A00DED7B1 /* TopRegion.swift in Sources */,
-				2B91CDA923595A6300DED7B1 /* ShapeSelector.swift in Sources */,
-				2B91CDBD23595A8400DED7B1 /* Variables.swift in Sources */,
-				2B91CDD623595A9400DED7B1 /* MMInfoArea.swift in Sources */,
-				2B91CD9B23595A6300DED7B1 /* SceneRenderer.swift in Sources */,
-				2B91CDB323595A8400DED7B1 /* NodeUI.swift in Sources */,
-				2B91CD8E23595A4A00DED7B1 /* Dialogs.swift in Sources */,
-				2B91CDAB23595A6300DED7B1 /* ShapeList.swift in Sources */,
-				2B91CD9F23595A6300DED7B1 /* Object.swift in Sources */,
-				2B91CDC523595A9400DED7B1 /* MMFont.swift in Sources */,
-				2B91CDA023595A6300DED7B1 /* ObjectMaxDelegate.swift in Sources */,
-				2BF632F02361579D00750990 /* MMTabButtonWidget.swift in Sources */,
-				2B91CDA123595A6300DED7B1 /* Scene.swift in Sources */,
-				2B91CD9723595A5C00DED7B1 /* GameApp.swift in Sources */,
-				2B91CD9123595A4A00DED7B1 /* RightRegion.swift in Sources */,
-				2B7A3BEB23B2F1FA002EC5FC /* MMTreeWidget.swift in Sources */,
-				2B91CDBC23595A8400DED7B1 /* NodeList.swift in Sources */,
-				2B91CDAF23595A6300DED7B1 /* Gizmo.swift in Sources */,
-				2B91CD9A23595A6300DED7B1 /* Builder.swift in Sources */,
-				2B91CD9C23595A6300DED7B1 /* DebugBuilder.swift in Sources */,
-				2B91CD9523595A4A00DED7B1 /* AppShaders.metal in Sources */,
-				2B91CDD423595A9400DED7B1 /* MMFile.swift in Sources */,
-				2B91CDD023595A9400DED7B1 /* MMListWidget.swift in Sources */,
-				2B91CDC123595A9400DED7B1 /* MMWidget.swift in Sources */,
-				2B91CDD523595A9400DED7B1 /* MMScreen.swift in Sources */,
-				2B91CDC823595A9400DED7B1 /* MMSliderWidget.swift in Sources */,
-				2B91CDCD23595A9400DED7B1 /* MMFragment.swift in Sources */,
-				2B91CDB023595A6300DED7B1 /* GizmoInfoArea.swift in Sources */,
-				2B91CDD823595AE300DED7B1 /* AppDelegate.swift in Sources */,
-				2B91CD8F23595A4A00DED7B1 /* LeftRegion.swift in Sources */,
-				2B91CDAC23595A6300DED7B1 /* MaterialList.swift in Sources */,
-				2B91CDB423595A8400DED7B1 /* ObjectNodes.swift in Sources */,
-				2B91CDB623595A8400DED7B1 /* GameNodes.swift in Sources */,
-				2B91CDCE23595A9400DED7B1 /* MMScrollArea.swift in Sources */,
-				2B91CDB823595A8400DED7B1 /* BehaviorLeaves.swift in Sources */,
-				2B91CDCF23595A9400DED7B1 /* MMScrollButton.swift in Sources */,
-				2B91CDA223595A6300DED7B1 /* SceneMaxDelegate.swift in Sources */,
-				2B91CDA723595A6300DED7B1 /* Shape.swift in Sources */,
-				2B91CDAA23595A6300DED7B1 /* MaterialSelector.swift in Sources */,
-				2B91CDB923595A8400DED7B1 /* NodeGraph.swift in Sources */,
-				2B91CD9D23595A6300DED7B1 /* Physics.swift in Sources */,
-				2B91CD9323595A4A00DED7B1 /* EditorRegion.swift in Sources */,
-				2B91CDCB23595A9400DED7B1 /* MMTabWidget.swift in Sources */,
-				2B91CDAD23595A6300DED7B1 /* ShapeFactory.swift in Sources */,
-				2B91CDA523595A6300DED7B1 /* LayerAreaMaxDelegate.swift in Sources */,
-				2B91CD9623595A5000DED7B1 /* Mad4Metal.metal in Sources */,
-				2B91CDCA23595A9400DED7B1 /* MMColorWidget.swift in Sources */,
-				2B91CDBA23595A8400DED7B1 /* ReferenceList.swift in Sources */,
-				2B91CDB523595A8400DED7B1 /* SceneNodes.swift in Sources */,
-				2B91CDB123595A6300DED7B1 /* Gizmo.metal in Sources */,
-				2B91CDBF23595A8F00DED7B1 /* MMBaseView__ios.swift in Sources */,
-				2B91CDD223595A9400DED7B1 /* MMAnimate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2621,65 +1920,6 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		2B1ACBE123597D2600ED19AD /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = G6R6L3VH62;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "TVOS Framework/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shape-z.TVOS-Framework";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = appletvos;
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.0;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Debug;
-		};
-		2B1ACBE223597D2600ED19AD /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = G6R6L3VH62;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "TVOS Framework/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shape-z.TVOS-Framework";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = appletvos;
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.0;
-				VALIDATE_PRODUCT = YES;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Release;
-		};
 		2B7A3BFF23B4583E002EC5FC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2729,134 +1969,6 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "Application/3D Pipeline/Shader.h";
 				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-		2B91CBFA2358629300DED7B1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = G6R6L3VH62;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "OSX Framework/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shape-z.OSX-Framework";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Debug;
-		};
-		2B91CBFB2358629300DED7B1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = G6R6L3VH62;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "OSX Framework/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shape-z.OSX-Framework";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Release;
-		};
-		2B91CD89235959CC00DED7B1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BITCODE_GENERATION_MODE = bitcode;
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = G6R6L3VH62;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "IOS Framework/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.1;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MARKETING_VERSION = 0.41;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shape-z.IOS-Framework";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Debug;
-		};
-		2B91CD8A235959CC00DED7B1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BITCODE_GENERATION_MODE = bitcode;
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = G6R6L3VH62;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "IOS Framework/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.1;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MARKETING_VERSION = 0.41;
-				"OTHER_CFLAGS[arch=*]" = "-fembed-bitcode";
-				"OTHER_CPLUSPLUSFLAGS[arch=*]" = "$(OTHER_CFLAGS)";
-				"OTHER_LDFLAGS[arch=*]" = "-fembed-bitcode";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shape-z.IOS-Framework";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
 			};
 			name = Release;
 		};
@@ -3140,38 +2252,11 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2B1ACBE323597D2600ED19AD /* Build configuration list for PBXNativeTarget "TVOS Framework" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				2B1ACBE123597D2600ED19AD /* Debug */,
-				2B1ACBE223597D2600ED19AD /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		2B7A3BFE23B4583E002EC5FC /* Build configuration list for PBXNativeTarget "Shape-Z" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2B7A3BFF23B4583E002EC5FC /* Debug */,
 				2B7A3C0023B4583E002EC5FC /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		2B91CBF92358629300DED7B1 /* Build configuration list for PBXNativeTarget "OSX Framework" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				2B91CBFA2358629300DED7B1 /* Debug */,
-				2B91CBFB2358629300DED7B1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		2B91CD88235959CC00DED7B1 /* Build configuration list for PBXNativeTarget "IOS Framework" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				2B91CD89235959CC00DED7B1 /* Debug */,
-				2B91CD8A235959CC00DED7B1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
