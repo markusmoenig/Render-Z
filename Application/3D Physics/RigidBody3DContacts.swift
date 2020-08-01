@@ -172,7 +172,7 @@ class RigidBody3DContact
 {
     var body                    : [RigidBody3D?]
     
-    var restitution             : Float = 0.3
+    var restitution             : Float = 0.4
     var friction                : Float = 0.3
 
     var contactNormal           : _Vector3
@@ -328,6 +328,7 @@ class RigidBody3DContact
 
         // Store the relative position of the contact relative to each body
         relativeContactPosition[0] = contactPoint - body[0]!.getPosition()
+        //print(body[0]!.getPosition().x, body[0]!.getPosition().y, body[0]!.getPosition().z, contactPoint.x, contactPoint.y, contactPoint.z, relativeContactPosition[0].x, relativeContactPosition[0].y, relativeContactPosition[0].z)
         if let body1 = body[1] {
             relativeContactPosition[1] = contactPoint - body1.getPosition()
         }

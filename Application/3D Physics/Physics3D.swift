@@ -23,12 +23,13 @@ class ObjectSpheres3D
     var rotation        : float3 = float3(0,0,0)
     
     // Results per frame
-    var worldPosition   : float3 = float3(0,0,0)
+    var transSpheres    : [float4] = []
+    var contactPoint    : float3 = float3(0,0,0)
     var hitNormal       : float3 = float3(0,0,0)
     var penetrationDepth: Float = Float.greatestFiniteMagnitude
 
-    var particle3D      : Particle3D? = nil
     var body3D          : RigidBody3D? = nil
+    var world           : RigidBody3DWorld? = nil
 
     var hitObject       : StageItem? = nil
     
@@ -39,8 +40,10 @@ class ObjectSpheres3D
         self.transform = transform
     }
     
-    func updateTransformData()
+    func updateTransformData() -> [float4]
     {
+        var debugSpheres : [float4] = []
+        
         position.x = transform.values["_posX"]!
         position.y = transform.values["_posY"]!
         position.z = transform.values["_posZ"]!
@@ -49,7 +52,23 @@ class ObjectSpheres3D
         rotation.y = transform.values["_rotateY"]!
         rotation.z = transform.values["_rotateZ"]!
         
-        penetrationDepth = Float.greatestFiniteMagnitude
+        transSpheres = spheres
+        
+        for (i,s) in spheres.enumerated() {
+            //let rotated = Physics3D.rotateWithPivot(float3(s.x + position.x, s.y + position.y, s.z + position.z), rotation, float3(position.x, position.y, position.z))
+            let rotated = body3D!.transformMatrix.multiplyWithVector(_Vector3(s.x, s.y, s.z))
+            print("--", i, rotated.x, rotated.y, rotated.z)
+
+            transSpheres[i].x = rotated.x
+            transSpheres[i].y = rotated.y
+            transSpheres[i].z = rotated.z
+            
+            debugSpheres.append(transSpheres[i])
+        }
+        
+        penetrationDepth = -1000
+        
+        return debugSpheres
     }
 }
 
@@ -73,6 +92,8 @@ class Physics3D
     
     var groundShader    : GroundShader? = nil
     var terrainShader   : TerrainShader? = nil
+    
+    var debugSpheres : [float4] = []
 
     init(scene: Scene)
     {
@@ -126,10 +147,9 @@ class Physics3D
                     valueCopies.append(transform.values)
                     
                     let objectSpheres = ObjectSpheres3D(spheres: spheres, object: object, transform: transform)
-                    //let particle = Particle3D(object, objectSpheres)
                     let body = RigidBody3D(object, objectSpheres)
-                    //objectSpheres.particle3D = particle
                     objectSpheres.body3D = body
+                    objectSpheres.world = rigidBodyWorld
                     self.objectSpheres.append(objectSpheres)
                     body.setPosition(_Vector3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
                     
@@ -165,46 +185,23 @@ class Physics3D
     func step()
     {
         let time = Double(Date().timeIntervalSince1970)
-
+        debugSpheres = []
+        
         if let lTime = lastTime {
             let duration = Float(time - lTime)
 
             // Update the transform data of the spheres
             for s in objectSpheres {
-                s.updateTransformData()
+                debugSpheres += s.updateTransformData()
             }
             
             // Do the contact resolution
             if let ground = groundShader {
                 ground.sphereContacts(objectSpheres: objectSpheres)
-                for oS in objectSpheres {
-                    if oS.penetrationDepth < 0 {
-                        //print( oS.penetrationDepth )
-                        let penetration = -oS.penetrationDepth
-                        var contactPoint : _Vector3 = _Vector3(oS.position.x, oS.position.y, oS.position.z)
-                        let hitNormal : _Vector3 = _Vector3(oS.hitNormal.x, oS.hitNormal.y, oS.hitNormal.z)
-                        contactPoint += -hitNormal * (oS.position.w - penetration)
-                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: contactPoint, normal: hitNormal, penetration: penetration)
-                        rigidBodyWorld.contacts.append(contact)
-                    }
-                }
             }
             
             if let terrain = terrainShader {
                 terrain.sphereContacts(objectSpheres: objectSpheres)
-                for oS in objectSpheres {
-                    if oS.penetrationDepth < 0 {
-                        //print( oS.penetrationDepth )
-                        //let contact = Particle3DContact(particle: (oS.particle3D!, nil), normal: oS.hitNormal, penetration: oS.penetrationDepth)
-                        //particleWorld.contacts.append(contact)
-                        let penetration = -oS.penetrationDepth
-                        var contactPoint : _Vector3 = _Vector3(oS.position.x, oS.position.y, oS.position.z)
-                        let hitNormal : _Vector3 = _Vector3(oS.hitNormal.x, oS.hitNormal.y, oS.hitNormal.z)
-                        contactPoint += -hitNormal * (oS.position.w - penetration)
-                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: contactPoint, normal: hitNormal, penetration: penetration)
-                        rigidBodyWorld.contacts.append(contact)
-                    }
-                }
             }
             
             // Step
@@ -234,39 +231,48 @@ class Physics3D
             
             var sphereData  : [SIMD4<Float>] = []
             sphereData.append(SIMD4<Float>(1,0,0,0.5))
-
-            for object in objects {
-                /*
-                let pos = context.evaluateScript("""
-                    
-                \(object.physicsName).quaternion.toEuler( rotation );
-                [\(object.physicsName).position.x, \(object.physicsName).position.y, \(object.physicsName).position.z,
-                (-rotation.x) * 180/Math.PI, (-rotation.z) * 180/Math.PI, (-rotation.y) * 180/Math.PI]
-                
-                """).toArray()!
-
-                sphereData.append(SIMD4<Float>((pos[0] as! NSNumber).floatValue, (pos[2] as! NSNumber).floatValue, (pos[1] as! NSNumber).floatValue, 1))
-                */
-                
-                if let spheres = (object.shader as? ObjectShader)?.spheres {
-                    if let transform = object.components[object.defaultName] {
-                        
-                        let x = transform.values["_posX"]!
-                        let y = transform.values["_posY"]!
-                        let z = transform.values["_posZ"]!
-
-                        for (_,sphere) in spheres.enumerated() {
-                            let mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
-                            
-                            let rotated = /*float4x4(translation: [-x, -y, -z]) **/ float4x4(translation: [x, y, z]) * mRotation * SIMD4<Float>(sphere.x, sphere.y, sphere.z, 1)
-                            sphereData.append(SIMD4<Float>(rotated.x, rotated.y, rotated.z, sphere.w))
-                        }
-                    }
-                }
-            }
+            sphereData += debugSpheres
             sphereData.append(SIMD4<Float>(-1,-1,-1,-1))
 
             prim.drawSpheres(texture: texture, sphereData: sphereData)
         }
+    }
+    
+    static func rotateWithPivot(_ position: float3,_ angle: float3,_ pivot: float3) -> float3
+    {
+        func rotateCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
+        {
+            let ca : Float = cos(angle), sa = sin(angle)
+            return pivot + (pos-pivot) * float2x2(float2(ca, -sa), float2(sa, ca))
+        }
+        
+        var pos = position
+        
+        
+        let yz = rotateCWWithPivot(float2(pos.y, pos.z), angle.x.degreesToRadians, float2(pivot.y, pivot.z))
+        pos.y = yz.x
+        pos.z = yz.y
+        let xz = rotateCWWithPivot(float2(pos.x, pos.z), angle.y.degreesToRadians, float2(pivot.x, pivot.z))
+        pos.x = xz.x
+        pos.z = xz.y
+        let xy = rotateCWWithPivot(float2(pos.x, pos.y), angle.z.degreesToRadians, float2(pivot.x, pivot.y))
+        pos.x = xy.x
+        pos.y = xy.y
+        
+        /*
+        let xy = rotateCWWithPivot(float2(pos.x, pos.y), angle.z.degreesToRadians, float2(pivot.x, pivot.y))
+        pos.x = xy.x
+        pos.y = xy.y
+        
+        let xz = rotateCWWithPivot(float2(pos.x, pos.z), angle.y.degreesToRadians, float2(pivot.x, pivot.z))
+        pos.x = xz.x
+        pos.z = xz.y
+        
+        let yz = rotateCWWithPivot(float2(pos.y, pos.z), angle.x.degreesToRadians, float2(pivot.y, pivot.z))
+        pos.y = yz.x
+        pos.z = yz.y*/
+        
+
+        return pos
     }
 }

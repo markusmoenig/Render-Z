@@ -46,6 +46,13 @@ class _Vector3 {
         self.z = z
     }
     
+    init(_ value: float3)
+    {
+        self.x = value.x
+        self.y = value.y
+        self.z = value.z
+    }
+    
     subscript(index: Int) -> Float {
         get {
             if index == 0 {

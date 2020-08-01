@@ -1229,11 +1229,15 @@ class TerrainShader     : BaseShader
             
             var index : Int = 0
             for oS in objectSpheres {
-                for _ in oS.spheres {
+                for s in oS.spheres {
                     
-                    if result[index].w < oS.penetrationDepth {
-                        oS.penetrationDepth = result[index].w
-                        oS.hitNormal = float3(result[index].x, result[index].y, result[index].z)
+                    if result[index].w < 0 {
+                        let penetration = -result[index].w
+                        let hitNormal = float3(result[index].x, result[index].y, result[index].z)
+                        let contactPoint = float3(s.x, s.y, s.z) + -oS.hitNormal * (s.w - penetration / 2)
+                    
+                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: _Vector3(contactPoint), normal: _Vector3(hitNormal), penetration: penetration)
+                        oS.world!.contacts.append(contact)
                     }
                     
                     index += 1
