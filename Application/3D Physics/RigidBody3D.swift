@@ -101,7 +101,8 @@ class RigidBody3D
         if canSleep {
             let currentMotion : Float = velocity.scalarProduct(velocity) + rotation.scalarProduct(rotation)
 
-            let bias : Float = pow(0.5, duration)
+            let bias : Float = pow(0.00000000001, duration)
+            //let bias : Float = pow(0.5, duration)
             motion = bias * motion + (1.0 - bias) * currentMotion
 
             if motion < RigidBody3D.sleepEpsilon { setAwake(false) }

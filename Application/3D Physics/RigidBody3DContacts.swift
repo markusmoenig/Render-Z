@@ -10,9 +10,9 @@ import Foundation
 
 class RigiBody3DContactResolver
 {
-    var velocityIterations          : Int = 10
+    var velocityIterations          : Int = 0
     var velocityIterationsUsed      : Int = 0
-    var positionIterations          : Int = 10
+    var positionIterations          : Int = 0
     var positionIterationsUsed      : Int = 0
 
     var velocityEpsilon             : Float = 0.01
@@ -65,7 +65,6 @@ class RigiBody3DContactResolver
     {
         var velocityChange = [_Vector3(), _Vector3()]
         var rotationChange = [_Vector3(), _Vector3()]
-        var deltaVel = _Vector3()
 
         // iteratively handle impacts in order of severity.
         velocityIterationsUsed = 0
@@ -98,14 +97,13 @@ class RigiBody3DContactResolver
                         for d in 0..<2 {
                             
                             if contacts[i].body[b] === contacts[index].body[d] {
-                                deltaVel = velocityChange[d] + rotationChange[d].vectorProduct(contacts[i].relativeContactPosition[b])
+                                let deltaVel = velocityChange[d] + rotationChange[d].vectorProduct(contacts[i].relativeContactPosition[b])
 
                                 // The sign of the change is negative if we're dealing
                                 // with the second body in a contact.
                                 contacts[i].contactVelocity += contacts[i].contactToWorld.transformTranspose(deltaVel) * (b == 1 ? -1.0 : 1.0)
                                 contacts[i].calculateDesiredDeltaVelocity(duration);
                             }
-                            
                         }
                     }
                 }
@@ -170,13 +168,12 @@ class RigiBody3DContactResolver
     }
 }
 
-
 class RigidBody3DContact
 {
     var body                    : [RigidBody3D?]
     
     var restitution             : Float = 0.3
-    var friction                : Float = 0.1
+    var friction                : Float = 0.3
 
     var contactNormal           : _Vector3
     var contactPoint            : _Vector3
@@ -520,7 +517,7 @@ class RigidBody3DContact
         var totalInertia : Float = 0
         var linearInertia : [Float] = [0, 0]
         var angularInertia : [Float] = [0, 0]
-
+        
         // We need to work out the inertia of each object in the direction
         // of the contact normal, due to angular inertia only.
 
@@ -605,8 +602,9 @@ class RigidBody3DContact
 
                 // Now we can start to apply the values we've calculated.
                 // Apply the linear movement
-                var pos = body.getPosition()
-                pos += contactNormal * linearMove[i]
+                
+                let pos = _Vector3(body.position.x, body.position.y, body.position.z)
+                pos.addScaledVector(contactNormal, linearMove[i])
                 body.setPosition(pos)
 
                 // And the change in orientation

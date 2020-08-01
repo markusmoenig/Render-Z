@@ -647,6 +647,9 @@ class _Matrix3
     init()
     {
         data = Array(repeating: 0, count: 9)
+        data[0] = 1
+        data[4] = 1
+        data[8] = 1
     }
     
     /**
@@ -819,12 +822,12 @@ class _Matrix3
         let t14 = m.data[2]*m.data[6]
 
         // Calculate the determinant
-        let t16 = (t4*m.data[8] - t6*m.data[7] - t8*m.data[8] +
+        let t16 : Float = (t4*m.data[8] - t6*m.data[7] - t8*m.data[8] +
                     t10*m.data[7] + t12*m.data[5] - t14*m.data[4])
 
         // Make sure the determinant is non-zero.
         if t16 == 0.0 { return }
-        let t17 = 1 / t16
+        let t17 : Float = 1.0 / t16
 
         data[0] = (m.data[4]*m.data[8]-m.data[5]*m.data[7])*t17
         data[1] = -(m.data[1]*m.data[8]-m.data[2]*m.data[7])*t17

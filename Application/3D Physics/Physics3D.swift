@@ -132,6 +132,12 @@ class Physics3D
                     objectSpheres.body3D = body
                     self.objectSpheres.append(objectSpheres)
                     body.setPosition(_Vector3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
+                    
+                    let node = SCNNode()
+                    node.simdEulerAngles = float3(transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians)
+                    body.setOrientation(node.simdOrientation.real, node.simdOrientation.imag.x, node.simdOrientation.imag.y, node.simdOrientation.imag.z)
+                    body.orientation.normalise()
+                    
                     body.setMass(mass: 5)
                     rigidBodyWorld.addBody(body)
                 }
@@ -188,7 +194,7 @@ class Physics3D
                 terrain.sphereContacts(objectSpheres: objectSpheres)
                 for oS in objectSpheres {
                     if oS.penetrationDepth < 0 {
-                        print( oS.penetrationDepth )
+                        //print( oS.penetrationDepth )
                         //let contact = Particle3DContact(particle: (oS.particle3D!, nil), normal: oS.hitNormal, penetration: oS.penetrationDepth)
                         //particleWorld.contacts.append(contact)
                         let penetration = -oS.penetrationDepth
@@ -210,18 +216,11 @@ class Physics3D
                 transform.values["_posX"] = body.position.x
                 transform.values["_posY"] = body.position.y
                 transform.values["_posZ"] = body.position.z
-                
-                let node = SCNNode()
-                node.simdOrientation.real = body.orientation.r
-                node.simdOrientation.imag = float3(body.orientation.i, body.orientation.j, body.orientation.k)
-
-                print(body.orientation.r,body.orientation.i, body.orientation.j, body.orientation.k)
-                
-                //print(body.getTransform().data)
-                
-                transform.values["_rotateX"] = node.simdRotation.x// body.rotation.x
-                transform.values["_rotateY"] = node.simdRotation.y// body.rotation.y
-                transform.values["_rotateZ"] = node.simdRotation.z//body.rotation.z
+                                
+                let angles = body.transformMatrix.extractEulerAngleXYZ()
+                transform.values["_rotateX"] = angles.x.radiansToDegrees
+                transform.values["_rotateY"] = angles.y.radiansToDegrees
+                transform.values["_rotateZ"] = angles.z.radiansToDegrees
             }
         } else {
             rigidBodyWorld.startFrame()
