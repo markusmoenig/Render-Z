@@ -71,7 +71,9 @@ class Physics3D
     
     var objects         : [StageItem] = []
     var valueCopies     : [[String:Float]] = []
-    
+
+    var startTime       : Double = 0
+    var renderdFrames   : Double = 0
     var lastTime        : Double? = nil
     
     var primShader      : PrimitivesShader? = nil
@@ -185,10 +187,14 @@ class Physics3D
         let time = Double(Date().timeIntervalSince1970)
         debugSpheres = []
         
-        if let lTime = lastTime {            
-            // Need a strategy here sooner or later
+        if let lTime = lastTime {
+            
+            let timeSinceStart = time - startTime
+            let fps = renderdFrames / timeSinceStart
+            //print(fps)
+            
             var duration = time - lTime
-            duration = fixedDuration
+            duration = 1.0 / fps//fixedDuration
 
             // Update the transform data of the spheres
             for s in objectSpheres {
@@ -219,10 +225,14 @@ class Physics3D
                 transform.values["_rotateY"] = Float(angles.y.radiansToDegrees)
                 transform.values["_rotateZ"] = Float(angles.z.radiansToDegrees)
             }
+            
             debugIsValid = true
+            renderdFrames += 1.0
         } else {
             rigidBodyWorld.startFrame()
             debugIsValid = false
+            startTime = time
+            renderdFrames = 1
         }
         lastTime = time
     }
