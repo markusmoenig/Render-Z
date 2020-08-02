@@ -76,7 +76,7 @@ class Physics3D
     
     var primShader      : PrimitivesShader? = nil
     
-    var debug           : Bool = true
+    var debug           : Bool = false
     
     var particleWorld   : Particle3DWorld
     var rigidBodyWorld  : RigidBody3DWorld
@@ -89,6 +89,8 @@ class Physics3D
     var debugSpheres    : [float4] = []
     var debugIsValid    : Bool = false
 
+    var fixedDuration   : Double = 0
+
     init(scene: Scene)
     {
         self.scene = scene
@@ -99,6 +101,8 @@ class Physics3D
     
     func setup()
     {
+        fixedDuration = 1.0 / Double(globalApp!.mmView.preferredFramesPerSecond)
+        
         func isDisabled(shader: BaseShader) -> Bool
         {
             var disabled = false
@@ -181,8 +185,10 @@ class Physics3D
         let time = Double(Date().timeIntervalSince1970)
         debugSpheres = []
         
-        if let lTime = lastTime {
-            let duration = Double(time - lTime)
+        if let lTime = lastTime {            
+            // Need a strategy here sooner or later
+            var duration = time - lTime
+            duration = fixedDuration
 
             // Update the transform data of the spheres
             for s in objectSpheres {
