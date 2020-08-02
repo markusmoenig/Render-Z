@@ -661,15 +661,13 @@ class GroundShader              : BaseShader
                     if result[index].w < 0 {
                         let penetration = -result[index].w
                         let hitNormal = float3(result[index].x, result[index].y, result[index].z)
-                        let contactPoint = float3(s.x, s.y, s.z) + -hitNormal * (s.w - penetration / 2)
+                        let contactPoint = float3(s.x, s.y, s.z) + -hitNormal * (s.w - penetration)
                     
-                        //print(ii, penetration, contactPoint, hitNormal, s.x, s.y, s.z)
                         oS.sphereHits[ii] = true
                         
-                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: _Vector3(contactPoint), normal: _Vector3(hitNormal), penetration: penetration)
+                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: _Vector3(contactPoint), normal: _Vector3(hitNormal), penetration: Double(penetration))
                         oS.world!.contacts.append(contact)
-                    }
-                    
+                    }                    
                     index += 1
                 }
             }

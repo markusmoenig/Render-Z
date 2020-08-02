@@ -52,14 +52,13 @@ class ObjectSpheres3D
         transSpheres = spheres
         
         for (i,s) in spheres.enumerated() {
-            //let rotated = Physics3D.rotateWithPivot(float3(s.x + position.x, s.y + position.y, s.z + position.z), rotation, float3(position.x, position.y, position.z))
-            let rotated = body3D!.transformMatrix.multiplyWithVector(_Vector3(s.x, s.y, s.z))
-            //let rotated = float3(s.x + position.x, s.y + position.y, s.z + position.z)
-            //print("--", i, rotation.x, rotation.y, rotation.z)
-
-            transSpheres[i].x = rotated.x
-            transSpheres[i].y = rotated.y
-            transSpheres[i].z = rotated.z
+            //let rotated1 = Physics3D.rotateWithPivot(float3(s.x + position.x, s.y + position.y, s.z + position.z), rotation, float3(position.x, position.y, position.z))
+            body3D!.calculateDerivedData()
+            let rotated = body3D!.transformMatrix.multiplyWithVector(_Vector3(Double(s.x), Double(s.y), Double(s.z)))
+            
+            transSpheres[i].x = Float(rotated.x)
+            transSpheres[i].y = Float(rotated.y)
+            transSpheres[i].z = Float(rotated.z)
             
             sphereHits[i] = false
         }
@@ -87,7 +86,8 @@ class Physics3D
     var groundShader    : GroundShader? = nil
     var terrainShader   : TerrainShader? = nil
     
-    var debugSpheres : [float4] = []
+    var debugSpheres    : [float4] = []
+    var debugIsValid    : Bool = false
 
     init(scene: Scene)
     {
@@ -145,11 +145,11 @@ class Physics3D
                     objectSpheres.body3D = body
                     objectSpheres.world = rigidBodyWorld
                     self.objectSpheres.append(objectSpheres)
-                    body.setPosition(_Vector3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
+                    body.setPosition(_Vector3(Double(transform.values["_posX"]!), Double(transform.values["_posY"]!), Double(transform.values["_posZ"]!)))
                     
                     let node = SCNNode()
                     node.simdEulerAngles = float3(transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians)
-                    body.setOrientation(node.simdOrientation.real, node.simdOrientation.imag.x, node.simdOrientation.imag.y, node.simdOrientation.imag.z)
+                    body.setOrientation(Double(node.simdOrientation.real), Double(node.simdOrientation.imag.x), Double(node.simdOrientation.imag.y), Double(node.simdOrientation.imag.z))
                     body.orientation.normalise()
                     
                     body.setMass(mass: 5)
@@ -182,7 +182,7 @@ class Physics3D
         debugSpheres = []
         
         if let lTime = lastTime {
-            let duration = Float(time - lTime)
+            let duration = Double(time - lTime)
 
             // Update the transform data of the spheres
             for s in objectSpheres {
@@ -204,28 +204,36 @@ class Physics3D
             for body in rigidBodyWorld.bodies {
                 let transform = body.object.components[body.object.defaultName]!
 
-                transform.values["_posX"] = body.position.x
-                transform.values["_posY"] = body.position.y
-                transform.values["_posZ"] = body.position.z
+                transform.values["_posX"] = Float(body.position.x)
+                transform.values["_posY"] = Float(body.position.y)
+                transform.values["_posZ"] = Float(body.position.z)
                                 
                 let angles = body.transformMatrix.extractEulerAngleXYZ()
-                transform.values["_rotateX"] = angles.x.radiansToDegrees
-                transform.values["_rotateY"] = angles.y.radiansToDegrees
-                transform.values["_rotateZ"] = angles.z.radiansToDegrees
+                transform.values["_rotateX"] = Float(angles.x.radiansToDegrees)
+                transform.values["_rotateY"] = Float(angles.y.radiansToDegrees)
+                transform.values["_rotateZ"] = Float(angles.z.radiansToDegrees)
             }
+            debugIsValid = true
         } else {
             rigidBodyWorld.startFrame()
+            debugIsValid = false
         }
         lastTime = time
     }
     
     func drawDebug(texture: MTLTexture)
     {
+        if debugIsValid == false { return }
+        
         if let prim = primShader {
             var debugSpheres : [float4] = []
             for oS in objectSpheres {
-                for (index,s) in oS.transSpheres.enumerated() {
-                    debugSpheres.append(s)
+                for (index,s) in oS.spheres.enumerated() {
+                    
+                    let rotated = Physics3D.rotateWithPivot(float3(s.x + oS.position.x, s.y + oS.position.y, s.z + oS.position.z), oS.rotation, float3(oS.position.x, oS.position.y, oS.position.z))
+                    
+                    debugSpheres.append(float4(rotated.x, rotated.y, rotated.z, s.w))
+
                     if oS.sphereHits[index] == false {
                         debugSpheres.append(float4(1,0,0,0.5))
                     } else {

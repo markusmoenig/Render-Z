@@ -47,6 +47,15 @@ extension Float {
   }
 }
 
+extension Double {
+  var radiansToDegrees: Double {
+    (self / Double.pi) * 180
+  }
+  var degreesToRadians: Double {
+    (self / 180) * Double.pi
+  }
+}
+
 // MARK:- float4
 extension float4x4 {
   // MARK:- Translate

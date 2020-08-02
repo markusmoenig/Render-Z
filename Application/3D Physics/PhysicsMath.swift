@@ -35,11 +35,11 @@ infix operator % : MultiplicationPrecedence
 
 class _Vector3 {
 
-    var x                   : Float
-    var y                   : Float
-    var z                   : Float
+    var x                   : Double
+    var y                   : Double
+    var z                   : Double
 
-    init(_ x: Float = 0,_ y: Float = 0,_ z: Float = 0)
+    init(_ x: Double = 0,_ y: Double = 0,_ z: Double = 0)
     {
         self.x = x
         self.y = y
@@ -48,12 +48,12 @@ class _Vector3 {
     
     init(_ value: float3)
     {
-        self.x = value.x
-        self.y = value.y
-        self.z = value.z
+        self.x = Double(value.x)
+        self.y = Double(value.y)
+        self.z = Double(value.z)
     }
     
-    subscript(index: Int) -> Float {
+    subscript(index: Int) -> Double {
         get {
             if index == 0 {
                 return x
@@ -108,11 +108,11 @@ class _Vector3 {
         return _Vector3(left.x * right.x, left.y * right.y, left.z * right.z)
     }
     
-    static func * (left: _Vector3, right: Float) -> _Vector3 {
+    static func * (left: _Vector3, right: Double) -> _Vector3 {
         return _Vector3(left.x * right, left.y * right, left.z * right)
     }
     
-    static func *= (left: inout _Vector3, right: Float) {
+    static func *= (left: inout _Vector3, right: Double) {
         left.x = left.x * right
         left.y = left.y * right
         left.z = left.z * right
@@ -143,32 +143,32 @@ class _Vector3 {
                         left.x * right.y - left.y * right.x)
     }
     
-    func scalarProduct(_ vector: _Vector3) -> Float
+    func scalarProduct(_ vector: _Vector3) -> Double
     {
         return x*vector.x + y*vector.y + z*vector.z
     }
     
-    static func * (left: _Vector3, right: _Vector3) -> Float {
+    static func * (left: _Vector3, right: _Vector3) -> Double {
         return left.x * right.x + left.y * right.y + left.z * right.z
     }
     
-    func addScaledVector(_ vector: _Vector3,_ scale: Float) {
+    func addScaledVector(_ vector: _Vector3,_ scale: Double) {
         x += vector.x * scale
         y += vector.y * scale
         z += vector.z * scale
     }
     
-    func magnitude() -> Float
+    func magnitude() -> Double
     {
         return sqrt(x*x+y*y+z*z)
     }
     
-    func squareMagnitude() -> Float
+    func squareMagnitude() -> Double
     {
         return x*x+y*y+z*z
     }
     
-    func trim(_ size: Float)
+    func trim(_ size: Double)
     {
         if squareMagnitude() > size*size {
             normalise()
@@ -205,13 +205,13 @@ class _Vector3 {
 
 class _Quaternion {
     
-    var r                   : Float
+    var r                   : Double
 
-    var i                   : Float
-    var j                   : Float
-    var k                   : Float
+    var i                   : Double
+    var j                   : Double
+    var k                   : Double
 
-    init(_ r: Float = 1,_ i: Float = 0,_ j: Float = 0,_ k: Float = 0)
+    init(_ r: Double = 1,_ i: Double = 0,_ j: Double = 0,_ k: Double = 0)
     {
         self.r = r
         self.i = i
@@ -225,11 +225,11 @@ class _Quaternion {
      */
     func normalise()
     {
-        var d : Float = r*r+i*i+j*j+k*k
+        var d : Double = r*r+i*i+j*j+k*k
 
         // Check for zero length quaternion, and use the no-rotation
         // quaternion in that case.
-        if d < Float.ulpOfOne {
+        if d < Double.ulpOfOne {
             r = 1
             return
         }
@@ -268,7 +268,7 @@ class _Quaternion {
      *
      * @param scale The amount of the vector to add.
      */
-    func addScaledVector(_ vector: _Vector3,_ scale: Float)
+    func addScaledVector(_ vector: _Vector3,_ scale: Double)
     {
         let q = _Quaternion(0,
             vector.x * scale,
@@ -301,7 +301,7 @@ class _Matrix4
      * Holds the transform matrix data in array form.
      */
     
-    var data                    : [Float]
+    var data                    : [Double]
     
     /**
      * Creates an identity matrix.
@@ -317,7 +317,7 @@ class _Matrix4
     /**
      * Sets the matrix to be a diagonal matrix with the given coefficients.
      */
-    func setDiagonal(_ a: Float,_ b: Float,_ c: Float)
+    func setDiagonal(_ a: Double,_ b: Double,_ c: Double)
     {
         data[0] = a
         data[5] = b
@@ -385,7 +385,7 @@ class _Matrix4
     /**
      * Returns the determinant of the matrix.
      */
-    func getDeterminant() -> Float
+    func getDeterminant() -> Double
     {
         return -data[8]*data[5]*data[2] +
             data[4]*data[9]*data[2] +
@@ -583,7 +583,7 @@ class _Matrix4
      * major format, so that the values are transposed as they are
      * written.
      */
-    func fillGLArray(_ a: [Float])
+    func fillGLArray(_ a: [Double])
     {
         var array = a
         array[0] = data[0]
@@ -607,9 +607,9 @@ class _Matrix4
         array[15] = 1
     }
     
-    func row(_ row: Int) -> float4
+    func row(_ row: Int) -> SIMD4<Double>
     {
-        return float4(
+        return SIMD4<Double>(
             data[row*4],
             data[row*4+1],
             data[row*4+2],
@@ -619,9 +619,9 @@ class _Matrix4
     
     func extractEulerAngleXYZ() -> _Vector3
     {
-        var rotXangle : Float = 0
-        var rotYangle : Float = 0
-        var rotZangle : Float = 0
+        var rotXangle : Double = 0
+        var rotYangle : Double = 0
+        var rotZangle : Double = 0
 
         rotXangle = atan2(-row(1).z, row(2).z)
         let cosYangle = sqrt(pow(row(0).x, 2) + pow(row(0).y, 2))
@@ -646,7 +646,7 @@ class _Matrix3
      * Holds the tensor matrix data in array form.
      */
     
-    var data                    : [Float]
+    var data                    : [Double]
     
     /**
      * Creates an identity matrix.
@@ -672,8 +672,8 @@ class _Matrix3
     /**
      * Creates a new matrix with explicit coefficients.
      */
-    init(_ c0: Float,_ c1: Float,_ c2: Float,_ c3: Float,_ c4: Float,_ c5: Float,
-         _ c6: Float,_ c7: Float,_ c8: Float)
+    init(_ c0: Double,_ c1: Double,_ c2: Double,_ c3: Double,_ c4: Double,_ c5: Double,
+         _ c6: Double,_ c7: Double,_ c8: Double)
     {
         data = Array(repeating: 0, count: 9)
 
@@ -686,7 +686,7 @@ class _Matrix3
      * Sets the matrix to be a diagonal matrix with the given
      * values along the leading diagonal.
      */
-    func setDiagonal(_ a: Float,_ b: Float,_ c: Float)
+    func setDiagonal(_ a: Double,_ b: Double,_ c: Double)
     {
         setInertiaTensorCoeffs(a, b, c)
     }
@@ -694,7 +694,7 @@ class _Matrix3
     /**
      * Sets the value of the matrix from inertia tensor values.
      */
-    func setInertiaTensorCoeffs(_ ix: Float,_ iy: Float,_ iz: Float, ixy: Float = 0, ixz: Float = 0, iyz: Float = 0)
+    func setInertiaTensorCoeffs(_ ix: Double,_ iy: Double,_ iz: Double, ixy: Double = 0, ixz: Double = 0, iyz: Double = 0)
     {
         data[0] = ix
         data[1] = -ixy; data[3] = -ixy
@@ -709,7 +709,7 @@ class _Matrix3
      * a rectangular block aligned with the body's coordinate
      * system with the given axis half-sizes and mass.
      */
-    func setBlockInertiaTensor(_ halfSizes: _Vector3,_ mass: Float)
+    func setBlockInertiaTensor(_ halfSizes: _Vector3,_ mass: Double)
     {
         let squares : _Vector3 = halfSizes * halfSizes
         
@@ -829,12 +829,12 @@ class _Matrix3
         let t14 = m.data[2]*m.data[6]
 
         // Calculate the determinant
-        let t16 : Float = (t4*m.data[8] - t6*m.data[7] - t8*m.data[8] +
+        let t16 : Double = (t4*m.data[8] - t6*m.data[7] - t8*m.data[8] +
                     t10*m.data[7] + t12*m.data[5] - t14*m.data[4])
 
         // Make sure the determinant is non-zero.
         if t16 == 0.0 { return }
-        let t17 : Float = 1.0 / t16
+        let t17 : Double = 1.0 / t16
 
         data[0] = (m.data[4]*m.data[8]-m.data[5]*m.data[7])*t17
         data[1] = -(m.data[1]*m.data[8]-m.data[2]*m.data[7])*t17
@@ -916,9 +916,9 @@ class _Matrix3
      */
     func multiply(_ o: _Matrix3)
     {
-        var t1: Float
-        var t2: Float
-        var t3: Float
+        var t1: Double
+        var t2: Double
+        var t3: Double
 
         t1 = data[0]*o.data[0] + data[1]*o.data[3] + data[2]*o.data[6]
         t2 = data[0]*o.data[1] + data[1]*o.data[4] + data[2]*o.data[7]
@@ -945,7 +945,7 @@ class _Matrix3
     /**
      * Multiplies this matrix in place by the given scalar.
      */
-    func multiply(_ scalar: Float)
+    func multiply(_ scalar: Double)
     {
         data[0] *= scalar; data[1] *= scalar; data[2] *= scalar
         data[3] *= scalar; data[4] *= scalar; data[5] *= scalar
@@ -983,7 +983,7 @@ class _Matrix3
     /**
      * Interpolates a couple of matrices.
      */
-    func linearInterpolate(_ a: _Matrix3,_ b: _Matrix3,_ prop: Float) -> _Matrix3
+    func linearInterpolate(_ a: _Matrix3,_ b: _Matrix3,_ prop: Double) -> _Matrix3
     {
         let result = _Matrix3()
         for i in 0..<9 {

@@ -36,7 +36,7 @@ class RigidBody3DWorld
         }
     }
     
-    func runPhysics(duration: Float)
+    func runPhysics(duration: Double)
     {
         for body in bodies {
             body.integrate(duration: duration)

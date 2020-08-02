@@ -11,11 +11,11 @@ import simd
 
 class RigidBody3D
 {
-    var inverseMass                 : Float = 1
+    var inverseMass                 : Double = 1
     var inverseInertiaTensor        = _Matrix3()
 
-    var linearDamping               : Float = 0.99
-    var angularDamping              : Float = 0
+    var linearDamping               : Double = 0.99
+    var angularDamping              : Double = 0
     
     var position                    = _Vector3()
     var orientation                 = _Quaternion()
@@ -24,7 +24,7 @@ class RigidBody3D
 
     var inverseInertiaTensorWorld   = _Matrix3()
 
-    var motion                      : Float = 1
+    var motion                      : Double = 1
     
     var isAwake                     = true
 
@@ -38,7 +38,7 @@ class RigidBody3D
 
     var lastFrameAcceleration       = _Vector3()
     
-    static var sleepEpsilon         : Float = 0.1
+    static var sleepEpsilon         : Double = 0.1
     
     var object                      : StageItem
     var objectSpheres               : ObjectSpheres3D
@@ -60,7 +60,7 @@ class RigidBody3D
         _transformInertiaTensor(inverseInertiaTensorWorld, orientation, inverseInertiaTensor, transformMatrix)
     }
     
-    func integrate(duration: Float)
+    func integrate(duration: Double)
     {
         if !isAwake { return }
         
@@ -91,7 +91,7 @@ class RigidBody3D
 
         // Normalise the orientation, and update the matrices with the new
         // position and orientation
-        calculateDerivedData()
+        //calculateDerivedData()
 
         // Clear accumulators.
         clearAccumulators()
@@ -99,10 +99,10 @@ class RigidBody3D
         // Update the kinetic energy store, and possibly put the body to
         // sleep.
         if canSleep {
-            let currentMotion : Float = velocity.scalarProduct(velocity) + rotation.scalarProduct(rotation)
+            let currentMotion : Double = velocity.scalarProduct(velocity) + rotation.scalarProduct(rotation)
 
-            let bias : Float = pow(0.00000000001, duration)
-            //let bias : Float = pow(0.5, duration)
+            let bias : Double = pow(0.00000000001, duration)
+            //let bias : Double = pow(0.5, duration)
             motion = bias * motion + (1.0 - bias) * currentMotion
 
             if motion < RigidBody3D.sleepEpsilon { setAwake(false) }
@@ -110,21 +110,21 @@ class RigidBody3D
         }
     }
     
-    func getMass() -> Float
+    func getMass() -> Double
     {
         if inverseMass == 0 {
-            return Float.greatestFiniteMagnitude
+            return Double.greatestFiniteMagnitude
         } else {
             return 1.0 / inverseMass
         }
     }
     
-    func getInverseMass() -> Float
+    func getInverseMass() -> Double
     {
         return inverseMass
     }
     
-    func setMass(mass: Float)
+    func setMass(mass: Double)
     {
         if mass != 0.0 {
             inverseMass = 1 / mass
@@ -133,7 +133,7 @@ class RigidBody3D
         }
     }
     
-    func setInverseMass(inverseMass: Float)
+    func setInverseMass(inverseMass: Double)
     {
         self.inverseMass = inverseMass
     }
@@ -200,28 +200,28 @@ class RigidBody3D
         return inverseInertiaTensorWorld
     }
 
-    func setDamping(_ linearDamping: Float,_ angularDamping: Float)
+    func setDamping(_ linearDamping: Double,_ angularDamping: Double)
     {
         self.linearDamping = linearDamping
         self.angularDamping = angularDamping
     }
 
-    func setLinearDamping(_ linearDamping: Float)
+    func setLinearDamping(_ linearDamping: Double)
     {
         self.linearDamping = linearDamping
     }
 
-    func getLinearDamping() -> Float
+    func getLinearDamping() -> Double
     {
         return linearDamping
     }
 
-    func setAngularDamping(_ angularDamping: Float)
+    func setAngularDamping(_ angularDamping: Double)
     {
         self.angularDamping = angularDamping
     }
 
-    func getAngularDamping() -> Float
+    func getAngularDamping() -> Double
     {
         return angularDamping
     }
@@ -231,7 +231,7 @@ class RigidBody3D
         self.position = position
     }
 
-    func setPosition(_ x: Float,_ y: Float,_ z: Float)
+    func setPosition(_ x: Double,_ y: Double,_ z: Double)
     {
         position.x = x
         position.y = y
@@ -249,7 +249,7 @@ class RigidBody3D
         self.orientation.normalise()
     }
 
-    func setOrientation(_ r: Float,_ i: Float,_ j: Float,_ k: Float)
+    func setOrientation(_ r: Double,_ i: Double,_ j: Double,_ k: Double)
     {
         orientation.r = r
         orientation.i = i
@@ -278,7 +278,7 @@ class RigidBody3D
     }*/
 
     /*
-    func getOrientation(matrix: [Float])
+    func getOrientation(matrix: [Double])
     {
         matrix[0] = transformMatrix.data[0]
         matrix[1] = transformMatrix.data[1]
@@ -299,7 +299,7 @@ class RigidBody3D
         transform.data = transformMatrix.data
     }
 
-    func getTransform() -> [Float]
+    func getTransform() -> [Double]
     {
         //memcpy(matrix, transformMatrix.data, sizeof(real)*12);
         var data = transformMatrix.data
@@ -311,7 +311,7 @@ class RigidBody3D
         return data
     }
     
-    func getGLTransform() -> [Float]
+    func getGLTransform() -> [Double]
     {
         var matrix = transformMatrix.data
 
@@ -368,7 +368,7 @@ class RigidBody3D
         self.velocity = velocity
     }
 
-    func setVelocity(_ x: Float,_ y: Float,_ z: Float)
+    func setVelocity(_ x: Double,_ y: Double,_ z: Double)
     {
         velocity.x = x
         velocity.y = y
@@ -390,7 +390,7 @@ class RigidBody3D
         self.rotation = rotation
     }
 
-    func setRotation(_ x: Float,_ y: Float,_ z: Float)
+    func setRotation(_ x: Double,_ y: Double,_ z: Double)
     {
         rotation.x = x
         rotation.y = y
@@ -482,7 +482,7 @@ class RigidBody3D
         self.acceleration = acceleration
     }
 
-    func setAcceleration(_ x: Float,_ y: Float,_ z: Float)
+    func setAcceleration(_ x: Double,_ y: Double,_ z: Double)
     {
         acceleration.x = x
         acceleration.y = y
