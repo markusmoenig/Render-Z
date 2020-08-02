@@ -51,7 +51,7 @@ class PrimitivesShader      : BaseShader
             \(camera.code!)
         
             float4 outColor = float4(0);
-            float4 color = spheres[0];
+            float4 color = float4(0);
 
             float t = 0.0001;
             int steps = 70;
@@ -60,14 +60,20 @@ class PrimitivesShader      : BaseShader
             {
                 float3 pos = outPosition + outDirection * t;
                 
-                int index = 1;
+                int index = 0;
                 float d = 1000;
 
                 while(1)
                 {
                     constant float4 *posAndRadius = &spheres[index++];
                     if (posAndRadius->w < 0.0) break;
-                    d = min(d, length(pos - posAndRadius->xyz) - posAndRadius->w);
+                    float4 ccolor = spheres[index++];
+
+                    float dd = length(pos - posAndRadius->xyz) - posAndRadius->w;
+                    if (dd < d) {
+                        color = ccolor;
+                        d = dd;
+                    }
                 }
                 if (abs(d) < 0.001 * t) {
                     outColor = color;

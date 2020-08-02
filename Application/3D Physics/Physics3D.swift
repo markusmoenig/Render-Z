@@ -24,9 +24,7 @@ class ObjectSpheres3D
     
     // Results per frame
     var transSpheres    : [float4] = []
-    var contactPoint    : float3 = float3(0,0,0)
-    var hitNormal       : float3 = float3(0,0,0)
-    var penetrationDepth: Float = Float.greatestFiniteMagnitude
+    var sphereHits      : [Bool] = []
 
     var body3D          : RigidBody3D? = nil
     var world           : RigidBody3DWorld? = nil
@@ -38,12 +36,11 @@ class ObjectSpheres3D
         self.spheres = spheres
         self.object = object
         self.transform = transform
+        sphereHits = Array<Bool>(repeating: false, count: spheres.count)
     }
     
-    func updateTransformData() -> [float4]
+    func updateTransformData()
     {
-        var debugSpheres : [float4] = []
-        
         position.x = transform.values["_posX"]!
         position.y = transform.values["_posY"]!
         position.z = transform.values["_posZ"]!
@@ -57,18 +54,15 @@ class ObjectSpheres3D
         for (i,s) in spheres.enumerated() {
             //let rotated = Physics3D.rotateWithPivot(float3(s.x + position.x, s.y + position.y, s.z + position.z), rotation, float3(position.x, position.y, position.z))
             let rotated = body3D!.transformMatrix.multiplyWithVector(_Vector3(s.x, s.y, s.z))
-            print("--", i, rotated.x, rotated.y, rotated.z)
+            //let rotated = float3(s.x + position.x, s.y + position.y, s.z + position.z)
+            //print("--", i, rotation.x, rotation.y, rotation.z)
 
             transSpheres[i].x = rotated.x
             transSpheres[i].y = rotated.y
             transSpheres[i].z = rotated.z
             
-            debugSpheres.append(transSpheres[i])
+            sphereHits[i] = false
         }
-        
-        penetrationDepth = -1000
-        
-        return debugSpheres
     }
 }
 
@@ -192,7 +186,7 @@ class Physics3D
 
             // Update the transform data of the spheres
             for s in objectSpheres {
-                debugSpheres += s.updateTransformData()
+                s.updateTransformData()
             }
             
             // Do the contact resolution
@@ -228,13 +222,19 @@ class Physics3D
     func drawDebug(texture: MTLTexture)
     {
         if let prim = primShader {
-            
-            var sphereData  : [SIMD4<Float>] = []
-            sphereData.append(SIMD4<Float>(1,0,0,0.5))
-            sphereData += debugSpheres
-            sphereData.append(SIMD4<Float>(-1,-1,-1,-1))
-
-            prim.drawSpheres(texture: texture, sphereData: sphereData)
+            var debugSpheres : [float4] = []
+            for oS in objectSpheres {
+                for (index,s) in oS.transSpheres.enumerated() {
+                    debugSpheres.append(s)
+                    if oS.sphereHits[index] == false {
+                        debugSpheres.append(float4(1,0,0,0.5))
+                    } else {
+                        debugSpheres.append(float4(1,1,0,0.5))
+                    }
+                }
+            }
+            debugSpheres.append(SIMD4<Float>(-1,-1,-1,-1))
+            prim.drawSpheres(texture: texture, sphereData: debugSpheres)
         }
     }
     
@@ -248,7 +248,7 @@ class Physics3D
         
         var pos = position
         
-        
+        /*
         let yz = rotateCWWithPivot(float2(pos.y, pos.z), angle.x.degreesToRadians, float2(pivot.y, pivot.z))
         pos.y = yz.x
         pos.z = yz.y
@@ -257,9 +257,9 @@ class Physics3D
         pos.z = xz.y
         let xy = rotateCWWithPivot(float2(pos.x, pos.y), angle.z.degreesToRadians, float2(pivot.x, pivot.y))
         pos.x = xy.x
-        pos.y = xy.y
+        pos.y = xy.y*/
         
-        /*
+        
         let xy = rotateCWWithPivot(float2(pos.x, pos.y), angle.z.degreesToRadians, float2(pivot.x, pivot.y))
         pos.x = xy.x
         pos.y = xy.y
@@ -270,9 +270,8 @@ class Physics3D
         
         let yz = rotateCWWithPivot(float2(pos.y, pos.z), angle.x.degreesToRadians, float2(pivot.y, pivot.z))
         pos.y = yz.x
-        pos.z = yz.y*/
+        pos.z = yz.y
         
-
         return pos
     }
 }
