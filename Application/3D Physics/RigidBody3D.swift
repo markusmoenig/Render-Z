@@ -15,7 +15,7 @@ class RigidBody3D
     var inverseInertiaTensor        = _Matrix3()
 
     var linearDamping               : Double = 0.99
-    var angularDamping              : Double = 0
+    var angularDamping              : Double = 0.1
     
     var position                    = _Vector3()
     var orientation                 = _Quaternion()
@@ -38,7 +38,7 @@ class RigidBody3D
 
     var lastFrameAcceleration       = _Vector3()
     
-    static var sleepEpsilon         : Double = 0.1
+    static var sleepEpsilon         : Double = 0.08
     
     var object                      : StageItem
     var objectSpheres               : ObjectSpheres3D
