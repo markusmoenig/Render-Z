@@ -314,6 +314,30 @@ float3 calcNormalPoint(float3 pos, float3 off, constant GIZMO3D *data){
     return normalize(nor);
 }
 
+float bbox(float3 C, float3 D, float3 P, float3 L, float3x3 F)
+{
+    float d = 1e5, l;
+    
+    C = (C-P) * F;    D *= F;
+    float3 I = abs(C-.5); bool inside = max(I.x, max(I.y,I.z)) <= .5;
+    if ( inside ) return 0.;
+        
+    #define test(i)                                                       \
+    l =  D[i] > 0. ?  C[i] < 0. ? -C[i]   : C[i] < 1. ? 1.-C[i] : -1.     \
+                   :  C[i] > 1. ? 1.-C[i] : C[i] > 0. ? -C[i]   :  1.;    \
+    l /= D[i];                                                            \
+    I = C+l*D;                                                            \
+    if ( l > 0. && l < d                                                  \
+         && I[(i+1)%3] >= 0. && I[(i+1)%3] <= 1.                          \
+         && I[(i+2)%3] >= 0. && I[(i+2)%3] <= 1.                          \
+       )  d = l
+
+    test(0);
+    test(1);
+    test(2);
+    return d==1e5 ? -1. : d;
+}
+
 kernel void cameraGizmoCombo3D(
                                constant GIZMO3D               *data        [[ buffer(1) ]],
                                device float4                  *out         [[ buffer(0) ]],
@@ -496,48 +520,55 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     const float4 zAxisColor = float4(0.188, 0.933, 0.176, 1.000);
     
     dir = normalize(dir);
-    float3 hit = castRay(origin, dir, data);
     
-    if (hit.y > -0.5) {
-        if (hit.y == MOVE_X) {
-            finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
-        } else
-        if (hit.y == MOVE_Y) {
-            finalColor =  hoverState == MOVE_Y ? hoverColor : yAxisColor;
-        } else
-        if (hit.y == MOVE_Z) {
-            finalColor =  hoverState == MOVE_Z ? hoverColor : zAxisColor;
-        } else
-        if (hit.y == SCALE_X) {
-            finalColor = hoverState == SCALE_X ? hoverColor : xAxisColor;
-        } else
-        if (hit.y == SCALE_Y) {
-            finalColor =  hoverState == SCALE_Y ? hoverColor : yAxisColor;
-        } else
-        if (hit.y == SCALE_Z) {
-            finalColor =  hoverState == SCALE_Z ? hoverColor : zAxisColor;
+    float3 X0 = float3(1.5, 0,0), X1 = float3(0, 1.5, 0), X2 = float3(0, 0, 1.5);
+    float d = bbox(origin, dir, data->position.xyz - float3(0.75), float3(length(X0), length(X1), length(X2)), float3x3( X0/dot(X0,X0), X1/dot(X1,X1), X2/dot(X2,X2) ) );
+    
+    if (d >= 0.0) {
+        
+        float3 hit = castRay(origin, dir, data);
+        
+        if (hit.y > -0.5) {
+            if (hit.y == MOVE_X) {
+                finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
+            } else
+            if (hit.y == MOVE_Y) {
+                finalColor =  hoverState == MOVE_Y ? hoverColor : yAxisColor;
+            } else
+            if (hit.y == MOVE_Z) {
+                finalColor =  hoverState == MOVE_Z ? hoverColor : zAxisColor;
+            } else
+            if (hit.y == SCALE_X) {
+                finalColor = hoverState == SCALE_X ? hoverColor : xAxisColor;
+            } else
+            if (hit.y == SCALE_Y) {
+                finalColor =  hoverState == SCALE_Y ? hoverColor : yAxisColor;
+            } else
+            if (hit.y == SCALE_Z) {
+                finalColor =  hoverState == SCALE_Z ? hoverColor : zAxisColor;
+            }
+            if (hit.y == ROTATE_X) {
+                finalColor = hoverState == ROTATE_X ? hoverColor : rotateColor;
+            } else
+            if (hit.y == ROTATE_Y) {
+                finalColor =  hoverState == ROTATE_Y ? hoverColor : rotateColor;
+            } else
+            if (hit.y == ROTATE_Z) {
+                finalColor =  hoverState == ROTATE_Z ? hoverColor : rotateColor;
+            }
+            
+            finalColor.r /= finalColor.a;
+            finalColor.g /= finalColor.a;
+            finalColor.b /= finalColor.a;
+            
+    //        float3 hitPoint = origin + hit.x * dir;
+    //        float3 normal = calcNormal(hitPoint, data);
+            
+    //        finalColor.xyz += dot(float3(0, 1, 0), normal);
+    //        finalColor.xyz += dot(float3(0, -1, 0), normal);
+            
+    //        finalColor.xyz = mix( float3(0), finalColor.xyz, dot(normalize(float3(0,-1,0)), normal));
         }
-        if (hit.y == ROTATE_X) {
-            finalColor = hoverState == ROTATE_X ? hoverColor : rotateColor;
-        } else
-        if (hit.y == ROTATE_Y) {
-            finalColor =  hoverState == ROTATE_Y ? hoverColor : rotateColor;
-        } else
-        if (hit.y == ROTATE_Z) {
-            finalColor =  hoverState == ROTATE_Z ? hoverColor : rotateColor;
-        }
-        
-        finalColor.r /= finalColor.a;
-        finalColor.g /= finalColor.a;
-        finalColor.b /= finalColor.a;
-        
-//        float3 hitPoint = origin + hit.x * dir;
-//        float3 normal = calcNormal(hitPoint, data);
-        
-//        finalColor.xyz += dot(float3(0, 1, 0), normal);
-//        finalColor.xyz += dot(float3(0, -1, 0), normal);
-        
-//        finalColor.xyz = mix( float3(0), finalColor.xyz, dot(normalize(float3(0,-1,0)), normal));
     }
     
     return finalColor;
@@ -590,20 +621,26 @@ fragment float4 drawGizmoCombo3DPoint(RasterizerData        in [[stage_in]],
     const float4 zAxisColor = float4(0.188, 0.933, 0.176, 1.000);
 
     dir = normalize(dir);
-    float3 hit = castRayPoint(origin, dir, pos, data);
     
-    if (hit.y == MOVE_X) {
-        finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
-    } else
-    if (hit.y == MOVE_Y) {
-        finalColor =  hoverState == MOVE_Y ? hoverColor : yAxisColor;
-    } else
-    if (hit.y == MOVE_Z) {
-        finalColor =  hoverState == MOVE_Z ? hoverColor : zAxisColor;
+    float3 X0 = float3(1.5, 0,0), X1 = float3(0, 1.5, 0), X2 = float3(0, 0, 1.5);
+    float d = bbox(origin, dir, data->position.xyz - float3(0.75), float3(length(X0), length(X1), length(X2)), float3x3( X0/dot(X0,X0), X1/dot(X1,X1), X2/dot(X2,X2) ) );
+    
+    if (d >= 0.0) {
+        float3 hit = castRayPoint(origin, dir, pos, data);
+        
+        if (hit.y == MOVE_X) {
+            finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
+        } else
+        if (hit.y == MOVE_Y) {
+            finalColor =  hoverState == MOVE_Y ? hoverColor : yAxisColor;
+        } else
+        if (hit.y == MOVE_Z) {
+            finalColor =  hoverState == MOVE_Z ? hoverColor : zAxisColor;
+        }
+        
+        finalColor.r /= finalColor.a;
+        finalColor.g /= finalColor.a;
+        finalColor.b /= finalColor.a;
     }
-    
-    finalColor.r /= finalColor.a;
-    finalColor.g /= finalColor.a;
-    finalColor.b /= finalColor.a;
     return finalColor;
 }
