@@ -230,57 +230,53 @@ float3 mapPoint(float3 pos, float3 off, constant GIZMO3D *data)
     return res;
 }
 
-float3 castRay(float3 ro, float3 rd, constant GIZMO3D *data)
+float3 castRay(float3 ro, float3 rd, float tmin, constant GIZMO3D *data)
 {
-    float tmin=0.001, tmax=100.0;
+    float tmax = 100.0;
 
-    float t=-1.0;
-    float m=-1.0, id=-1.0;
+    float t= tmin;
+    float m =-1.0, id=-1.0;
 
-    // if ( bbox( ro, rd, bounds, tmin, tmax ) )
+    t = tmin;
+    for( int i=0; i< 70; i++ )
     {
-        float t=tmin;
-        for( int i=0; i< 200; i++ )
-        {
-            // float precis = 0.02;
-            float precis = 0.0005*t;
+        // float precis = 0.02;
+        float precis = 0.0005*t;
 
-            float3 res = map(ro+rd*t, data);
-            if( t < precis || t>tmax ) break;
-            t += res.x * 0.7;
-            m = res.y;
-            id = res.z;
-        }
-
-        if( t > tmax ) { m=-1.0; id=-1.0; }
+        float3 res = map(ro+rd*t, data);
+        if( t < precis || t>tmax ) break;
+        t += res.x * 0.8;
+        m = res.y;
+        id = res.z;
     }
+
+    if( t > tmax ) { m=-1.0; id=-1.0; }
+    
     return float3( t, m, id );
 }
 
-float3 castRayPoint(float3 ro, float3 rd, float3 off, constant GIZMO3D *data)
+float3 castRayPoint(float3 ro, float3 rd, float3 off, float tmin, constant GIZMO3D *data)
 {
-    float tmin=0.001, tmax=100.0;
+    float tmax=100.0;
 
     float t=-1.0;
     float m=-1.0, id=-1.0;
 
-    // if ( bbox( ro, rd, bounds, tmin, tmax ) )
+    t = tmin;
+    for( int i=0; i< 70; i++ )
     {
-        float t=tmin;
-        for( int i=0; i< 200; i++ )
-        {
-            // float precis = 0.02;
-            float precis = 0.0005*t;
+        // float precis = 0.02;
+        float precis = 0.0005*t;
 
-            float3 res = mapPoint(ro+rd*t, off, data);
-            if( t < precis || t>tmax ) break;
-            t += res.x * 0.7;
-            m = res.y;
-            id = res.z;
-        }
-
-        if( t > tmax ) { m=-1.0; id=-1.0; }
+        float3 res = mapPoint(ro+rd*t, off, data);
+        if( t < precis || t>tmax ) break;
+        t += res.x * 0.8;
+        m = res.y;
+        id = res.z;
     }
+
+    if( t > tmax ) { m=-1.0; id=-1.0; }
+    
     return float3( t, m, id );
 }
 
@@ -422,7 +418,7 @@ kernel void idsGizmoCombo3D(
     
     dir = normalize(dir);
 
-    float3 hit = castRay(origin, dir, data);
+    float3 hit = castRay(origin, dir, 0.001, data);
 
     outTexture.write(half(hit.y), gid);
 }
@@ -468,7 +464,7 @@ kernel void idsGizmoCombo3DPoint(
     
     dir = normalize(dir);
 
-    float3 hit = castRayPoint(origin, dir, pos, data);
+    float3 hit = castRayPoint(origin, dir, pos, 0.001, data);
 
     outTexture.write(half(hit.y), gid);
 }
@@ -526,7 +522,7 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     
     if (d >= 0.0) {
         
-        float3 hit = castRay(origin, dir, data);
+        float3 hit = castRay(origin, dir, d, data);
         
         if (hit.y > -0.5) {
             if (hit.y == MOVE_X) {
@@ -557,17 +553,14 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
                 finalColor =  hoverState == ROTATE_Z ? hoverColor : rotateColor;
             }
             
+            float3 hitPoint = origin + hit.x * dir;
+            float3 normal = calcNormal(hitPoint, data);
+            
+            finalColor.xyz = mix(finalColor.xyz - float3(0.2), finalColor.xyz, dot(normalize(float3(0,1,0)), normal));
+            
             finalColor.r /= finalColor.a;
             finalColor.g /= finalColor.a;
             finalColor.b /= finalColor.a;
-            
-    //        float3 hitPoint = origin + hit.x * dir;
-    //        float3 normal = calcNormal(hitPoint, data);
-            
-    //        finalColor.xyz += dot(float3(0, 1, 0), normal);
-    //        finalColor.xyz += dot(float3(0, -1, 0), normal);
-            
-    //        finalColor.xyz = mix( float3(0), finalColor.xyz, dot(normalize(float3(0,-1,0)), normal));
         }
     }
     
@@ -626,7 +619,7 @@ fragment float4 drawGizmoCombo3DPoint(RasterizerData        in [[stage_in]],
     float d = bbox(origin, dir, data->position.xyz - float3(0.75), float3(length(X0), length(X1), length(X2)), float3x3( X0/dot(X0,X0), X1/dot(X1,X1), X2/dot(X2,X2) ) );
     
     if (d >= 0.0) {
-        float3 hit = castRayPoint(origin, dir, pos, data);
+        float3 hit = castRayPoint(origin, dir, pos, d, data);
         
         if (hit.y == MOVE_X) {
             finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
@@ -637,6 +630,11 @@ fragment float4 drawGizmoCombo3DPoint(RasterizerData        in [[stage_in]],
         if (hit.y == MOVE_Z) {
             finalColor =  hoverState == MOVE_Z ? hoverColor : zAxisColor;
         }
+        
+        float3 hitPoint = origin + hit.x * dir;
+        float3 normal = calcNormalPoint(hitPoint, pos, data);
+        
+        finalColor.xyz = mix(finalColor.xyz - float3(0.2), finalColor.xyz, dot(normalize(float3(0,1,0)), normal));
         
         finalColor.r /= finalColor.a;
         finalColor.g /= finalColor.a;
