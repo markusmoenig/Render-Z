@@ -13,9 +13,7 @@ class TerrainShader     : BaseShader
     var scene           : Scene
     var object          : StageItem
     var camera          : CodeComponent
-    
-    var sphereContactsState     : MTLComputePipelineState? = nil
-    
+        
     var terrainObjects  : [StageItem] = []
     var terrainMapCode  = ""
     
@@ -1176,7 +1174,7 @@ class TerrainShader     : BaseShader
         return headerCode + materialFuncCode
     }
     
-    func sphereContacts(objectSpheres: [ObjectSpheres3D])
+    override func sphereContacts(objectSpheres: [ObjectSpheres3D])
     {
         if sphereContactsState == nil {
             sphereContactsState = createComputeState(name: "sphereContacts")
@@ -1239,6 +1237,12 @@ class TerrainShader     : BaseShader
                         oS.sphereHits[ii] = true
                         
                         let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: _Vector3(contactPoint), normal: _Vector3(hitNormal), penetration: Double(penetration))
+                        if let restitution = oS.object.components[oS.object.defaultName]!.values["restitution"] {
+                            contact.restitution = Double(restitution)
+                        }
+                        if let friction = oS.object.components[oS.object.defaultName]!.values["friction"] {
+                            contact.friction = Double(friction)
+                        }
                         oS.world!.contacts.append(contact)
                     }                    
                     index += 1

@@ -42,7 +42,7 @@ class SceneGraphSkin {
     let tHalfSize               : Float = 15 / 2
     
     let itemListWidth           : Float
-    
+        
     init(_ font: MMFont, fontScale: Float = 0.4, graphZoom: Float) {
         self.font = font
         self.fontScale = fontScale
@@ -177,12 +177,16 @@ class SceneGraph                : MMWidget
     
     var clipboard               : [String:String] = [:]
     
-    var objectGraph             : ObjectGraph
     var maximizedObject         : StageItem? = nil
     
     let closeButton             : MMButtonWidget!
-    
     var shapeStage              : Stage!
+    var lastBottomUUID          : UUID? = nil
+
+    var bottomWidgets           : [MMWidget] = []
+
+    var groupTabWidget          : MMTabButtonWidget
+    var sdf3DTabWidget          : MMTabButtonWidget
 
     override init(_ view: MMView)
     {
@@ -210,8 +214,6 @@ class SceneGraph                : MMWidget
         minimizeIcon = view.icons["minimize"]!
         maximizeIcon = view.icons["maximize"]!
         
-        objectGraph = ObjectGraph(view)
-
         // Close Button
         let state = view.drawCustomState.createState(source:
             """
@@ -238,6 +240,22 @@ class SceneGraph                : MMWidget
             """, name: "drawCloseButton")
         
         closeButton = MMButtonWidget(view, customState: state)
+        
+        var tabSkin = MMSkinButton()
+        tabSkin.margin = MMMargin( 14, 4, 14, 4 )
+        tabSkin.borderSize = 0
+        tabSkin.height = view.skin.Button.height - 1
+        tabSkin.fontScale = 0.44
+        tabSkin.round = 28
+        
+        groupTabWidget = MMTabButtonWidget(view, skinToUse: tabSkin)
+        groupTabWidget.addTab("Modifiers")
+        groupTabWidget.addTab("Material")
+
+        sdf3DTabWidget = MMTabButtonWidget(view, skinToUse: tabSkin)
+        sdf3DTabWidget.addTab("Modifiers")
+        
+        bottomWidgets = [groupTabWidget, sdf3DTabWidget]
         
         super.init(view)
         
@@ -383,6 +401,10 @@ class SceneGraph                : MMWidget
     {
         maximizedObject = nil
         mmView.deregisterWidgets(widgets: closeButton)
+
+        for w in bottomWidgets {
+            mmView.deregisterWidgets(widgets: w)
+        }
     }
     
     func setCurrent(stage: Stage, stageItem: StageItem? = nil, component: CodeComponent? = nil)
@@ -391,10 +413,6 @@ class SceneGraph                : MMWidget
         currentStageItem = stageItem
         currentComponent = nil
         currentUUID = nil
-        
-        if currentStageItem !== maximizedObject {
-            closeMaximized()
-        }
         
         currentUUID = stage.uuid
         globalApp!.artistEditor.designEditor.blockRendering = true
@@ -771,7 +789,7 @@ class SceneGraph                : MMWidget
         if let pressedButton = pressedButton {
             pressedButton.cb!()
         } else
-        if clickWasConsumed == false && dragVisNav == false {
+        if clickWasConsumed == false && dragVisNav == false && maximizedObject == nil {
             // Check for showing menu
             
             if menuWidget.states.contains(.Opened) == false && distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) < 5 {
@@ -929,11 +947,17 @@ class SceneGraph                : MMWidget
         let realY       : Float = (y - rect.y)
         var contUUID    : UUID? = nil
         var consumed    : Bool = false
+        var shapesCont  : StageItem? = nil
         
         for (uuid,item) in itemMap {
             if item.rect.contains(realX, realY) || (item.navRect != nil && item.navRect!.contains(x, y)) {
                 
                 if item.itemType == .ShapesContainer || item.itemType == .VariableContainer || item.itemType == .DomainContainer || item.itemType == .ModifierContainer || item.itemType == .PostFXContainer || item.itemType == .FogContainer || item.itemType == .CloudsContainer {
+                    if item.itemType == .ShapesContainer {
+                        shapesCont = item.stageItem
+                    } else {
+                        shapesCont = nil
+                    }
                     contUUID = uuid
                     continue
                 }
@@ -951,6 +975,10 @@ class SceneGraph                : MMWidget
         if let uuid = contUUID, consumed == false {
             currentUUID = uuid
             consumed = true
+            if let shapeContainer = shapesCont {
+                currentComponent = nil
+                globalApp!.currentEditor.setComponent(shapeContainer.components[shapeContainer.defaultName]!)
+            }
         }
         
         return consumed
@@ -998,6 +1026,7 @@ class SceneGraph                : MMWidget
         needsUpdate = false
     }
     
+    // MARK:- drawMaximized
     func drawMaximized()
     {
         itemMap = [:]
@@ -1011,9 +1040,80 @@ class SceneGraph                : MMWidget
         
         let skin : SceneGraphSkin = SceneGraphSkin(mmView.openSans, fontScale: 0.4 * graphZoom, graphZoom: graphZoom)
 
+        let bottomHeight : Float = 200
+        mmView.renderer.setClipRect(MMRect(rect.x, rect.y, rect.width - 1, rect.height - bottomHeight))
+
         drawGroup(stageItem: maximizedObject!, graphId: "_graphShapes", name: maximizedObject!.name, skin: skin)
+        
+        // Bottom Area
+        
+        let oldRect = MMRect(rect)
+        //rect.y = rect.bottom() - bottomHeight
+        //rect.height = bottomHeight
+        let offsetY = rect.bottom() - bottomHeight - rect.y
+        let oldGraphX = graphX
+        let oldGraphY = graphY
+
+        mmView.renderer.setClipRect()
+        mmView.renderer.setClipRect(MMRect(rect.x, rect.bottom() - bottomHeight, rect.width - 1, bottomHeight))
+        
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>(0.165, 0.169, 0.173, 1.000))
+
+        func activateWidgets(uuid: UUID, container: Bool)
+        {
+            if lastBottomUUID != uuid {
+                for w in bottomWidgets {
+                    mmView.deregisterWidgets(widgets: w)
+                }
+                if container {
+                    mmView.widgets.insert(groupTabWidget, at: 0)
+                    groupTabWidget.clicked = { (event) in
+                    }
+                }
+            }
+            lastBottomUUID = uuid
+        }
+        
+        if let component = currentComponent, component.componentType == .SDF3D {
+            activateWidgets(uuid: component.uuid, container: false)
+
+            if let thumb = globalApp!.thumbnail.request(component.libraryName + " :: SDF" + (component.componentType == .SDF3D ? "3D" : "2D")) {
+                mmView.drawTexture.draw(thumb, x: rect.x, y: rect.y, zoom: 2)
+            }
+        } else
+        if let object = maximizedObject {
+            activateWidgets(uuid: object.components[object.defaultName]!.uuid, container: true)
+
+            groupTabWidget.rect.x = rect.x + (rect.width - groupTabWidget.rect.width) / 2
+            groupTabWidget.rect.y = rect.y + offsetY
+            groupTabWidget.draw()
+            
+            if groupTabWidget.index == 1 {
+                // Material
+                    for child in object.children {
+                        if let comp = child.components[child.defaultName], comp.componentType == .Material3D {
+                            
+                            graphX = 0
+                            graphY = offsetY / graphZoom
+                            
+                            child.values["_graphX"] = 80
+                            child.values["_graphY"] = 120
+                            drawObject(stage: shapeStage, o: child, skin: skin)
+                            break
+                        }
+                    }
                 
-        mmView.drawBox.draw( x: rect.x, y: rect.bottom() - 200, width: rect.width, height: 200, round: 0, fillColor : SIMD4<Float>(0.165, 0.169, 0.173, 1.000))
+            }
+        }
+        
+        mmView.renderer.setClipRect()
+        mmView.renderer.setClipRect(MMRect(rect.x, rect.y /* + toolBarHeight + 1*/, rect.width - 1, rect.height /*- toolBarHeight - 1*/))
+        
+        graphX = oldGraphX
+        graphY = oldGraphY
+
+        rect.y = oldRect.y
+        rect.height = oldRect.height
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -1036,11 +1136,11 @@ class SceneGraph                : MMWidget
         minMaxButtonRect.y = 0
         
         if let scene = globalApp!.project.selected {
-            mmView.renderer.setClipRect(MMRect(rect.x, rect.y /* + toolBarHeight + 1*/, rect.width - 1, rect.height /*- toolBarHeight - 1*/))
             
             if maximizedObject != nil {
                 drawMaximized()
             } else {
+                mmView.renderer.setClipRect(MMRect(rect.x, rect.y /* + toolBarHeight + 1*/, rect.width - 1, rect.height /*- toolBarHeight - 1*/))
                 parse(scene: scene, skin: skin)
             }
             
@@ -1114,6 +1214,11 @@ class SceneGraph                : MMWidget
                 }
             }
             mmView.renderer.setClipRect()
+        }
+        
+        // Connecting Terminals ?
+        if connectingTerminals == true && selectedTerminal != nil {
+            mmView.drawLine.drawDotted(sx: selectedTerminal!.3 + 7.5 * graphZoom, sy: selectedTerminal!.4 + 7.5 * graphZoom, ex: mousePos.x, ey: mousePos.y, radius: 1.5, fillColor: skin.normalTerminalColor)
         }
         
         if maximizedObject != nil {
@@ -1200,11 +1305,6 @@ class SceneGraph                : MMWidget
         
         mmView.drawBox.draw( x: visNavRect.x, y: visNavRect.y, width: visNavRect.width, height: visNavRect.height, round: 6, fillColor : SIMD4<Float>(1, 1, 1, 0.1) )
         mmView.renderer.setClipRect()
-        
-        // Connecting Terminals ?
-        if connectingTerminals == true && selectedTerminal != nil {
-            mmView.drawLine.drawDotted(sx: selectedTerminal!.3 + 7.5 * graphZoom, sy: selectedTerminal!.4 + 7.5 * graphZoom, ex: mousePos.x, ey: mousePos.y, radius: 1.5, fillColor: skin.normalTerminalColor)
-        }
     }
     
     /// Replaces the shape for the given scene graph item
@@ -1404,7 +1504,7 @@ class SceneGraph                : MMWidget
                 }
                 
                 if let comp = item.component {
-                    
+                                        
                     if comp.componentType == .RayMarch3D {
                         buildChangeComponent(item, name: "RayMarcher", ids: ["RayMarch3D"])
                     } else
@@ -3000,7 +3100,7 @@ class SceneGraph                : MMWidget
             
             //mmView.drawLine.drawDotted(sx: rect.x + parent.rect.x + parent.rect.width / 2, sy: rect.y + parent.rect.y + parent.rect.height / 2, ex: rect.x + x + totalWidth / 2, ey: rect.y + y + headerHeight / 2, radius: 1.5, fillColor: skin.normalBorderColor)
             
-            let containerIsSelected : Bool = currentStageItem === stageItem
+            let containerIsSelected : Bool = currentStageItem === stageItem && currentComponent == nil
             
             mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: containerIsSelected ? 1 : 0, fillColor: skin.normalInteriorColor, borderColor: containerIsSelected ? skin.selectedBorderColor : SIMD4<Float>(0,0,0,0))
             

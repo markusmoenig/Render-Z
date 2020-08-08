@@ -67,6 +67,10 @@ class ObjectSpheres3D
 
 class Physics3D
 {
+    enum ObjectMode : Int {
+        case Off, Dynamic, Static
+    }
+    
     var scene           : Scene
     
     var objects         : [StageItem] = []
@@ -87,6 +91,8 @@ class Physics3D
     
     var groundShader    : GroundShader? = nil
     var terrainShader   : TerrainShader? = nil
+    
+    var staticObjects   : [ObjectShader] = []
     
     var debugSpheres    : [float4] = []
     var debugIsValid    : Bool = false
@@ -141,25 +147,32 @@ class Physics3D
             if transform.componentType == .Transform3D {
                 
                 if let shader = object.shader as? ObjectShader, isDisabled(shader: shader) == false {
-                    let spheres = shader.buildSpheres()
-                                        
-                    objects.append(object)
-                    valueCopies.append(transform.values)
-                    
-                    let objectSpheres = ObjectSpheres3D(spheres: spheres, object: object, transform: transform)
-                    let body = RigidBody3D(object, objectSpheres)
-                    objectSpheres.body3D = body
-                    objectSpheres.world = rigidBodyWorld
-                    self.objectSpheres.append(objectSpheres)
-                    body.setPosition(_Vector3(Double(transform.values["_posX"]!), Double(transform.values["_posY"]!), Double(transform.values["_posZ"]!)))
-                    
-                    let node = SCNNode()
-                    node.simdEulerAngles = float3(transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians)
-                    body.setOrientation(Double(node.simdOrientation.real), Double(node.simdOrientation.imag.x), Double(node.simdOrientation.imag.y), Double(node.simdOrientation.imag.z))
-                    body.orientation.normalise()
-                    
-                    body.setMass(mass: 5)
-                    rigidBodyWorld.addBody(body)
+                    let physicsMode = getPhysicsMode(object: object)
+                    if physicsMode == .Dynamic {
+                        let spheres = shader.buildSpheres()
+                                            
+                        objects.append(object)
+                        valueCopies.append(transform.values)
+                        
+                        let objectSpheres = ObjectSpheres3D(spheres: spheres, object: object, transform: transform)
+                        let body = RigidBody3D(object, objectSpheres)
+                        objectSpheres.body3D = body
+                        objectSpheres.world = rigidBodyWorld
+                        self.objectSpheres.append(objectSpheres)
+                        body.setPosition(_Vector3(Double(transform.values["_posX"]!), Double(transform.values["_posY"]!), Double(transform.values["_posZ"]!)))
+                        
+                        let node = SCNNode()
+                        node.simdEulerAngles = float3(transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians)
+                        body.setOrientation(Double(node.simdOrientation.real), Double(node.simdOrientation.imag.x), Double(node.simdOrientation.imag.y), Double(node.simdOrientation.imag.z))
+                        body.orientation.normalise()
+                        
+                        let mass = object.values["mass"] == nil ? 5 : object.values["mass"]!
+                        body.setMass(mass: Double(mass))
+                        rigidBodyWorld.addBody(body)
+                    } else
+                    if physicsMode == .Static {
+                        staticObjects.append(shader)
+                    }
                 }
             }
         }
@@ -189,12 +202,12 @@ class Physics3D
         
         if let lTime = lastTime {
             
-            let timeSinceStart = time - startTime
-            let fps = renderdFrames / timeSinceStart
+            //let timeSinceStart = time - startTime
+            //let fps = renderdFrames / timeSinceStart
             //print(fps)
             
             var duration = time - lTime
-            duration = 1.0 / fps//fixedDuration
+            duration = fixedDuration//1.0 / fps
 
             // Update the transform data of the spheres
             for s in objectSpheres {
@@ -202,12 +215,18 @@ class Physics3D
             }
             
             // Do the contact resolution
-            if let ground = groundShader {
-                ground.sphereContacts(objectSpheres: objectSpheres)
-            }
-            
-            if let terrain = terrainShader {
-                terrain.sphereContacts(objectSpheres: objectSpheres)
+            if objectSpheres.count > 0 {
+                if let ground = groundShader {
+                    ground.sphereContacts(objectSpheres: objectSpheres)
+                }
+                
+                if let terrain = terrainShader {
+                    terrain.sphereContacts(objectSpheres: objectSpheres)
+                }
+                
+                for object in staticObjects {
+                    object.sphereContacts(objectSpheres: objectSpheres)
+                }
             }
             
             // Step
@@ -215,6 +234,8 @@ class Physics3D
 
             for body in rigidBodyWorld.bodies {
                 let transform = body.object.components[body.object.defaultName]!
+                
+                //print("vel", body.velocity.x, body.velocity.y, body.velocity.z)
 
                 transform.values["_posX"] = Float(body.position.x)
                 transform.values["_posY"] = Float(body.position.y)
@@ -260,6 +281,17 @@ class Physics3D
             debugSpheres.append(SIMD4<Float>(-1,-1,-1,-1))
             prim.drawSpheres(texture: texture, sphereData: debugSpheres)
         }
+    }
+    
+    /// Returns the ObjectMode of the given object
+    func getPhysicsMode(object: StageItem) -> ObjectMode
+    {
+        if let comp = object.components[object.defaultName] {
+            if comp.values["physics"] != nil {
+                return ObjectMode(rawValue: Int(comp.values["physics"]!))!
+            }
+        }
+        return .Off
     }
     
     static func rotateWithPivot(_ position: float3,_ angle: float3,_ pivot: float3) -> float3

@@ -173,7 +173,7 @@ class RigidBody3DContact
     var body                    : [RigidBody3D?]
     
     var restitution             : Double = 0.4
-    var friction                : Double = 0.2
+    var friction                : Double = 0.3
 
     var contactNormal           : _Vector3
     var contactPoint            : _Vector3

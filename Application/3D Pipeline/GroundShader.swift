@@ -13,10 +13,8 @@ class GroundShader              : BaseShader
     var scene                   : Scene
     var object                  : StageItem
     var camera                  : CodeComponent
-    
-    var sphereContactsState     : MTLComputePipelineState? = nil
-    
-    var materialBumpCode = ""
+        
+    var materialBumpCode        = ""
     
     init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
@@ -605,72 +603,4 @@ class GroundShader              : BaseShader
         
         return globalCode
     }
-    
-    func sphereContacts(objectSpheres: [ObjectSpheres3D])
-    {
-        if sphereContactsState == nil {
-            sphereContactsState = createComputeState(name: "sphereContacts")
-        }
-         
-        if let state = sphereContactsState {
-                         
-            updateData()
-             
-            let commandQueue = device.makeCommandQueue()
-            let commandBuffer = commandQueue!.makeCommandBuffer()!
-            let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
-             
-            computeEncoder.setComputePipelineState( state )
-            computeEncoder.setBuffer(buffer, offset: 0, index: 0)
-             
-            var sphereUniforms = SphereUniforms()
-            
-            var sphereData : [float4] = []
-            
-            for oS in objectSpheres {
-                for s in oS.transSpheres {
-                    sphereData.append(s)
-                }
-            }
-            
-            sphereUniforms.numberOfSpheres = Int32(sphereData.count)
-            
-            let inBuffer = device.makeBuffer(bytes: sphereData, length: sphereData.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
-            computeEncoder.setBuffer(inBuffer, offset: 0, index: 1)
-
-            let outBuffer = device.makeBuffer(length: sphereData.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
-            computeEncoder.setBuffer(outBuffer, offset: 0, index: 2)
-            
-            computeEncoder.setBytes(&sphereUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 3)
-
-            let numThreadgroups = MTLSize(width: 1, height: 1, depth: 1)
-            let threadsPerThreadgroup = MTLSize(width: 1, height: 1, depth: 1)
-            computeEncoder.dispatchThreadgroups(numThreadgroups, threadsPerThreadgroup: threadsPerThreadgroup)
-             
-            computeEncoder.endEncoding()
-            commandBuffer.commit()
-             
-            commandBuffer.waitUntilCompleted()
-             
-            let result = outBuffer.contents().bindMemory(to: SIMD4<Float>.self, capacity: 1)
-            
-            var index : Int = 0
-            for oS in objectSpheres {
-                for (ii,s) in oS.transSpheres.enumerated() {
-                    
-                    if result[index].w < 0 {
-                        let penetration = -result[index].w
-                        let hitNormal = float3(result[index].x, result[index].y, result[index].z)
-                        let contactPoint = float3(s.x, s.y, s.z) + -hitNormal * (s.w - penetration)
-                    
-                        oS.sphereHits[ii] = true
-                        
-                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: _Vector3(contactPoint), normal: _Vector3(hitNormal), penetration: Double(penetration))
-                        oS.world!.contacts.append(contact)
-                    }                    
-                    index += 1
-                }
-            }
-         }
-     }
 }

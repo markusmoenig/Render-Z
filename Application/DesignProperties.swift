@@ -93,9 +93,13 @@ class DesignProperties      : MMWidget
         hoverUIRandom = nil
         hoverMode = .None
         
+        
         if comp.componentType == .Render3D {
+            return
+            /*
             let renderModeVar = NodeUISelector(c1Node!, variable: "renderMode", title: "Output", items: ["Final Image", "Depth Map", "Occlusion", "Shadows", "Fog Density"], index: 0, shadows: true)
             c1Node?.uiItems.append(renderModeVar)
+            */
         }
         
         if comp.componentType == .Transform3D {
@@ -107,6 +111,28 @@ class DesignProperties      : MMWidget
             let bboxVar = NodeUINumber3(c1Node!, variable: "_bb", title: "Bounding Box", range: SIMD2<Float>(0, 10), value: SIMD3<Float>(bbX, bbY, bbZ), precision: 3)
             bboxVar.titleShadows = true
             c1Node?.uiItems.append(bboxVar)
+            
+            let physics = comp.values["physics"] == nil ? 0.0 : comp.values["physics"]!
+            let physicsVar = NodeUISelector(c1Node!, variable: "physics", title: "Physics", items: ["Off", "Dynamic", "Static"], index: physics, shadows: false)
+            physicsVar.titleShadows = true
+            c1Node!.uiItems.append(physicsVar)
+            
+            if physics == 1 {
+                let resitution = comp.values["restitution"] == nil ? 0.4 : comp.values["restitution"]!
+                let restituitonVar = NodeUINumber(c1Node!, variable: "restitution", title: "Restitution", range: SIMD2<Float>(0, 1), value: resitution, precision: Int(2))
+                restituitonVar.titleShadows = true
+                c1Node!.uiItems.append(restituitonVar)
+                
+                let friction = comp.values["friction"] == nil ? 0.3 : comp.values["friction"]!
+                let frictionVar = NodeUINumber(c1Node!, variable: "friction", title: "Friction", range: SIMD2<Float>(0, 1), value: friction, precision: Int(2))
+                frictionVar.titleShadows = true
+                c1Node!.uiItems.append(frictionVar)
+                
+                let mass = comp.values["mass"] == nil ? 5 : comp.values["mass"]!
+                let massVar = NodeUINumber(c1Node!, variable: "mass", title: "Mass", range: SIMD2<Float>(0.1, 1000), value: mass, precision: Int(2))
+                massVar.titleShadows = true
+                c1Node!.uiItems.append(massVar)
+            }
         }
                 
         for uuid in comp.properties {
@@ -203,7 +229,23 @@ class DesignProperties      : MMWidget
         }
         
         c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-                        
+            
+            if variable == "physics" {
+                comp.values[variable] = oldValue
+                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
+                comp.values[variable] = newValue
+                self.setSelected(comp)
+                globalApp!.artistEditor.designEditor.updateGizmo()
+                if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
+            }
+            
+            if variable == "restitution" || variable == "friction" || variable == "mass" {
+                comp.values[variable] = oldValue
+                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
+                comp.values[variable] = newValue
+                if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
+            }
+            
             if variable == "renderMode" {
                 globalApp!.currentPipeline!.outputType = Pipeline.OutputType(rawValue: Int(newValue))!
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)

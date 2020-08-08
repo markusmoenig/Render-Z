@@ -20,14 +20,14 @@ class ObjectShader      : BaseShader
     var L               = SIMD3<Float>(0,0,0)
     var F               : matrix_float3x3 = matrix_identity_float3x3
 
-    var materialCode    = ""
+    var materialCode     = ""
     var materialBumpCode = ""
     
     var bbTriangles     : [Float] = []
     var claimedIds      : [Int] = []
     
     var sphereBuilderState : MTLComputePipelineState? = nil
-    
+
     var spheres         : [SIMD4<Float>] = []
 
     init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
@@ -705,6 +705,42 @@ class ObjectShader      : BaseShader
             }
         
             out[gid + index] = float4(-1);
+        }
+        
+        kernel void sphereContacts( constant float4 *__data [[ buffer(0) ]],
+                                    constant float4 *sphereIn [[ buffer(1) ]],
+                                     device float4  *sphereOut [[ buffer(2) ]],
+                            constant SphereUniforms &uniforms [[ buffer(3) ]],
+                                              uint  gid [[thread_position_in_grid]])
+        {
+            float GlobalTime = __data[0].x;
+            float GlobalSeed = __data[0].z;
+            
+            struct FuncData __funcData_;
+            thread struct FuncData *__funcData = &__funcData_;
+            __funcData_.GlobalTime = GlobalTime;
+            __funcData_.GlobalSeed = GlobalSeed;
+            __funcData_.inShape = float4(1000, 1000, -1, -1);
+            __funcData_.hash = 1.0;
+
+            __funcData_.__data = __data;
+            float4 out = float4(0,0,0,0);
+        
+            for( int i = 0; i < uniforms.numberOfSpheres; ++i)
+            {
+                float3 position = sphereIn[i].xyz;
+
+                float4 rc = sceneMap(position, __funcData);
+                out.w = rc.x - sphereIn[i].w;
+        
+                if (out.w < 0) {
+                    float3 outNormal = float3(0,0,0);
+                    \(normal.code!)
+                    out.xyz = outNormal;
+                }
+        
+                sphereOut[gid + i] = out;
+            }
         }
         
         """
