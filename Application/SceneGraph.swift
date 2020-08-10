@@ -186,7 +186,6 @@ class SceneGraph                : MMWidget
     var bottomWidgets           : [MMWidget] = []
 
     var groupTabWidget          : MMTabButtonWidget
-    var sdf3DTabWidget          : MMTabButtonWidget
 
     override init(_ view: MMView)
     {
@@ -249,13 +248,10 @@ class SceneGraph                : MMWidget
         tabSkin.round = 28
         
         groupTabWidget = MMTabButtonWidget(view, skinToUse: tabSkin)
-        groupTabWidget.addTab("Modifiers")
+        groupTabWidget.addTab("Nodes")
         groupTabWidget.addTab("Material")
-
-        sdf3DTabWidget = MMTabButtonWidget(view, skinToUse: tabSkin)
-        sdf3DTabWidget.addTab("Modifiers")
         
-        bottomWidgets = [groupTabWidget, sdf3DTabWidget]
+        bottomWidgets = [groupTabWidget]
         
         super.init(view)
         
@@ -1078,7 +1074,7 @@ class SceneGraph                : MMWidget
             activateWidgets(uuid: component.uuid, container: false)
 
             if let thumb = globalApp!.thumbnail.request(component.libraryName + " :: SDF" + (component.componentType == .SDF3D ? "3D" : "2D")) {
-                mmView.drawTexture.draw(thumb, x: rect.x, y: rect.y, zoom: 2)
+                mmView.drawTexture.draw(thumb, x: rect.x, y: rect.y + offsetY, zoom: 2)
             }
         } else
         if let object = maximizedObject {
@@ -1088,13 +1084,16 @@ class SceneGraph                : MMWidget
             groupTabWidget.rect.y = rect.y + offsetY
             groupTabWidget.draw()
             
+            graphX = 0
+            graphY = offsetY / graphZoom
+            
+            if groupTabWidget.index == 0 {
+                drawNodes(list: object.componentLists["nodes3D"]!, parent: object, skin: skin)
+            } else
             if groupTabWidget.index == 1 {
                 // Material
                     for child in object.children {
                         if let comp = child.components[child.defaultName], comp.componentType == .Material3D {
-                            
-                            graphX = 0
-                            graphY = offsetY / graphZoom
                             
                             child.values["_graphX"] = 80
                             child.values["_graphY"] = 120
@@ -3138,6 +3137,52 @@ class SceneGraph                : MMWidget
                 }
                 top += itemSize
             }
+        }
+    }
+    
+    /// Draws the node list
+    func drawNodes(list: [CodeComponent], parent: StageItem, skin: SceneGraphSkin, color: SIMD4<Float>? = nil)
+    {
+        for node in list {
+            if node.label == nil || node.label!.scale != skin.fontScale {
+                let name : String = node.libraryName
+                node.label = MMTextLabel(mmView, font: mmView.openSans, text: name, scale: skin.fontScale, color: skin.normalTextColor)
+            }
+            let diameter : Float = node.label!.rect.width + skin.margin * graphZoom
+            
+            if node.values["_graphX"] == nil {
+                node.values["_graphX"] = 120
+                node.values["_graphY"] = 120
+            }
+            
+            let x : Float = (graphX + node.values["_graphX"]!) * graphZoom - diameter / 2
+            let y : Float = (graphY + node.values["_graphY"]!) * graphZoom - diameter / 2
+            
+            let uuid : UUID = node.uuid
+            
+            let item : SceneGraphItem
+            
+            if node.componentType == .Boolean {
+                item = SceneGraphItem(.BooleanItem, stage: shapeStage, stageItem: parent, component: node)
+            } else {
+                item = SceneGraphItem(.BooleanItem, stage: shapeStage, stageItem: parent, component: node)
+            }
+            
+            item.rect.set(x, y, diameter, skin.itemHeight * graphZoom)
+            itemMap[uuid] = item
+            
+            
+            let selected = node === currentComponent
+            let fillColor : SIMD4<Float> = selected ? (color == nil ? skin.normalInteriorColor : color!) : skin.normalInteriorColor
+            let borderColor : SIMD4<Float> = selected ? (color == nil ?  skin.selectedBorderColor : color!) : (color == nil ? skin.normalInteriorColor : color!)
+            let textColor : SIMD4<Float> = selected ? (color == nil ? skin.normalTextColor : skin.selectedTextColor) : skin.normalTextColor
+            
+            mmView.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: fillColor, borderColor: borderColor)
+
+            node.label!.color = textColor
+            node.label!.rect.x = rect.x + item.rect.x + (item.rect.width - node.label!.rect.width) / 2
+            node.label!.rect.y = rect.y + item.rect.y + (item.rect.height - skin.lineHeight) / 2
+            node.label!.draw()
         }
     }
 }

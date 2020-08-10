@@ -1631,6 +1631,9 @@ class CodeComponent         : Codable, Equatable
     // Subcomponent, used for boolean operation
     var subComponent        : CodeComponent? = nil
     
+    // All modifiers of this component, booleans, domain etc.
+    var components          : [CodeComponent] = []
+    
     // Storing the scroll offset
     var scrollOffsetY       : Float = 0
     
@@ -1639,6 +1642,9 @@ class CodeComponent         : Codable, Equatable
     
     // For standalone components (PostFX, Render3D, store the build info here)
     var builderInstance     : CodeBuilderInstance? = nil
+    
+    // Label for the scene graph
+    var label               : MMTextLabel? = nil
 
     private enum CodingKeys: String, CodingKey {
         case componentType
@@ -1654,6 +1660,7 @@ class CodeComponent         : Codable, Equatable
         case libraryComment
         case values
         case subComponent
+        case components
         case connections
         case scrollOffsetY
     }
@@ -1679,6 +1686,10 @@ class CodeComponent         : Codable, Equatable
         libraryComment = try container.decode(String.self, forKey: .libraryComment)
         values = try container.decode([String:Float].self, forKey: .values)
         subComponent = try container.decode(CodeComponent?.self, forKey: .subComponent)
+        
+        if let comp = try container.decodeIfPresent([CodeComponent].self, forKey: .components) {
+            components = comp
+        }
         
         if let conn = try container.decodeIfPresent([UUID:CodeConnection].self, forKey: .connections) {
             connections = conn
@@ -1805,6 +1816,7 @@ class CodeComponent         : Codable, Equatable
         try container.encode(libraryComment, forKey: .libraryComment)
         try container.encode(values, forKey: .values)
         try container.encode(subComponent, forKey: .subComponent)
+        try container.encode(components, forKey: .components)
         try container.encode(connections, forKey: .connections)
         try container.encode(scrollOffsetY, forKey: .scrollOffsetY)
     }

@@ -212,6 +212,9 @@ class Pipeline3DRT          : Pipeline
             if item.shader == nil {
                 if item.getComponentList("shapes") != nil {
                     // Object
+                    if item.componentLists["nodes3D"] == nil || item.componentLists["nodes3D"]?.count == 0 {
+                        item.addNodes3D()
+                    }
                     let shader = ObjectShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
                     shaders.append(shader)
                     item.shader = shader

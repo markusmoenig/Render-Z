@@ -415,6 +415,23 @@ class StageItem             : Codable, Equatable
         children.append(uvItem)
         placeChild(modeId: "3D", parent: self, child: uvItem, stepSize: 50, radius: 110)
     }
+    
+    /// Adds default nodes to this item
+    func addNodes3D()
+    {
+        componentLists["nodes3D"] = createDefaultNodes()
+    }
+    
+    /// Adds default nodes to this item
+    func createDefaultNodes() -> [CodeComponent]
+    {
+        var nodes : [CodeComponent] = []
+        let boolean = globalApp!.libraryDialog.getItem(ofId: "Boolean", withName: "Merge")
+        if boolean != nil {
+            nodes.append(boolean!)
+        }
+        return nodes
+    }
 }
 
 class Stage                 : Codable, Equatable
