@@ -511,9 +511,14 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     
     const float4 hoverColor = float4(0.263, 0.443, 0.482, 1.000);
     const float4 rotateColor = float4(0.996, 0.941, 0.208, 1.000);
-    const float4 xAxisColor = float4(0.153, 0.192, 0.984, 1.000);
-    const float4 yAxisColor = float4(0.882, 0.102, 0.153, 1.000);
-    const float4 zAxisColor = float4(0.188, 0.933, 0.176, 1.000);
+    
+    //const float4 xAxisColor = float4(0.153, 0.192, 0.984, 1.000);
+    //const float4 yAxisColor = float4(0.882, 0.102, 0.153, 1.000);
+    //const float4 zAxisColor = float4(0.188, 0.933, 0.176, 1.000);
+    
+    const float4 xAxisColor = float4(0.208, 0.243, 0.898, 1.000);
+    const float4 yAxisColor = float4(0.722, 0.255, 0.227, 1.000);
+    const float4 zAxisColor = float4(0.604, 0.902, 0.412, 1.000);
     
     dir = normalize(dir);
     
