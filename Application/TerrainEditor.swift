@@ -109,6 +109,10 @@ class TerrainEditor         : PropertiesWidget
     {
         clear()
         mmView.deregisterWidgets(widgets: editTab, self)
+        if originTexture != nil {
+            originTexture!.setPurgeableState(.empty)
+            directionTexture!.setPurgeableState(.empty)
+        }
         originTexture = nil
         directionTexture = nil
     }
@@ -124,6 +128,7 @@ class TerrainEditor         : PropertiesWidget
         if isUIActive() == false {
             // Paint Terrain
             if let loc = getHitLocationAt(event) {
+                
                 terrainUndoStart(name: "Terrain Paint")
                 
                 let val = getValue(loc)
@@ -584,13 +589,14 @@ class TerrainEditor         : PropertiesWidget
                 }
                 let value = texArray[0]
                 
+                convertTo.setPurgeableState(.empty)
+
                 if value.w >= 0 {
                     let camera = getCameraValues(event)
                     let hit = camera.0 + normalize(camera.1) * value.y
 
                     return SIMD2<Float>(hit.x * terrain.terrainScale, hit.z * terrain.terrainScale)
                 }
-                convertTo.setPurgeableState(.empty)
             }
         }
         return nil
@@ -631,8 +637,15 @@ class TerrainEditor         : PropertiesWidget
     {
         if let pipeline = globalApp!.currentPipeline as? Pipeline3DRT {
     
-            originTexture = pipeline.checkTextureSize(rect.width, rect.height, originTexture, .rgba16Float)
-            directionTexture = pipeline.checkTextureSize(rect.width, rect.height, directionTexture, .rgba16Float)
+            if originTexture != nil {
+                originTexture!.setPurgeableState(.empty)
+                directionTexture!.setPurgeableState(.empty)
+            }
+            originTexture = nil
+            directionTexture = nil
+            
+            originTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
+            directionTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
 
             let scene = globalApp!.project.selected!
             let preStage = scene.getStage(.PreStage)
@@ -644,8 +657,14 @@ class TerrainEditor         : PropertiesWidget
             pipeline.codeBuilder.render(instance, originTexture!, outTextures: [directionTexture!])
             pipeline.codeBuilder.waitUntilCompleted()
 
+            let origOriginTexure = originTexture
+            let origDirectionTexture = directionTexture
+
             originTexture = convertTexture(originTexture!)
             directionTexture = convertTexture(directionTexture!)
+            
+            origOriginTexure!.setPurgeableState(.empty)
+            origDirectionTexture!.setPurgeableState(.empty)
         }
     }
     
