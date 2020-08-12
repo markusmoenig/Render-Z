@@ -93,6 +93,12 @@ class SceneGraphButton {
     }
 }
 
+
+class MMDListWidget  : MMWidget
+{
+
+}
+
 class SceneGraph                : MMWidget
 {
     enum SceneGraphState {
@@ -192,11 +198,13 @@ class SceneGraph                : MMWidget
     var shapeStage              : Stage!
     var lastBottomUUID          : UUID? = nil
 
-    var bottomWidgets           : [MMWidget] = []
     var bottomOffset            : Float = 0
     
     var infoButtonSkin          : MMSkinButton
     var infoButtons             : [MMWidget] = []
+    
+    var infoList                : [CodeComponent] = []
+    var infoListWidget          : MMDListWidget
 
     override init(_ view: MMView)
     {
@@ -258,7 +266,7 @@ class SceneGraph                : MMWidget
         
         closeButton = MMButtonWidget(view, customState: state)
         
-        bottomWidgets = []
+        infoListWidget = MMDListWidget(view)
         
         super.init(view)
         
@@ -275,6 +283,7 @@ class SceneGraph                : MMWidget
         boolButton.clicked = { (event) in
             for b in self.infoButtons { if b !== boolButton { b.removeState(.Checked) }}
             self.infoState = .Boolean
+            self.infoList = self.getInfoList()
         }
         infoButtons.append(boolButton)
         
@@ -282,6 +291,7 @@ class SceneGraph                : MMWidget
         materialButton.clicked = { (event) in
             for b in self.infoButtons { if b !== materialButton { b.removeState(.Checked) }}
             self.infoState = .Material
+            self.infoList = []
         }
         infoButtons.append(materialButton)
     }
@@ -414,12 +424,15 @@ class SceneGraph                : MMWidget
         maximizedObject = object
         shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
         mmView.widgets.insert(closeButton, at: 0)
+        mmView.widgets.insert(infoListWidget, at: 0)
+        infoListWidget.isDisabled = true
     }
     
     func closeMaximized()
     {
         maximizedObject = nil
         mmView.deregisterWidgets(widgets: closeButton)
+        mmView.deregisterWidgets(widgets: infoListWidget)
 
         for w in infoButtons {
             mmView.deregisterWidgets(widgets: w)
@@ -1045,6 +1058,19 @@ class SceneGraph                : MMWidget
         needsUpdate = false
     }
     
+    func getInfoList() -> [CodeComponent]
+    {
+        var list : [CodeComponent] = []
+        if let object = maximizedObject {
+            if let component = currentComponent, component.componentType == .SDF3D {
+                list = component.components
+            } else {
+                list = object.componentLists["nodes3D"]!
+            }
+        }
+        return list
+    }
+    
     // MARK:- drawMaximized
     func drawMaximized()
     {
@@ -1103,7 +1129,6 @@ class SceneGraph                : MMWidget
                 if let thumb = globalApp!.thumbnail.request(component.libraryName + " :: SDF" + (component.componentType == .SDF3D ? "3D" : "2D")) {
                     mmView.drawTexture.draw(thumb, x: rect.x, y: rect.y + bottomOffset, zoom: 2)
                 }
-
             } else {
                 activateWidgets(uuid: object.components[object.defaultName]!.uuid, container: true)
             }
@@ -1137,6 +1162,13 @@ class SceneGraph                : MMWidget
                         break
                     }
                 }
+            } else {
+                infoListWidget.rect.x = rect.x
+                infoListWidget.rect.y = rect.y + bottomOffset + tHeight
+                infoListWidget.rect.width = rect.width
+                infoListWidget.rect.height = bottomHeight - tHeight
+                
+                infoListWidget.draw()
             }
         }
         
