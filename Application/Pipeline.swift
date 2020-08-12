@@ -68,6 +68,9 @@ class Pipeline
         var result  : MTLTexture? = texture
         
         if texture == nil || (Float(texture!.width) != width || Float(texture!.height) != height || texture?.pixelFormat != pixelFormat) {
+            if texture != nil {
+                texture!.setPurgeableState(.empty)
+            }
             result = codeBuilder.compute.allocateTexture(width: width, height: height, output: true, pixelFormat: pixelFormat)
         }
         

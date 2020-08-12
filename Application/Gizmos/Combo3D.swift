@@ -709,10 +709,7 @@ class GizmoCombo3D          : GizmoBase
 
         let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( rect.x, rect.y, rect.width, rect.height, scale: mmView.scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
-        let buffer = mmRenderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
-        
-        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        renderEncoder.setFragmentBytes(data, length: data.count * MemoryLayout<Float>.stride, index: 0)
         
         if isPoint == false {
             renderEncoder.setRenderPipelineState(state!)

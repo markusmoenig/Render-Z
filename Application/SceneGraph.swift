@@ -63,17 +63,19 @@ class SceneGraphItem {
     let stage                   : Stage
     let stageItem               : StageItem?
     let component               : CodeComponent?
+    let node                    : CodeComponent?
     let parentComponent         : CodeComponent?
     
     let rect                    : MMRect = MMRect()
     var navRect                 : MMRect? = nil
 
-    init(_ type: SceneGraphItemType, stage: Stage, stageItem: StageItem? = nil, component: CodeComponent? = nil, parentComponent: CodeComponent? = nil)
+    init(_ type: SceneGraphItemType, stage: Stage, stageItem: StageItem? = nil, component: CodeComponent? = nil, node: CodeComponent? = nil, parentComponent: CodeComponent? = nil)
     {
         itemType = type
         self.stage = stage
         self.stageItem = stageItem
         self.component = component
+        self.node = node
         self.parentComponent = parentComponent
     }
 }
@@ -115,6 +117,7 @@ class SceneGraph                : MMWidget
     var currentStage            : Stage? = nil
     var currentStageItem        : StageItem? = nil
     var currentComponent        : CodeComponent? = nil
+    var currentNode             : CodeComponent? = nil
 
     var currentUUID             : UUID? = nil
     
@@ -133,6 +136,7 @@ class SceneGraph                : MMWidget
     //let toolBarHeight           : Float = 30
 
     var menuWidget              : MMMenuWidget
+    var objectMenuWidget        : MMMenuWidget
     var itemMenu                : MMMenuWidget
 
     var plusLabel               : MMTextLabel? = nil
@@ -184,13 +188,15 @@ class SceneGraph                : MMWidget
     var lastBottomUUID          : UUID? = nil
 
     var bottomWidgets           : [MMWidget] = []
+    var bottomOffset            : Float = 0
 
     var groupTabWidget          : MMTabButtonWidget
 
     override init(_ view: MMView)
     {
         menuWidget = MMMenuWidget(view, type: .Hidden)
-        
+        objectMenuWidget = MMMenuWidget(view, type: .Hidden)
+
         toolBarButtonSkin = MMSkinButton()
         toolBarButtonSkin.margin = MMMargin( 8, 4, 8, 4 )
         toolBarButtonSkin.borderSize = 0
@@ -251,7 +257,7 @@ class SceneGraph                : MMWidget
         groupTabWidget.addTab("Nodes")
         groupTabWidget.addTab("Material")
         
-        bottomWidgets = [groupTabWidget]
+        bottomWidgets = [groupTabWidget, objectMenuWidget]
         
         super.init(view)
         
@@ -309,6 +315,28 @@ class SceneGraph                : MMWidget
         }
         
         menuWidget.setItems(menuItems)
+        
+        var objectMenuItems = [
+            MMMenuItem(text: "Test", cb: { () in
+                //getStringDialog(view: self.mmView, title: "New Object", message: "Object name", defaultValue: "New Object", cb: { (value) -> Void in
+                    if let scene = globalApp!.project.selected {
+                        
+                        let shapeStage = scene.getStage(.ShapeStage)
+                        
+                        let undo = globalApp!.currentEditor.undoStageStart(shapeStage, "Add Object")
+                        let objectItem = shapeStage.createChild("New Object")//value)
+                        
+                        objectItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x) / self.graphZoom - self.graphX
+                        objectItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y) / self.graphZoom - self.graphY
+
+                        globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
+                        globalApp!.currentEditor.undoStageEnd(shapeStage, undo)
+                    }
+                //} )
+            })
+        ]
+        
+        objectMenuWidget.setItems(objectMenuItems)
     }
     
     func activate()
@@ -403,11 +431,12 @@ class SceneGraph                : MMWidget
         }
     }
     
-    func setCurrent(stage: Stage, stageItem: StageItem? = nil, component: CodeComponent? = nil)
+    func setCurrent(stage: Stage, stageItem: StageItem? = nil, component: CodeComponent? = nil, node: CodeComponent? = nil)
     {
         currentStage = stage
         currentStageItem = stageItem
         currentComponent = nil
+        currentNode = nil
         currentUUID = nil
         
         currentUUID = stage.uuid
@@ -430,16 +459,27 @@ class SceneGraph                : MMWidget
         }
         
         if let component = component {
-            globalApp!.currentEditor.setComponent(component)
-            if globalApp!.currentEditor === globalApp!.developerEditor {
-                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+            if node == nil {
+                globalApp!.currentEditor.setComponent(component)
+                if globalApp!.currentEditor === globalApp!.developerEditor {
+                    globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                }
             }
             currentComponent = component
-            
             currentUUID = component.uuid
         } else
         if currentComponent == nil {
-            globalApp!.currentEditor.setComponent(CodeComponent())
+            if node == nil {
+                globalApp!.currentEditor.setComponent(CodeComponent())
+            }
+        }
+        
+        if let node = node {
+            globalApp!.currentEditor.setComponent(node)
+            if globalApp!.currentEditor === globalApp!.developerEditor {
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+            }
+            currentNode = node
         }
         
         globalApp!.artistEditor.designEditor.blockRendering = false
@@ -785,20 +825,25 @@ class SceneGraph                : MMWidget
         if let pressedButton = pressedButton {
             pressedButton.cb!()
         } else
-        if clickWasConsumed == false && dragVisNav == false && maximizedObject == nil {
+        if clickWasConsumed == false && dragVisNav == false {
             // Check for showing menu
             
             if menuWidget.states.contains(.Opened) == false && distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) < 5 {
-                //if event.y - rect.y > toolBarHeight {
+                if maximizedObject == nil {
                     menuWidget.rect.x = event.x
                     menuWidget.rect.y = event.y
                     menuWidget.activateHidden()
-                //}
+                } else
+                if event.y > bottomOffset {
+                    objectMenuWidget.rect.x = event.x
+                    objectMenuWidget.rect.y = event.y
+                    objectMenuWidget.activateHidden()
+                }
             }
         }
         
         dragItem = nil
-        if menuWidget.states.contains(.Opened) == false {
+        if menuWidget.states.contains(.Opened) == false && objectMenuWidget.states.contains(.Opened) == false {
             mmView.mouseTrackWidget = nil
         }
         
@@ -959,7 +1004,7 @@ class SceneGraph                : MMWidget
                 }
                 
                 if item.itemType != .VariableItem && item.itemType != .ImageItem {
-                    setCurrent(stage: item.stage, stageItem: item.stageItem, component: item.component)
+                    setCurrent(stage: item.stage, stageItem: item.stageItem, component: item.component, node: item.node)
                 } else {
                     selectedVariable = item
                 }
@@ -973,6 +1018,7 @@ class SceneGraph                : MMWidget
             consumed = true
             if let shapeContainer = shapesCont {
                 currentComponent = nil
+                currentNode = nil
                 globalApp!.currentEditor.setComponent(shapeContainer.components[shapeContainer.defaultName]!)
             }
         }
@@ -1046,7 +1092,7 @@ class SceneGraph                : MMWidget
         let oldRect = MMRect(rect)
         //rect.y = rect.bottom() - bottomHeight
         //rect.height = bottomHeight
-        let offsetY = rect.bottom() - bottomHeight - rect.y
+        bottomOffset = rect.bottom() - bottomHeight - rect.y
         let oldGraphX = graphX
         let oldGraphY = graphY
 
@@ -1064,44 +1110,62 @@ class SceneGraph                : MMWidget
                 if container {
                     mmView.widgets.insert(groupTabWidget, at: 0)
                     groupTabWidget.clicked = { (event) in
+                        if self.groupTabWidget.index == 0 {
+                            self.mmView.widgets.insert(self.objectMenuWidget, at: 0)
+                        } else {
+                            self.mmView.deregisterWidget(self.objectMenuWidget)
+                        }
                     }
+                    
+                    if groupTabWidget.index == 0 {
+                        mmView.widgets.insert(objectMenuWidget, at: 0)
+                    }
+                } else {
+                    mmView.widgets.insert(objectMenuWidget, at: 0)
                 }
             }
             lastBottomUUID = uuid
         }
         
-        if let component = currentComponent, component.componentType == .SDF3D {
-            activateWidgets(uuid: component.uuid, container: false)
-
-            if let thumb = globalApp!.thumbnail.request(component.libraryName + " :: SDF" + (component.componentType == .SDF3D ? "3D" : "2D")) {
-                mmView.drawTexture.draw(thumb, x: rect.x, y: rect.y + offsetY, zoom: 2)
-            }
-        } else
         if let object = maximizedObject {
-            activateWidgets(uuid: object.components[object.defaultName]!.uuid, container: true)
+            if let component = currentComponent, component.componentType == .SDF3D {
+                activateWidgets(uuid: component.uuid, container: false)
 
-            groupTabWidget.rect.x = rect.x + (rect.width - groupTabWidget.rect.width) / 2
-            groupTabWidget.rect.y = rect.y + offsetY
-            groupTabWidget.draw()
-            
-            graphX = 0
-            graphY = offsetY / graphZoom
-            
-            if groupTabWidget.index == 0 {
-                drawNodes(list: object.componentLists["nodes3D"]!, parent: object, skin: skin)
-            } else
-            if groupTabWidget.index == 1 {
-                // Material
+                if let thumb = globalApp!.thumbnail.request(component.libraryName + " :: SDF" + (component.componentType == .SDF3D ? "3D" : "2D")) {
+                    mmView.drawTexture.draw(thumb, x: rect.x, y: rect.y + bottomOffset, zoom: 2)
+                }
+                
+                graphX = 100
+                graphY = bottomOffset / graphZoom
+                
+                drawNodes(list: component.components, parent: object, parentComponent: component, skin: skin)
+            } else {
+                activateWidgets(uuid: object.components[object.defaultName]!.uuid, container: true)
+
+                groupTabWidget.rect.x = rect.x + (rect.width - groupTabWidget.rect.width) / 2
+                groupTabWidget.rect.y = rect.y + bottomOffset
+                groupTabWidget.draw()
+                
+                bottomOffset += groupTabWidget.rect.height
+                
+                graphX = 0
+                graphY = bottomOffset / graphZoom
+                
+                if groupTabWidget.index == 0 {
+                    drawNodes(list: object.componentLists["nodes3D"]!, parent: object, skin: skin)
+                } else
+                if groupTabWidget.index == 1 {
+                    // Material
                     for child in object.children {
                         if let comp = child.components[child.defaultName], comp.componentType == .Material3D {
                             
                             child.values["_graphX"] = 80
-                            child.values["_graphY"] = 120
+                            child.values["_graphY"] = 40
                             drawObject(stage: shapeStage, o: child, skin: skin)
                             break
                         }
                     }
-                
+                }
             }
         }
         
@@ -1145,6 +1209,10 @@ class SceneGraph                : MMWidget
             
             if menuWidget.states.contains(.Opened) {
                 menuWidget.draw()
+            }
+            
+            if objectMenuWidget.states.contains(.Opened) {
+                objectMenuWidget.draw()
             }
             
             // Item Menu
@@ -1963,7 +2031,6 @@ class SceneGraph                : MMWidget
                         items.append(deleteItem)
                     } else
                     if item.itemType == .BooleanItem {
-                        
                         let changeItem = MMMenuItem(text: "Change Boolean", cb: { () in
                             globalApp!.libraryDialog.show(ids: ["Boolean"], cb: { (json) in
                                 if let comp = decodeComponentFromJSON(json) {
@@ -3099,7 +3166,7 @@ class SceneGraph                : MMWidget
             
             //mmView.drawLine.drawDotted(sx: rect.x + parent.rect.x + parent.rect.width / 2, sy: rect.y + parent.rect.y + parent.rect.height / 2, ex: rect.x + x + totalWidth / 2, ey: rect.y + y + headerHeight / 2, radius: 1.5, fillColor: skin.normalBorderColor)
             
-            let containerIsSelected : Bool = currentStageItem === stageItem && currentComponent == nil
+            let containerIsSelected : Bool = currentStageItem === stageItem
             
             mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: containerIsSelected ? 1 : 0, fillColor: skin.normalInteriorColor, borderColor: containerIsSelected ? skin.selectedBorderColor : SIMD4<Float>(0,0,0,0))
             
@@ -3141,7 +3208,7 @@ class SceneGraph                : MMWidget
     }
     
     /// Draws the node list
-    func drawNodes(list: [CodeComponent], parent: StageItem, skin: SceneGraphSkin, color: SIMD4<Float>? = nil)
+    func drawNodes(list: [CodeComponent], parent: StageItem, parentComponent: CodeComponent? = nil, skin: SceneGraphSkin, color: SIMD4<Float>? = nil)
     {
         for node in list {
             if node.label == nil || node.label!.scale != skin.fontScale {
@@ -3163,16 +3230,15 @@ class SceneGraph                : MMWidget
             let item : SceneGraphItem
             
             if node.componentType == .Boolean {
-                item = SceneGraphItem(.BooleanItem, stage: shapeStage, stageItem: parent, component: node)
+                item = SceneGraphItem(.BooleanItem, stage: shapeStage, stageItem: parent, component: parentComponent, node: node)
             } else {
-                item = SceneGraphItem(.BooleanItem, stage: shapeStage, stageItem: parent, component: node)
+                item = SceneGraphItem(.BooleanItem, stage: shapeStage, stageItem: parent, component: parentComponent, node: node)
             }
             
             item.rect.set(x, y, diameter, skin.itemHeight * graphZoom)
             itemMap[uuid] = item
             
-            
-            let selected = node === currentComponent
+            let selected = node === currentNode
             let fillColor : SIMD4<Float> = selected ? (color == nil ? skin.normalInteriorColor : color!) : skin.normalInteriorColor
             let borderColor : SIMD4<Float> = selected ? (color == nil ?  skin.selectedBorderColor : color!) : (color == nil ? skin.normalInteriorColor : color!)
             let textColor : SIMD4<Float> = selected ? (color == nil ? skin.normalTextColor : skin.selectedTextColor) : skin.normalTextColor

@@ -460,6 +460,11 @@ class BaseShader
             }
         }
         
+        if buffer != nil {
+            buffer!.setPurgeableState(.empty)
+            buffer = nil
+        }
+        
         buffer = device.makeBuffer(bytes: self.data, length: self.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
     }
     
