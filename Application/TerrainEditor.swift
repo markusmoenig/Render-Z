@@ -590,6 +590,7 @@ class TerrainEditor         : PropertiesWidget
 
                     return SIMD2<Float>(hit.x * terrain.terrainScale, hit.z * terrain.terrainScale)
                 }
+                convertTo.setPurgeableState(.empty)
             }
         }
         return nil
@@ -630,8 +631,8 @@ class TerrainEditor         : PropertiesWidget
     {
         if let pipeline = globalApp!.currentPipeline as? Pipeline3DRT {
     
-            originTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
-            directionTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
+            originTexture = pipeline.checkTextureSize(rect.width, rect.height, originTexture, .rgba16Float)
+            directionTexture = pipeline.checkTextureSize(rect.width, rect.height, directionTexture, .rgba16Float)
 
             let scene = globalApp!.project.selected!
             let preStage = scene.getStage(.PreStage)

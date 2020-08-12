@@ -93,10 +93,126 @@ class SceneGraphButton {
     }
 }
 
-
-class MMDListWidget  : MMWidget
+class InfoAreaItem : MMDListWidgetItem
 {
+    var name        : String
+    var uuid        : UUID
+    var color       : SIMD4<Float>? = nil
+    
+    var rect        : MMRect
+    var label       : MMTextLabel? = nil
+    
+    var component   : CodeComponent
+    
+    init(comp: CodeComponent)
+    {
+        self.name = comp.libraryName
+        self.uuid = comp.uuid
+        component = comp
+        
+        rect = MMRect()
+        label = MMTextLabel(globalApp!.mmView, font: globalApp!.mmView.openSans, text: name, scale: 0.36)
+    }
+}
 
+protocol MMDListWidgetItem
+{
+    var name        : String {get set}
+    var uuid        : UUID {get set}
+    var rect        : MMRect {get set}
+    var color       : SIMD4<Float>?{get set}
+    var label       : MMTextLabel?{get set}
+}
+
+class MMDListWidget     : MMWidget
+{
+    var items           : [MMDListWidgetItem]
+    var selectedItem    : MMDListWidgetItem? = nil
+    
+    var scrollOffset    : Float = 0
+    var selectionChanged: ((_ item: MMDListWidgetItem)->())?
+    
+    override init(_ view: MMView)
+    {
+        items = []
+        super.init(view)
+    }
+    
+    func setItems(_ it: [MMDListWidgetItem])
+    {
+        items = it
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent) {
+        for item in items {
+            if item.rect.contains(event.x, event.y) {
+                selectedItem = item
+                if let selectionChanged = selectionChanged {
+                    selectionChanged(item)
+                }
+                break
+            }
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent) {
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0) {
+        let itemWidth : Float = (rect.width - 4 - 2)
+        let itemHeight : Float = 30
+        var y : Float = rect.y + 3
+
+        let scrollHeight : Float = rect.height
+        let scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
+        
+        mmView.renderer.setClipRect(scrollRect)
+        var maxHeight : Float = Float(items.count) * itemHeight
+        if items.count > 0 {
+            maxHeight += 2 * Float(items.count-1)
+        }
+        
+        if scrollOffset < -(maxHeight - scrollHeight) {
+            scrollOffset = -(maxHeight - scrollHeight)
+        }
+        
+        if scrollOffset > 0 {
+            scrollOffset = 0
+        }
+                    
+        y += scrollOffset
+    
+        var fillColor = mmView.skin.Item.color
+        let alpha : Float = 1
+        fillColor.w = alpha
+        
+        for item in items {
+            
+            let x : Float = rect.x + 3
+            
+            let borderColor = selectedItem as AnyObject? === item as AnyObject ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
+            let textColor = selectedItem as AnyObject? === item as AnyObject ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
+
+            mmView.drawBox.draw( x: x, y: y, width: itemWidth, height: itemHeight, round: 26, borderSize: 2, fillColor: fillColor, borderColor: borderColor)
+            
+            item.rect.set(x, y, itemWidth, itemHeight)
+            item.label!.color = textColor
+            item.label!.drawCenteredY(x: x + 10, y: y, width: itemWidth, height: itemHeight)
+            
+            y += itemHeight + 2
+        }
+        
+        mmView.renderer.setClipRect()
+        
+        let boxRect : MMRect = MMRect(rect.x, rect.y, rect.width, rect.height)
+        
+        let cb : Float = 1
+        // Erase Edges
+        mmView.drawBox.draw( x: boxRect.x - cb, y: boxRect.y - cb, width: boxRect.width + 2*cb, height: boxRect.height + 2*cb, round: 30, borderSize: 4, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Dialog.color)
+        
+        // Box Border
+        mmView.drawBox.draw( x: boxRect.x, y: boxRect.y, width: boxRect.width, height: boxRect.height, round: 30, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
+    }
 }
 
 class SceneGraph                : MMWidget
@@ -203,7 +319,7 @@ class SceneGraph                : MMWidget
     var infoButtonSkin          : MMSkinButton
     var infoButtons             : [MMWidget] = []
     
-    var infoList                : [CodeComponent] = []
+    var infoList                : [InfoAreaItem] = []
     var infoListWidget          : MMDListWidget
 
     override init(_ view: MMView)
@@ -283,7 +399,7 @@ class SceneGraph                : MMWidget
         boolButton.clicked = { (event) in
             for b in self.infoButtons { if b !== boolButton { b.removeState(.Checked) }}
             self.infoState = .Boolean
-            self.infoList = self.getInfoList()
+            self.infoListWidget.setItems(self.getInfoList())
         }
         infoButtons.append(boolButton)
         
@@ -294,6 +410,12 @@ class SceneGraph                : MMWidget
             self.infoList = []
         }
         infoButtons.append(materialButton)
+        
+        infoListWidget.selectionChanged = { (item: MMDListWidgetItem) in
+            if let infoItem = item as? InfoAreaItem {
+                globalApp!.currentEditor.setComponent(infoItem.component)
+            }
+        }
     }
     
     func libraryLoaded()
@@ -445,6 +567,8 @@ class SceneGraph                : MMWidget
         currentStageItem = stageItem
         currentComponent = nil
         currentUUID = nil
+        
+        infoListWidget.selectedItem = nil
         
         currentUUID = stage.uuid
         globalApp!.artistEditor.designEditor.blockRendering = true
@@ -1058,7 +1182,7 @@ class SceneGraph                : MMWidget
         needsUpdate = false
     }
     
-    func getInfoList() -> [CodeComponent]
+    func getInfoList() -> [InfoAreaItem]
     {
         var list : [CodeComponent] = []
         if let object = maximizedObject {
@@ -1068,7 +1192,14 @@ class SceneGraph                : MMWidget
                 list = object.componentLists["nodes3D"]!
             }
         }
-        return list
+        
+        var infoList : [InfoAreaItem] = []
+        
+        for i in list {
+            infoList.append(InfoAreaItem(comp: i))
+        }
+        
+        return infoList
     }
     
     // MARK:- drawMaximized
@@ -1127,7 +1258,7 @@ class SceneGraph                : MMWidget
                 activateWidgets(uuid: component.uuid, container: false)
 
                 if let thumb = globalApp!.thumbnail.request(component.libraryName + " :: SDF" + (component.componentType == .SDF3D ? "3D" : "2D")) {
-                    mmView.drawTexture.draw(thumb, x: rect.x, y: rect.y + bottomOffset, zoom: 2)
+                    mmView.drawTexture.draw(thumb, x: rect.x + 5, y: rect.y + bottomOffset + 4, zoom: 8)
                 }
             } else {
                 activateWidgets(uuid: object.components[object.defaultName]!.uuid, container: true)

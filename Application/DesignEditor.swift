@@ -197,6 +197,7 @@ class DesignEditor          : MMWidget
                         // Select World
                         //globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.PreStage))
                     }
+                    convertTo.setPurgeableState(.empty)
                 }
             }            
         }

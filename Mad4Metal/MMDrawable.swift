@@ -625,10 +625,15 @@ class MMCharBuffer
     let vertexBuffer    : MTLBuffer
     let dataBuffer      : MTLBuffer
     
-    init( vertexBuffer: MTLBuffer, dataBuffer: MTLBuffer )
+    init(vertexBuffer: MTLBuffer, dataBuffer: MTLBuffer)
     {
         self.vertexBuffer = vertexBuffer
         self.dataBuffer = dataBuffer
+    }
+    
+    deinit {
+        //vertexBuffer.setPurgeableState(.empty)
+        //dataBuffer.setPurgeableState(.empty)
     }
 }
 
