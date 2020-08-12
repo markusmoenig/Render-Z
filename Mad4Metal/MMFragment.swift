@@ -219,6 +219,28 @@ class MMFragment {
         return device.makeBuffer(bytes: quadVertices, length: quadVertices.count * MemoryLayout<Float>.stride, options: [])!
     }
     
+    /// Creates vertex data for the given rectangle
+    func createVertexData(_ rect: MMRect ) -> [Float]
+    {
+        let left = -self.width / 2 + rect.x
+        let right = left + rect.width//self.width / 2 - x
+        
+        let top = self.height / 2 - rect.y
+        let bottom = top - rect.height
+
+        let quadVertices: [Float] = [
+            right, bottom, 1.0, 0.0,
+            left, bottom, 0.0, 0.0,
+            left, top, 0.0, 1.0,
+            
+            right, bottom, 1.0, 0.0,
+            left, top, 0.0, 1.0,
+            right, top, 1.0, 1.0,
+        ]
+        
+        return quadVertices
+    }
+    
     @discardableResult func applyClipRect(_ rect: MMRect ) -> Bool
     {
         let x : Int = Int(rect.x)// * mmView.scaleFactor)

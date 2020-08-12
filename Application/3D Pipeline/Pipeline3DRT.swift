@@ -272,6 +272,10 @@ class Pipeline3DRT          : Pipeline
             }
         }
                         
+        if prtInstance.quadVertexBuffer != nil {
+            prtInstance.quadVertexBuffer!.setPurgeableState(.empty)
+        }
+        
         prtInstance.commandQueue = nil
         prtInstance.commandBuffer = nil
         prtInstance.quadVertexBuffer = nil

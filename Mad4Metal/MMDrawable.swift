@@ -129,9 +129,8 @@ class MMDrawBox : MMDrawable
         
         let rect = MMRect(x - borderSize, y - borderSize, width + 2*borderSize, height + 2*borderSize, scale: scaleFactor )
         let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
-        let vertexBuffer = fragment == nil ? mmRenderer.createVertexBuffer( rect ) : fragment!.createVertexBuffer( rect )
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
+        let vertexData = mmRenderer.createVertexData( rect )
+        renderEncoder.setVertexBytes(vertexData, length: vertexData.count * MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setFragmentBytes(settings, length: settings.count * MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setRenderPipelineState( state! )
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -152,9 +151,8 @@ class MMDrawBox : MMDrawable
         
         let renderEncoder = mmRenderer.renderEncoder!
         
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect(x - borderSize - border / 2, y - borderSize, width + 2*borderSize, height + 2*borderSize, scale: scaleFactor ) )
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
+        let vertexData = mmRenderer.createVertexData( MMRect(x - borderSize - border / 2, y - borderSize, width + 2*borderSize, height + 2*borderSize, scale: scaleFactor ) )
+        renderEncoder.setVertexBytes(vertexData, length: vertexData.count * MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setFragmentBytes(settings, length: settings.count * MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setRenderPipelineState( rotatedState! )
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -481,11 +479,11 @@ class MMDrawTexture : MMDrawable
         
         let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
 
-        let vertexBuffer = fragment == nil ?
-            mmRenderer.createVertexBuffer( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
-            : fragment!.createVertexBuffer( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
+        let vertexData = fragment == nil ?
+            mmRenderer.createVertexData( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
+            : fragment!.createVertexData( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
 
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        renderEncoder.setVertexBytes(vertexData, length: vertexData.count * MemoryLayout<Float>.stride, index: 0)
 
         renderEncoder.setFragmentBytes(settings, length: settings.count * MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setFragmentTexture(texture, index: 1)
@@ -509,11 +507,11 @@ class MMDrawTexture : MMDrawable
         
         let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
 
-        let vertexBuffer = fragment == nil ?
-            mmRenderer.createVertexBuffer( MMRect( x, y, width, height, scale: scaleFactor ) )
-            : fragment!.createVertexBuffer( MMRect( x, y, width, height, scale: scaleFactor ) )
+        let vertexData = fragment == nil ?
+            mmRenderer.createVertexData( MMRect( x, y, width, height, scale: scaleFactor ) )
+            : fragment!.createVertexData( MMRect( x, y, width, height, scale: scaleFactor ) )
 
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        renderEncoder.setVertexBytes(vertexData, length: vertexData.count * MemoryLayout<Float>.stride, index: 0)
 
         renderEncoder.setFragmentBytes(settings, length: settings.count * MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setFragmentTexture(texture, index: 1)
@@ -612,9 +610,9 @@ class MMDrawCustomState : MMDrawable
         
         let renderEncoder = mmRenderer.renderEncoder!
         
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
+        let vertexData = mmRenderer.createVertexData( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
+        renderEncoder.setVertexBytes(vertexData, length: vertexData.count * MemoryLayout<Float>.stride, index: 0)
+
         renderEncoder.setFragmentBytes(settings, length: settings.count * MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setRenderPipelineState( state )
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -776,9 +774,9 @@ class MMDrawColorWheel : MMDrawable
                 
         let renderEncoder = mmRenderer.renderEncoder!
         
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, width, height, scale: scaleFactor ) )
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
+        let vertexData = mmRenderer.createVertexData( MMRect( x, y, width, height, scale: scaleFactor ) )
+        renderEncoder.setVertexBytes(vertexData, length: vertexData.count * MemoryLayout<Float>.stride, index: 0)
+
         renderEncoder.setFragmentBytes(settings, length: settings.count * MemoryLayout<Float>.stride, index: 0)
         renderEncoder.setRenderPipelineState( state! )
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
