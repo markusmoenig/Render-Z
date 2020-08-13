@@ -141,6 +141,11 @@ class MMDListWidget     : MMWidget
     func setItems(_ it: [MMDListWidgetItem])
     {
         items = it
+        if items.count > 0 {
+            selectedItem = items[0]
+        } else {
+            selectedItem = nil
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
@@ -222,7 +227,7 @@ class SceneGraph                : MMWidget
     }
     
     enum InfoState {
-        case Boolean, Domain, UV, Modifier, Material
+        case Boolean, Modifier, UV, Material
     }
     
     var sceneGraphState         : SceneGraphState = .Closed
@@ -312,8 +317,9 @@ class SceneGraph                : MMWidget
     
     let closeButton             : MMButtonWidget!
     var shapeStage              : Stage!
-    var lastBottomUUID          : UUID? = nil
+    var lastInfoUUID            : UUID? = nil
 
+    var infoMenuWidget          : MMMenuWidget
     var bottomOffset            : Float = 0
     
     var infoButtonSkin          : MMSkinButton
@@ -321,6 +327,8 @@ class SceneGraph                : MMWidget
     
     var infoList                : [InfoAreaItem] = []
     var infoListWidget          : MMDListWidget
+    
+    var boolButton              : MMButtonWidget!
 
     override init(_ view: MMView)
     {
@@ -345,9 +353,13 @@ class SceneGraph                : MMWidget
         itemMenuSkin.button.color = SIMD4<Float>(0.227, 0.231, 0.235, 1.000)
         itemMenuSkin.button.borderColor = SIMD4<Float>(0.537, 0.533, 0.537, 1.000)
         
-        itemMenu = MMMenuWidget( view, skinToUse: itemMenuSkin, type: .BoxedMenu )
+        itemMenu = MMMenuWidget(view, skinToUse: itemMenuSkin, type: .BoxedMenu)
         itemMenu.rect.width /= 1.5
         itemMenu.rect.height /= 1.5
+        
+        infoMenuWidget = MMMenuWidget(view, skinToUse: itemMenuSkin, type: .BoxedMenu)
+        infoMenuWidget.rect.width /= 1.5
+        infoMenuWidget.rect.height /= 1.5
         
         minMaxButtonRect.width = itemMenu.rect.width
         minMaxButtonRect.height = itemMenu.rect.height
@@ -395,16 +407,80 @@ class SceneGraph                : MMWidget
         
         // Info Area Buttons
         
-        let boolButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Bool")
+        boolButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Bool")
         boolButton.clicked = { (event) in
-            for b in self.infoButtons { if b !== boolButton { b.removeState(.Checked) }}
+            self.mmView.deregisterWidget(self.infoListWidget)
+            self.mmView.widgets.insert(self.infoListWidget, at: 0)
+            for b in self.infoButtons { if b !== self.boolButton { b.removeState(.Checked) }}
             self.infoState = .Boolean
             self.infoListWidget.setItems(self.getInfoList())
+            
+            self.infoMenuWidget.setItems([
+                MMMenuItem(text: "Change Boolean", cb: { () in
+                    globalApp!.libraryDialog.show(ids: ["Boolean"], cb: { (json) in
+                        if let comp = decodeComponentFromJSON(json) {
+                            //let undo = globalApp!.currentEditor.undoStageItemStart(self.maximizedObject!, "Add Domain Modifier")
+                            
+                            comp.uuid = UUID()
+                            comp.selected = nil
+                            
+                            var list = self.getInfoComponents()
+                            list[0] = comp
+                            self.setInfoComponents(list)
+                            
+                            globalApp!.currentEditor.setComponent(comp)
+                            
+                            //globalApp!.currentEditor.undoStageItemEnd(self.maximizedObject!, undo)
+                            globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.maximizedObject!)
+                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            
+                            self.infoListWidget.setItems(self.getInfoList())
+                        }
+                    })
+                })
+            ])
         }
         infoButtons.append(boolButton)
         
+        let domainButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Modifier")
+        domainButton.clicked = { (event) in
+            self.mmView.deregisterWidget(self.infoListWidget)
+            self.mmView.widgets.insert(self.infoListWidget, at: 0)
+            for b in self.infoButtons { if b !== domainButton { b.removeState(.Checked) }}
+            self.infoState = .Modifier
+            self.infoListWidget.setItems(self.getInfoList())
+            
+            self.infoMenuWidget.setItems([
+                MMMenuItem(text: "Add Modifier", cb: { () in
+                    globalApp!.libraryDialog.show(ids: ["Domain3D", "Modifier3D"], cb: { (json) in
+                        if let comp = decodeComponentFromJSON(json) {
+                            //let undo = globalApp!.currentEditor.undoStageItemStart(self.maximizedObject!, "Add Domain Modifier")
+                            
+                            comp.uuid = UUID()
+                            comp.selected = nil
+                            
+                            var list = self.getInfoComponents()
+                            list.append(comp)
+                            self.setInfoComponents(list)
+                            
+                            globalApp!.currentEditor.setComponent(comp)
+                            
+                            //globalApp!.currentEditor.undoStageItemEnd(self.maximizedObject!, undo)
+                            globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.maximizedObject!)
+                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            
+                            self.infoListWidget.setItems(self.getInfoList())
+                        }
+                    })
+                })
+            ])
+
+        }
+        infoButtons.append(domainButton)
+        
         let materialButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Material")
         materialButton.clicked = { (event) in
+            self.mmView.deregisterWidget(self.infoListWidget)
             for b in self.infoButtons { if b !== materialButton { b.removeState(.Checked) }}
             self.infoState = .Material
             self.infoList = []
@@ -546,15 +622,17 @@ class SceneGraph                : MMWidget
         maximizedObject = object
         shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
         mmView.widgets.insert(closeButton, at: 0)
-        mmView.widgets.insert(infoListWidget, at: 0)
+        mmView.widgets.insert(infoMenuWidget, at: 0)
         infoListWidget.isDisabled = true
     }
     
     func closeMaximized()
     {
         maximizedObject = nil
+        lastInfoUUID = nil
         mmView.deregisterWidgets(widgets: closeButton)
         mmView.deregisterWidgets(widgets: infoListWidget)
+        mmView.deregisterWidgets(widgets: infoMenuWidget)
 
         for w in infoButtons {
             mmView.deregisterWidgets(widgets: w)
@@ -1195,11 +1273,40 @@ class SceneGraph                : MMWidget
         
         var infoList : [InfoAreaItem] = []
         
-        for i in list {
-            infoList.append(InfoAreaItem(comp: i))
+        for c in list {
+            if infoState == .Boolean && c.componentType == .Boolean {
+                infoList.append(InfoAreaItem(comp: c))
+            }
+            if infoState == .Modifier && (c.componentType == .Domain3D || c.componentType == .Modifier3D)  {
+                infoList.append(InfoAreaItem(comp: c))
+            }
         }
         
         return infoList
+    }
+    
+    func getInfoComponents() -> [CodeComponent]
+    {
+        var list : [CodeComponent] = []
+        if let object = maximizedObject {
+            if let component = currentComponent, component.componentType == .SDF3D {
+                list = component.components
+            } else {
+                list = object.componentLists["nodes3D"]!
+            }
+        }
+        return list
+    }
+    
+    func setInfoComponents(_ list: [CodeComponent])
+    {
+        if let object = maximizedObject {
+            if let component = currentComponent, component.componentType == .SDF3D {
+                component.components = list
+            } else {
+                object.componentLists["nodes3D"] = list
+            }
+        }
     }
     
     // MARK:- drawMaximized
@@ -1221,11 +1328,8 @@ class SceneGraph                : MMWidget
 
         drawGroup(stageItem: maximizedObject!, graphId: "_graphShapes", name: maximizedObject!.name, skin: skin)
         
-        // Bottom Area
-        
-        let oldRect = MMRect(rect)
-        //rect.y = rect.bottom() - bottomHeight
-        //rect.height = bottomHeight
+        // Info Area
+
         bottomOffset = rect.bottom() - bottomHeight - rect.y
         let oldGraphX = graphX
         let oldGraphY = graphY
@@ -1237,20 +1341,21 @@ class SceneGraph                : MMWidget
 
         func activateWidgets(uuid: UUID, container: Bool)
         {
-            if lastBottomUUID != uuid {
+            if lastInfoUUID != uuid {
                 for w in infoButtons {
                     mmView.deregisterWidgets(widgets: w)
                 }
                 
-                infoButtons[1].isDisabled = container == false
+                infoButtons[2].isDisabled = container == false
                 
                 for w in infoButtons {
                     if w.isDisabled == false {
                         mmView.widgets.insert(w, at: 0)
                     }
                 }
+                boolButton._clicked(MMMouseEvent(0,0))
             }
-            lastBottomUUID = uuid
+            lastInfoUUID = uuid
         }
         
         if let object = maximizedObject {
@@ -1290,7 +1395,13 @@ class SceneGraph                : MMWidget
                         child.values["_graphX"] = 80
                         child.values["_graphY"] = 40
                         drawObject(stage: shapeStage, o: child, skin: skin)
-                        break
+                    } else
+                    if let comp = child.components[child.defaultName], comp.componentType == .UVMAP3D {
+                        
+                        child.values["_graphX"] = rect.width - 80
+                        child.values["_graphY"] = 50
+                        
+                        drawObject(stage: shapeStage, o: child, skin: skin)
                     }
                 }
             } else {
@@ -1304,13 +1415,16 @@ class SceneGraph                : MMWidget
         }
         
         mmView.renderer.setClipRect()
-        mmView.renderer.setClipRect(MMRect(rect.x, rect.y /* + toolBarHeight + 1*/, rect.width - 1, rect.height /*- toolBarHeight - 1*/))
+        mmView.renderer.setClipRect(MMRect(rect.x, rect.y, rect.width - 1, rect.height))
+        
+        if infoState != .Material {
+            infoMenuWidget.rect.x = rect.right() - infoMenuWidget.rect.width - 10
+            infoMenuWidget.rect.y = rect.y + bottomOffset + 4
+            infoMenuWidget.draw()
+        }
         
         graphX = oldGraphX
         graphY = oldGraphY
-
-        rect.y = oldRect.y
-        rect.height = oldRect.height
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

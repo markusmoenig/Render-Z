@@ -83,8 +83,10 @@ class ObjectShader      : BaseShader
         
         let mapCode = createMapCode()
 
-        idStart = Float(claimedIds.first!)
-        idEnd = Float(claimedIds.last!)
+        if claimedIds.first != nil {
+            idStart = Float(claimedIds.first!)
+            idEnd = Float(claimedIds.last!)
+        }
                 
         // Raymarch
         let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D)!
@@ -1983,8 +1985,54 @@ class ObjectShader      : BaseShader
             code +=
             """
                 {
+                    float3 position = __origin;
+
+            """
+            
+            // Domain Modifiers (Both for the object and the component)
+            var domainList : [CodeComponent] = []
+            if let stageItem = hierarchy.last {
+                if let list = stageItem.componentLists["nodes3D"] {
+                    domainList += getComponentOfTypeFromList(list, .Domain3D)
+                }
+            }
+            domainList += getComponentOfTypeFromList(component.components, .Domain3D)
+            for domain in domainList {
+
+                var firstRun = false
+                if globalsAddedFor.contains(domain.uuid) == false {
+                    dryRunComponent(domain, data.count)
+                    collectProperties(domain)
+                    globalsAddedFor.append(domain.uuid)
+                    firstRun = true
+                }
+                     
+                if let globalCode = domain.globalCode {
+                    if firstRun == true {
+                        headerCode += globalCode
+                    }
+                }
+                     
+                code +=
+                """
+                {
+                float3 outPosition = position;
+                     
+                """
+                code += domain.code!
+                code +=
+                """
+                     
+                position = outPosition;
+                }
+                """
+            }
+            
+            code +=
+            """
+
                     float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
-                    float3 position = __translate(__origin, __originalPosition);
+                    position = __translate(position, __originalPosition);
                     float3 __offsetFromCenter = __objectPosition - __originalPosition;
 
                     position.yz = rotatePivot( position.yz, radians(__data[\(rotateX)].x\(getInstantiationModifier("_rotateRandomX", component.values))), __offsetFromCenter.yz );
@@ -1992,42 +2040,7 @@ class ObjectShader      : BaseShader
                     position.xy = rotatePivot( position.xy, radians(__data[\(rotateZ)].x\(getInstantiationModifier("_rotateRandomZ", component.values))), __offsetFromCenter.xy );
 
             """
-                 
-            if let stageItem = hierarchy.last {
-                if let list = stageItem.componentLists["domain3D"] {
-                    for domain in list {
-                             
-                        var firstRun = false
-                        if globalsAddedFor.contains(domain.uuid) == false {
-                            dryRunComponent(domain, data.count)
-                            collectProperties(domain)
-                            globalsAddedFor.append(domain.uuid)
-                            firstRun = true
-                        }
-                             
-                        if let globalCode = domain.globalCode {
-                            if firstRun == true {
-                                headerCode += globalCode
-                            }
-                        }
-                             
-                        code +=
-                        """
-                        {
-                        float3 outPosition = position;
-                             
-                        """
-                        code += domain.code!
-                        code +=
-                        """
-                             
-                        position = outPosition;
-                        }
-                        """
-                    }
-                }
-            }
-             
+              
             if component.componentType == .SDF3D {
                 code += component.code!
             } else
@@ -2057,59 +2070,63 @@ class ObjectShader      : BaseShader
                 }
                 """
             }
-             
-            // Modifier 3D
+            
+            
+            // Domain Modifiers (Both for the object and the component)
+            var modifierList : [CodeComponent] = []
             if let stageItem = hierarchy.last {
-                if let list = stageItem.componentLists["modifier3D"] {
-                    if list.count > 0 {
-                             
-                        let rotateX = getTransformPropertyIndex(component, "_rotateX")
-                        let rotateY = getTransformPropertyIndex(component, "_rotateY")
-                        let rotateZ = getTransformPropertyIndex(component, "_rotateZ")
-                             
-                        code +=
-                        """
-                        {
-                        float3 offsetFromCenter = __origin - __originalPosition;
-                        offsetFromCenter.yz = rotate( offsetFromCenter.yz, radians(__data[\(rotateX)].x) );
-                        offsetFromCenter.xz = rotate( offsetFromCenter.xz, radians(__data[\(rotateY)].x) );
-                        offsetFromCenter.xy = rotate( offsetFromCenter.xy, radians(__data[\(rotateZ)].x) );
-                        float distance = outDistance;
-                             
-                        """
-
-                        for modifier in list {
-                                 
-                            var firstRun = false
-                            if globalsAddedFor.contains(modifier.uuid) == false {
-                                dryRunComponent(modifier, data.count)
-                                collectProperties(modifier)
-                                globalsAddedFor.append(modifier.uuid)
-                                firstRun = true
-                            }
-
-                            code += modifier.code!
-                            if let globalCode = modifier.globalCode {
-                                if firstRun {
-                                    headerCode += globalCode
-                                }
-                            }
-                                 
-                            code +=
-                            """
-                                 
-                            distance = outDistance;
-
-                            """
-                        }
-                             
-                        code +=
-                        """
-                             
-                        }
-                        """
-                    }
+                if let list = stageItem.componentLists["nodes3D"] {
+                    modifierList += getComponentOfTypeFromList(list, .Modifier3D)
                 }
+            }
+            modifierList += getComponentOfTypeFromList(component.components, .Modifier3D)
+            if modifierList.count > 0 {
+                             
+                let rotateX = getTransformPropertyIndex(component, "_rotateX")
+                let rotateY = getTransformPropertyIndex(component, "_rotateY")
+                let rotateZ = getTransformPropertyIndex(component, "_rotateZ")
+                     
+                code +=
+                """
+                {
+                float3 offsetFromCenter = __origin - __originalPosition;
+                offsetFromCenter.yz = rotate( offsetFromCenter.yz, radians(__data[\(rotateX)].x) );
+                offsetFromCenter.xz = rotate( offsetFromCenter.xz, radians(__data[\(rotateY)].x) );
+                offsetFromCenter.xy = rotate( offsetFromCenter.xy, radians(__data[\(rotateZ)].x) );
+                float distance = outDistance;
+                     
+                """
+
+                for modifier in modifierList {
+                         
+                    var firstRun = false
+                    if globalsAddedFor.contains(modifier.uuid) == false {
+                        dryRunComponent(modifier, data.count)
+                        collectProperties(modifier)
+                        globalsAddedFor.append(modifier.uuid)
+                        firstRun = true
+                    }
+
+                    code += modifier.code!
+                    if let globalCode = modifier.globalCode {
+                        if firstRun {
+                            headerCode += globalCode
+                        }
+                    }
+                         
+                    code +=
+                    """
+                         
+                    distance = outDistance;
+
+                    """
+                }
+                     
+                code +=
+                """
+                     
+                }
+                """
             }
 
             let id = prtInstance.claimId()
@@ -2485,7 +2502,7 @@ class ObjectShader      : BaseShader
         }
         
         """
-        
+
         return headerCode + mapCode + materialFuncCode
     }
 }

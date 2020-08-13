@@ -302,7 +302,9 @@ class LibraryDialog: MMDialog {
         "SDF2D"         : "Shape 2D",
         "SDF3D"         : "Shape 3D",
         "Modifier3D"    : "Modifier 3D",
-        "Modifier2D"    : "Modifier 2D"
+        "Modifier2D"    : "Modifier 2D",
+        "Domain3D"      : "Domain 3D",
+        "Domain2D"      : "Domain 2D"
     ]
 
     init(_ view: MMView) {
