@@ -964,10 +964,7 @@ class ObjectShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-        } else {
-            print("NO")
         }
-        
         #endif
     }
     
@@ -1912,6 +1909,19 @@ class ObjectShader      : BaseShader
         return headerCode + mapCode + materialFuncCode
     }*/
     
+    /// Returns the list of types inside the CodeComponent list
+    func getComponentOfTypeFromList(_ list: [CodeComponent],_ type: CodeComponent.ComponentType) -> [CodeComponent]
+    {
+        var out : [CodeComponent] = []
+        
+        for c in list {
+            if c.componentType == type {
+                out.append(c)
+            }
+        }
+        return out
+    }
+    
     func createMapCode() -> String
     {
         var hierarchy           : [StageItem] = []
@@ -2107,15 +2117,17 @@ class ObjectShader      : BaseShader
             code +=
             """
              
-                float4 shapeA = outShape;
+            float4 shapeA = outShape;
             float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, \(currentMaterialId), \(id));
              
             """
-             
-            if let subComponent = component.subComponent {
-                dryRunComponent(subComponent, data.count)
-                collectProperties(subComponent)
-                code += subComponent.code!
+            
+            // Apply the boolean for the component
+            let booleanList = getComponentOfTypeFromList(component.components, .Boolean)
+            if booleanList.count > 0 {
+                dryRunComponent(booleanList[0], data.count)
+                collectProperties(booleanList[0])
+                code += booleanList[0].code!
             }
          
             code += "\n    }\n"

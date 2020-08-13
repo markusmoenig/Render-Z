@@ -88,7 +88,7 @@ class MMCompute {
     }
     
     /// Allocate the output texture, optionally can be used to create an arbitray texture by setting output to false
-    @discardableResult func allocateTexture( width: Float, height: Float, output: Bool? = true, pixelFormat: MTLPixelFormat = .bgra8Unorm ) -> MTLTexture?
+    @discardableResult func allocateTexture( width: Float, height: Float, output: Bool? = false, pixelFormat: MTLPixelFormat = .bgra8Unorm ) -> MTLTexture?
     {
         self.texture = nil
         
@@ -101,7 +101,7 @@ class MMCompute {
         textureDescriptor.usage = MTLTextureUsage.unknown
 
         let texture = device.makeTexture( descriptor: textureDescriptor )
-        if output! {
+        if output == true {
             self.texture = texture
         }
         

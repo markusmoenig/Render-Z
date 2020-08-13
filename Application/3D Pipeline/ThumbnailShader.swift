@@ -141,7 +141,7 @@ class ThumbnailShader       : BaseShader
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: 0.0, zfar: 1.0 ) )
             
             let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, prtInstance.screenSize.x, prtInstance.screenSize.y ) )
             renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)

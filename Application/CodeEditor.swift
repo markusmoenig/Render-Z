@@ -729,7 +729,7 @@ class CodeEditor        : MMWidget
         
         if currentComponent === codeComponent && showCode {
             // Fragments
-            var workRect: MMRect = MMRect()
+            let workRect: MMRect = MMRect()
             if codeContext.dropFragment == nil {
                 
                 // Highlight drawing which also highlights the opening / closing brackets

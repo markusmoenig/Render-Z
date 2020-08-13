@@ -71,7 +71,7 @@ class Pipeline
             if texture != nil {
                 texture!.setPurgeableState(.empty)
             }
-            result = codeBuilder.compute.allocateTexture(width: width, height: height, output: true, pixelFormat: pixelFormat)
+            result = codeBuilder.compute.allocateTexture(width: width, height: height, pixelFormat: pixelFormat)
         }
         
         return result

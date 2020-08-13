@@ -673,7 +673,7 @@ class TerrainEditor         : PropertiesWidget
     {
         let origin = getTextureValueAt(event, texture: originTexture!)
         let lookAt = getTextureValueAt(event, texture: directionTexture!)
-            
+        
         return (SIMD3<Float>(origin.x, origin.y, origin.z), SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z))
     }
     

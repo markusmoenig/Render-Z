@@ -1090,7 +1090,7 @@ class Scene                 : Codable, Equatable
             var component   : CodeComponent? = nil
         }
         
-        var result = SearchInfo()
+        let result = SearchInfo()
         
         func findInItem(_ stageItem: StageItem)
         {

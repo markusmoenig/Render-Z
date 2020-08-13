@@ -124,7 +124,7 @@ class MMInfoArea : MMWidget {
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        _ = mouseMoved(event)
+        mouseMoved(event)
         if let item = closeItem {
             if let cb = closeCB {
                 cb(item.variable, item.value)

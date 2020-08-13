@@ -284,7 +284,7 @@ class Pipeline3DRT          : Pipeline
         prtInstance.commandQueue = mmView.device!.makeCommandQueue()
         prtInstance.commandBuffer = prtInstance.commandQueue!.makeCommandBuffer()
         prtInstance.quadVertexBuffer = getQuadVertexBuffer(MMRect(0, 0, width, height ) )
-        prtInstance.quadViewport = MTLViewport( originX: 0.0, originY: 0.0, width: Double(width), height: Double(height), znear: -1.0, zfar: 1.0 )
+        prtInstance.quadViewport = MTLViewport( originX: 0.0, originY: 0.0, width: Double(width), height: Double(height), znear: 0.0, zfar: 1.0 )
                 
         //let camHelper = CamHelper3D()
         //camHelper.initFromComponent(aspect: width / height, component: cameraComponent)

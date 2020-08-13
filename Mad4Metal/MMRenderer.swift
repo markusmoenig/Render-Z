@@ -98,7 +98,7 @@ class MMRenderer : NSObject, MTKViewDelegate {
             renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor! )
             renderEncoder?.label = "MyRenderEncoder";
             
-            renderEncoder?.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(viewportSize.x), height: Double(viewportSize.y), znear: -1.0, zfar: 1.0 ) )
+            renderEncoder?.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(viewportSize.x), height: Double(viewportSize.y), znear: 0.0, zfar: 1.0 ) )
             
             renderEncoder?.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
             renderEncoder?.setVertexBytes( &viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)

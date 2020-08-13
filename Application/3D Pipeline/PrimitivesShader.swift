@@ -108,7 +108,7 @@ class PrimitivesShader      : BaseShader
             renderEncoder.setRenderPipelineState(mainShader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(texture.width), height: Double(texture.height), znear: -1.0, zfar: 1.0 ) )
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(texture.width), height: Double(texture.height), znear: 0.0, zfar: 1.0 ) )
             
             let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, Float(texture.width), Float(texture.height) ) )
             renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
