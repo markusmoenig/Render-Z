@@ -1267,6 +1267,9 @@ class SceneGraph                : MMWidget
             if let component = currentComponent, component.componentType == .SDF3D {
                 list = component.components
             } else {
+                if object.componentLists["nodes3D"] == nil {
+                    object.componentLists["nodes3D"] = []
+                }
                 list = object.componentLists["nodes3D"]!
             }
         }
@@ -1326,7 +1329,12 @@ class SceneGraph                : MMWidget
         let bottomHeight : Float = 200
         mmView.renderer.setClipRect(MMRect(rect.x, rect.y, rect.width - 1, rect.height - bottomHeight))
 
+        let oldStageItem = currentStageItem
+        currentStageItem = maximizedObject!
+        
         drawGroup(stageItem: maximizedObject!, graphId: "_graphShapes", name: maximizedObject!.name, skin: skin)
+        
+        currentStageItem = oldStageItem
         
         // Info Area
 

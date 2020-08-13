@@ -21,6 +21,7 @@ class RigidBody3D
     var orientation                 = _Quaternion()
     var velocity                    = _Vector3()
     var rotation                    = _Vector3()
+    var elasticity                  : Float = 0
 
     var inverseInertiaTensorWorld   = _Matrix3()
 
@@ -241,6 +242,12 @@ class RigidBody3D
     func getPosition() -> _Vector3
     {
         return position
+    }
+    
+    func setElasticity(_ elasticity: Float)
+    {
+        print(elasticity)
+        self.elasticity = elasticity
     }
 
     func setOrientation(_ orientation: _Quaternion)

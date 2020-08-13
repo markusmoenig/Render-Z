@@ -91,6 +91,9 @@ class BaseShader
     
     var sphereContactsState : MTLComputePipelineState? = nil
     
+    var velocity            : _Vector3? = nil
+    var elasticity          : Float = 0
+
     init(instance: PRTInstance)
     {
         self.prtInstance = instance
@@ -384,7 +387,35 @@ class BaseShader
                 if components == 1 {
                     properties[name] = data.x
                     let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
-                    self.data[dataIndex].x = transformed[name]!
+                    
+                    var value = transformed[name]!
+                    if let velocity = velocity, elasticity > 0 {
+                        
+                        let direct = elasticity / 10
+                        let indirect = direct / 2
+
+                        if name == "height" {
+                            value = value - Float(velocity.y) * direct
+                            
+                            value = value + Float(velocity.x) * indirect
+                            value = value + Float(velocity.z) * indirect
+                        }
+                        
+                        if name == "width" {
+                            value = value - Float(velocity.x) * direct
+
+                            value = value + Float(velocity.y) * indirect
+                            value = value + Float(velocity.z) * indirect
+                        }
+                        
+                        if name == "depth" {
+                            value = value - Float(velocity.z) * direct
+
+                            value = value + Float(velocity.x) * indirect
+                            value = value + Float(velocity.y) * indirect
+                        }
+                    }
+                    self.data[dataIndex].x = value
                 } else
                 if components == 2 {
                     properties[name + "_x"] = data.x
@@ -737,13 +768,6 @@ class BaseShader
                          
             updateData()
              
-            let commandQueue = device.makeCommandQueue()
-            let commandBuffer = commandQueue!.makeCommandBuffer()!
-            let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
-             
-            computeEncoder.setComputePipelineState( state )
-            computeEncoder.setBuffer(buffer, offset: 0, index: 0)
-             
             var sphereUniforms = SphereUniforms()
             
             var sphereData : [float4] = []
@@ -753,6 +777,17 @@ class BaseShader
                     sphereData.append(s)
                 }
             }
+            
+            if sphereData.count == 0 {
+                return
+            }
+            
+            let commandQueue = device.makeCommandQueue()
+            let commandBuffer = commandQueue!.makeCommandBuffer()!
+            let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
+             
+            computeEncoder.setComputePipelineState( state )
+            computeEncoder.setBuffer(buffer, offset: 0, index: 0)
             
             sphereUniforms.numberOfSpheres = Int32(sphereData.count)
             

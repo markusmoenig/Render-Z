@@ -132,6 +132,11 @@ class DesignProperties      : MMWidget
                 let massVar = NodeUINumber(c1Node!, variable: "mass", title: "Mass", range: SIMD2<Float>(0.1, 1000), value: mass, precision: Int(2))
                 massVar.titleShadows = true
                 c1Node!.uiItems.append(massVar)
+                
+                let elasticity = comp.values["elasticity"] == nil ? 0 : comp.values["elasticity"]!
+                let elasticityVar = NodeUINumber(c1Node!, variable: "elasticity", title: "Elasticity", range: SIMD2<Float>(0, 1), value: elasticity, precision: Int(2))
+                elasticityVar.titleShadows = true
+                c1Node!.uiItems.append(elasticityVar)
             }
         }
                 
@@ -239,7 +244,7 @@ class DesignProperties      : MMWidget
                 if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
             }
             
-            if variable == "restitution" || variable == "friction" || variable == "mass" {
+            if variable == "restitution" || variable == "friction" || variable == "mass" || variable == "elasticity" {
                 comp.values[variable] = oldValue
                 let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
                 comp.values[variable] = newValue

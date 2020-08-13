@@ -39,6 +39,12 @@ class ObjectSpheres3D
         sphereHits = Array<Bool>(repeating: false, count: spheres.count)
     }
     
+    func updateSpheres(spheres: [float4])
+    {
+        self.spheres = spheres
+        sphereHits = Array<Bool>(repeating: false, count: spheres.count)
+    }
+    
     func updateTransformData()
     {
         position.x = transform.values["_posX"]!
@@ -166,8 +172,12 @@ class Physics3D
                         body.setOrientation(Double(node.simdOrientation.real), Double(node.simdOrientation.imag.x), Double(node.simdOrientation.imag.y), Double(node.simdOrientation.imag.z))
                         body.orientation.normalise()
                         
-                        let mass = object.values["mass"] == nil ? 5 : object.values["mass"]!
+                        let mass = transform.values["mass"] == nil ? 5 : transform.values["mass"]!
                         body.setMass(mass: Double(mass))
+                        
+                        let elasticity = transform.values["elasticity"] == nil ? 0 : transform.values["elasticity"]!
+                        body.setElasticity(elasticity)
+                        
                         rigidBodyWorld.addBody(body)
                     } else
                     if physicsMode == .Static {
@@ -237,10 +247,17 @@ class Physics3D
                 
                 //print("vel", body.velocity.x, body.velocity.y, body.velocity.z)
 
+                if let object = body.object.shader as? ObjectShader {
+                    body.objectSpheres.updateSpheres(spheres: object.buildSpheres())
+                }
+                
                 transform.values["_posX"] = Float(body.position.x)
                 transform.values["_posY"] = Float(body.position.y)
                 transform.values["_posZ"] = Float(body.position.z)
-                                
+                
+                body.object.shader!.velocity = body.velocity
+                body.object.shader!.elasticity = body.elasticity
+
                 let angles = body.transformMatrix.extractEulerAngleXYZ()
                 transform.values["_rotateX"] = Float(angles.x.radiansToDegrees)
                 transform.values["_rotateY"] = Float(angles.y.radiansToDegrees)
