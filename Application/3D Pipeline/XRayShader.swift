@@ -131,24 +131,24 @@ class XRayShader      : BaseShader
             float d = bbox( outPosition, outDirection, uniforms.P, uniforms.L, uniforms.F );
             if (d > -0.5)
             {
-                float3 rayOrigin = outPosition + d * outDirection;
+                float3 rayOrigin = outPosition + (d - 1.0) * outDirection;
                 float3 rayDirection = outDirection;
 
                 float rayLength = 0.;
                 float dist = 0.;
 
-                for (float i = 0.; i < 70; i++)
+                for (float i = 0.; i < 400; i++)
                 {
                     rayLength += max(0.0001, abs(dist) * 0.25);
                     float3 pos = rayOrigin + rayDirection * rayLength;
 
                     dist = sceneMap(pos, __funcData).x;
 
-                    float3 c = float3(max(0., .001 - abs(dist)) * 2.5);
+                    float3 c = float3(max(0., .001 - abs(dist)) * 1.5);
 
                     outColor.xyz += c;
 
-                    if (rayLength > maxDistance)
+                    if (rayLength > maxDistance + 2.0)
                         break;
                 }
 
@@ -163,7 +163,7 @@ class XRayShader      : BaseShader
                         
         compile(code: fragmentShader, shaders: [
             Shader(id: "MAINFULL", fragmentName: "fullFragment", textureOffset: 0, pixelFormat: .rgba16Float, blending: false)
-        ], sync: true)
+        ], sync: false, drawWhenFinished: true)
     }
  
     override func render(texture: MTLTexture)
@@ -172,6 +172,10 @@ class XRayShader      : BaseShader
         rootItem!.components[rootItem!.defaultName]!.values["_posX"] = 0
         rootItem!.components[rootItem!.defaultName]!.values["_posY"] = 0
         rootItem!.components[rootItem!.defaultName]!.values["_posZ"] = 0
+        rootItem!.components[rootItem!.defaultName]!.values["_rotateX"] = 0
+        rootItem!.components[rootItem!.defaultName]!.values["_rotateY"] = 0
+        rootItem!.components[rootItem!.defaultName]!.values["_rotateZ"] = 0
+        rootItem!.components[rootItem!.defaultName]!.values["_scale"] = 1
         updateData()
 
         if let shader = shaders["MAINFULL"] {
@@ -223,6 +227,16 @@ class XRayShader      : BaseShader
             prtInstance.commandBuffer!.waitUntilCompleted()
         }
         rootItem!.components[rootItem!.defaultName]!.values = oldData
+    }
+    
+    func isXrayValid() -> Bool
+    {
+        var rc : Bool = false
+
+        if shaders["MAINFULL"] != nil {
+            rc = true
+        }
+        return rc
     }
  
     override func createFragmentUniform() -> ObjectFragmentUniforms

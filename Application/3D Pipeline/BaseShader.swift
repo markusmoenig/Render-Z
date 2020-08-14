@@ -107,7 +107,7 @@ class BaseShader
         allShaders = []
     }
     
-    func compile(code: String, shaders: [Shader], sync: Bool = false)
+    func compile(code: String, shaders: [Shader], sync: Bool = false, drawWhenFinished: Bool = false)
     {
         self.shaders = [:]
         allShaders = shaders
@@ -197,6 +197,12 @@ class BaseShader
                 if self as? ObjectShader != nil || self as? GroundShader != nil || self as? TerrainShader != nil || self as? BackgroundShader != nil {
                     DispatchQueue.main.async {
                         globalApp!.currentEditor.render()
+                        globalApp!.mmView.update()
+                    }
+                }
+                
+                if drawWhenFinished {
+                    DispatchQueue.main.async {
                         globalApp!.mmView.update()
                     }
                 }

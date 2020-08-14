@@ -104,7 +104,7 @@ class ArtistEditor          : Editor
                 self.playButton.removeState(.Checked)
                 self.physics3D!.end()
                 self.physics3D = nil
-                self.mmView.lockFramerate(false)
+                self.mmView.unlockFramerate(true)
             }
         }
         

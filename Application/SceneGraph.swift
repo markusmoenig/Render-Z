@@ -332,7 +332,16 @@ class SceneGraph                : MMWidget
     
     var xrayShader              : XRayShader? = nil
     var xrayTexture             : MTLTexture? = nil
-
+    
+    var xrayOrigin              = float3(0,0,5)
+    var xrayLookAt              = float3(0,0,0)
+    
+    var xrayCamera              : CodeComponent? = nil
+    var xrayAngle               : Float = 0
+    var xrayZoom                : Float = 5
+    
+    var xrayNeedsUpdate         : Bool = false
+    
     override init(_ view: MMView)
     {
         menuWidget = MMMenuWidget(view, type: .Hidden)
@@ -565,6 +574,25 @@ class SceneGraph                : MMWidget
      
     override func mouseScrolled(_ event: MMMouseEvent)
     {
+        if maximizedObject != nil {
+            xrayAngle += event.deltaX!
+            xrayZoom += event.deltaY!
+            
+            xrayZoom = min(xrayZoom, 20)
+            xrayZoom = max(xrayZoom, 1)
+
+            let c = cos(xrayAngle.degreesToRadians)
+            let s = sin(xrayAngle.degreesToRadians)
+            
+            xrayOrigin.x = xrayZoom * c
+            xrayOrigin.z = xrayZoom * s
+
+            setPropertyValue3(component: xrayCamera!, name: "origin", value: xrayOrigin)
+            xrayNeedsUpdate = true
+            mmView.update()
+            return
+        }
+        
         #if os(iOS)
         if connectingTerminals {
             return
@@ -628,17 +656,18 @@ class SceneGraph                : MMWidget
         mmView.widgets.insert(infoMenuWidget, at: 0)
         infoListWidget.isDisabled = true
         
-        let camera = globalApp!.libraryDialog.getItem(ofId: "Camera3D", withName: "Pinhole Camera")
+        xrayOrigin = float3(0,0,5)
+        xrayAngle = 0
         
-        //setPropertyValue1(component: camera!, name: "fov", value: 16)
-        setPropertyValue3(component: camera!, name: "origin", value: SIMD3<Float>(0,0,5))
-        setPropertyValue3(component: camera!, name: "lookAt", value: SIMD3<Float>(0,0,0))
-
-        //let preStage = globalApp!.project.selected!.getStage(.PreStage)
-        //let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
-        //let cameraComponent = result.1!
+        if xrayCamera == nil {
+            xrayCamera = globalApp!.libraryDialog.getItem(ofId: "Camera3D", withName: "Pinhole Camera")
+        }
         
-        xrayShader = XRayShader(scene: globalApp!.project.selected!, object: object, camera: camera!)
+        setPropertyValue3(component: xrayCamera!, name: "origin", value: xrayOrigin)
+        setPropertyValue3(component: xrayCamera!, name: "lookAt", value: xrayLookAt)
+        
+        xrayShader = XRayShader(scene: globalApp!.project.selected!, object: object, camera: xrayCamera!)
+        xrayNeedsUpdate = true
     }
     
     func closeMaximized()
@@ -657,6 +686,14 @@ class SceneGraph                : MMWidget
         if xrayTexture != nil {
             xrayTexture!.setPurgeableState(.empty)
             xrayTexture = nil
+        }
+    }
+    
+    func buildXray()
+    {
+        if let object = maximizedObject {
+            xrayShader = XRayShader(scene: globalApp!.project.selected!, object: object, camera: xrayCamera!)
+            xrayNeedsUpdate = true
         }
     }
     
@@ -1341,10 +1378,6 @@ class SceneGraph                : MMWidget
         buttons = []
         terminals = []
         
-        closeButton.rect.x = rect.right() - closeButton.rect.width - 8
-        closeButton.rect.y = rect.y + 8
-        closeButton.draw()
-        
         let skin : SceneGraphSkin = SceneGraphSkin(mmView.openSans, fontScale: 0.4 * graphZoom, graphZoom: graphZoom)
 
         let bottomHeight : Float = 200
@@ -1353,10 +1386,25 @@ class SceneGraph                : MMWidget
 
         // XRay
         
+        if topRect.width < 1 {return}
         xrayTexture = globalApp!.currentPipeline?.checkTextureSize(topRect.width, topRect.height, xrayTexture, .rgba16Float)
-        xrayShader?.render(texture: xrayTexture!)
-        mmView.drawTexture.draw(xrayTexture!, x: topRect.x, y: topRect.y, zoom: 1)
+                
+        if xrayShader!.isXrayValid() {
+            if xrayNeedsUpdate == true {
+                xrayShader!.render(texture: xrayTexture!)
+                xrayNeedsUpdate = false
+            }
+            mmView.drawTexture.draw(xrayTexture!, x: topRect.x, y: topRect.y, zoom: 1)
+        } else {
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
+        }
 
+        // Close button
+        
+        closeButton.rect.x = rect.right() - closeButton.rect.width - 8
+        closeButton.rect.y = rect.y + 8
+        closeButton.draw()
+        
         //
         
         let oldStageItem = currentStageItem
@@ -1467,9 +1515,8 @@ class SceneGraph                : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
-        
         if globalApp!.hasValidScene == false {
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
             closeMaximized()
             return
         }
@@ -1489,6 +1536,7 @@ class SceneGraph                : MMWidget
             if maximizedObject != nil {
                 drawMaximized()
             } else {
+                mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
                 mmView.renderer.setClipRect(MMRect(rect.x, rect.y /* + toolBarHeight + 1*/, rect.width - 1, rect.height /*- toolBarHeight - 1*/))
                 parse(scene: scene, skin: skin)
             }

@@ -67,7 +67,7 @@ class Pipeline
     {
         var result  : MTLTexture? = texture
         
-        if texture == nil || (Float(texture!.width) != width || Float(texture!.height) != height || texture?.pixelFormat != pixelFormat) {
+        if texture == nil || texture!.width != Int(round(width)) || texture!.height != Int(round(height)) || texture?.pixelFormat != pixelFormat {
             if texture != nil {
                 texture!.setPurgeableState(.empty)
             }

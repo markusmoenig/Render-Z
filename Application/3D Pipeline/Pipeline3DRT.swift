@@ -215,6 +215,12 @@ class Pipeline3DRT          : Pipeline
                     if item.componentLists["nodes3D"] == nil || item.componentLists["nodes3D"]?.count == 0 {
                         item.addNodes3D()
                     }
+                    
+                    // Check if we need to recompile the xray
+                    if globalApp!.sceneGraph.maximizedObject === item {
+                        globalApp!.sceneGraph.buildXray()
+                    }
+                    
                     let shader = ObjectShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
                     shaders.append(shader)
                     item.shader = shader
@@ -261,6 +267,8 @@ class Pipeline3DRT          : Pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
         width = round(widthIn); height = round(heightIn)
+        
+        globalApp!.sceneGraph.xrayNeedsUpdate = true
         
         //let startTime = Double(Date().timeIntervalSince1970)
         
