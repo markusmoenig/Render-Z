@@ -951,11 +951,6 @@ class ObjectShader      : BaseShader
             
             // --- Fragment
             var fragmentUniforms = createFragmentUniform()
-            var lightUniforms = prtInstance.utilityShader!.createLightStruct()
-            
-            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
-            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
-            renderEncoder.setFragmentBytes(&lightUniforms, length: MemoryLayout<LightUniforms>.stride, index: 2)
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)

@@ -703,6 +703,28 @@ class BaseShader
         return device.makeBuffer(bytes: quadVertices, length: quadVertices.count * MemoryLayout<Float>.stride, options: [])!
     }
     
+    /// Creates a vertex buffer for a quad shader
+    func getQuadVertexData(_ rect: MMRect ) -> [Float]
+    {
+        let left = -rect.width / 2 + rect.x
+        let right = left + rect.width//self.width / 2 - x
+        
+        let top = rect.height / 2 - rect.y
+        let bottom = top - rect.height
+        
+        let quadVertices: [Float] = [
+            right, bottom, 1.0, 0.0,
+            left, bottom, 0.0, 0.0,
+            left, top, 0.0, 1.0,
+            
+            right, bottom, 1.0, 0.0,
+            left, top, 0.0, 1.0,
+            right, top, 1.0, 1.0,
+            ]
+        
+        return quadVertices
+    }
+    
     /// Inserts the texture code into the source code
     func insertTextureCode(sourceCode: String, startOffset: Int, id: String) -> String
     {

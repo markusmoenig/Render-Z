@@ -329,6 +329,9 @@ class SceneGraph                : MMWidget
     var infoListWidget          : MMDListWidget
     
     var boolButton              : MMButtonWidget!
+    
+    var xrayShader              : XRayShader? = nil
+    var xrayTexture             : MTLTexture? = nil
 
     override init(_ view: MMView)
     {
@@ -624,6 +627,18 @@ class SceneGraph                : MMWidget
         mmView.widgets.insert(closeButton, at: 0)
         mmView.widgets.insert(infoMenuWidget, at: 0)
         infoListWidget.isDisabled = true
+        
+        let camera = globalApp!.libraryDialog.getItem(ofId: "Camera3D", withName: "Pinhole Camera")
+        
+        //setPropertyValue1(component: camera!, name: "fov", value: 16)
+        setPropertyValue3(component: camera!, name: "origin", value: SIMD3<Float>(0,0,5))
+        setPropertyValue3(component: camera!, name: "lookAt", value: SIMD3<Float>(0,0,0))
+
+        //let preStage = globalApp!.project.selected!.getStage(.PreStage)
+        //let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
+        //let cameraComponent = result.1!
+        
+        xrayShader = XRayShader(scene: globalApp!.project.selected!, object: object, camera: camera!)
     }
     
     func closeMaximized()
@@ -636,6 +651,12 @@ class SceneGraph                : MMWidget
 
         for w in infoButtons {
             mmView.deregisterWidgets(widgets: w)
+        }
+        
+        xrayShader = nil
+        if xrayTexture != nil {
+            xrayTexture!.setPurgeableState(.empty)
+            xrayTexture = nil
         }
     }
     
@@ -1327,8 +1348,17 @@ class SceneGraph                : MMWidget
         let skin : SceneGraphSkin = SceneGraphSkin(mmView.openSans, fontScale: 0.4 * graphZoom, graphZoom: graphZoom)
 
         let bottomHeight : Float = 200
-        mmView.renderer.setClipRect(MMRect(rect.x, rect.y, rect.width - 1, rect.height - bottomHeight))
+        let topRect = MMRect(rect.x, rect.y, rect.width - 1, rect.height - bottomHeight)
+        mmView.renderer.setClipRect(topRect)
 
+        // XRay
+        
+        xrayTexture = globalApp!.currentPipeline?.checkTextureSize(topRect.width, topRect.height, xrayTexture, .rgba16Float)
+        xrayShader?.render(texture: xrayTexture!)
+        mmView.drawTexture.draw(xrayTexture!, x: topRect.x, y: topRect.y, zoom: 1)
+
+        //
+        
         let oldStageItem = currentStageItem
         currentStageItem = maximizedObject!
         

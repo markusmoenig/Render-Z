@@ -246,7 +246,6 @@ class RigidBody3D
     
     func setElasticity(_ elasticity: Float)
     {
-        print(elasticity)
         self.elasticity = elasticity
     }
 
