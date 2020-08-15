@@ -328,8 +328,9 @@ class SceneGraph                : MMWidget
     var infoList                : [InfoAreaItem] = []
     var infoListWidget          : MMDListWidget
     
-    var boolButton              : MMButtonWidget!
-    
+    var infoBoolButton          : MMButtonWidget!
+    var infoModifierButton      : MMButtonWidget!
+
     var xrayShader              : XRayShader? = nil
     var xrayTexture             : MTLTexture? = nil
     
@@ -419,11 +420,11 @@ class SceneGraph                : MMWidget
         
         // Info Area Buttons
         
-        boolButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Bool")
-        boolButton.clicked = { (event) in
+        infoBoolButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Bool")
+        infoBoolButton.clicked = { (event) in
             self.mmView.deregisterWidget(self.infoListWidget)
             self.mmView.widgets.insert(self.infoListWidget, at: 0)
-            for b in self.infoButtons { if b !== self.boolButton { b.removeState(.Checked) }}
+            for b in self.infoButtons { if b !== self.infoBoolButton { b.removeState(.Checked) }}
             self.infoState = .Boolean
             self.infoListWidget.setItems(self.getInfoList())
             
@@ -452,17 +453,17 @@ class SceneGraph                : MMWidget
                 })
             ])
         }
-        infoButtons.append(boolButton)
+        infoButtons.append(infoBoolButton)
         
-        let domainButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Modifier")
-        domainButton.clicked = { (event) in
+        infoModifierButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Shape Modifier")
+        infoModifierButton.clicked = { (event) in
             self.mmView.deregisterWidget(self.infoListWidget)
             self.mmView.widgets.insert(self.infoListWidget, at: 0)
-            for b in self.infoButtons { if b !== domainButton { b.removeState(.Checked) }}
+            for b in self.infoButtons { if b !== self.infoModifierButton { b.removeState(.Checked) }}
             self.infoState = .Modifier
             self.infoListWidget.setItems(self.getInfoList())
             
-            self.infoMenuWidget.setItems([
+            self.infoMenuWidget.setItems( [
                 MMMenuItem(text: "Add Modifier", cb: { () in
                     globalApp!.libraryDialog.show(ids: ["Domain3D", "Modifier3D"], cb: { (json) in
                         if let comp = decodeComponentFromJSON(json) {
@@ -484,12 +485,33 @@ class SceneGraph                : MMWidget
                             self.infoListWidget.setItems(self.getInfoList())
                         }
                     })
+                }),
+                MMMenuItem(text: "Remove", cb: { () in
+                    if let selected = self.infoListWidget.selectedItem {
+                        var list = self.getInfoComponents()
+                        var index : Int? = nil
+                        for (ind, item) in list.enumerated() {
+                            if item.uuid == selected.uuid {
+                                index = ind
+                                break
+                            }
+                        }
+                        if let index = index {
+                            list.remove(at: index)
+                            self.setInfoComponents(list)
+                            
+                            globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.maximizedObject!)
+                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            
+                            self.infoListWidget.setItems(self.getInfoList())
+                        }
+                    }
                 })
             ])
-
         }
-        infoButtons.append(domainButton)
+        infoButtons.append(infoModifierButton)
         
+        /*
         let materialButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Material")
         materialButton.clicked = { (event) in
             self.mmView.deregisterWidget(self.infoListWidget)
@@ -497,7 +519,7 @@ class SceneGraph                : MMWidget
             self.infoState = .Material
             self.infoList = []
         }
-        infoButtons.append(materialButton)
+        infoButtons.append(materialButton)*/
         
         infoListWidget.selectionChanged = { (item: MMDListWidgetItem) in
             if let infoItem = item as? InfoAreaItem {
@@ -668,6 +690,11 @@ class SceneGraph                : MMWidget
         
         xrayShader = XRayShader(scene: globalApp!.project.selected!, object: object, camera: xrayCamera!)
         xrayNeedsUpdate = true
+        
+        if currentComponent == nil {
+            currentUUID = nil
+        }
+        buildMenu(uuid: currentUUID)
     }
     
     func closeMaximized()
@@ -1270,6 +1297,7 @@ class SceneGraph                : MMWidget
             if let shapeContainer = shapesCont {
                 currentComponent = nil
                 globalApp!.currentEditor.setComponent(shapeContainer.components[shapeContainer.defaultName]!)
+                buildMenu(uuid: currentUUID)
             }
         }
         
@@ -1407,6 +1435,8 @@ class SceneGraph                : MMWidget
         
         //
         
+        bottomOffset = rect.bottom() - bottomHeight - rect.y
+        
         let oldStageItem = currentStageItem
         currentStageItem = maximizedObject!
         
@@ -1416,7 +1446,6 @@ class SceneGraph                : MMWidget
         
         // Info Area
 
-        bottomOffset = rect.bottom() - bottomHeight - rect.y
         let oldGraphX = graphX
         let oldGraphY = graphY
 
@@ -1432,14 +1461,19 @@ class SceneGraph                : MMWidget
                     mmView.deregisterWidgets(widgets: w)
                 }
                 
-                infoButtons[2].isDisabled = container == false
+                infoButtons[0].isDisabled = container == true
                 
                 for w in infoButtons {
                     if w.isDisabled == false {
                         mmView.widgets.insert(w, at: 0)
                     }
                 }
-                boolButton._clicked(MMMouseEvent(0,0))
+                
+                if container == true {
+                    infoModifierButton._clicked(MMMouseEvent(0,0))
+                } else {
+                    infoBoolButton._clicked(MMMouseEvent(0,0))
+                }
             }
             lastInfoUUID = uuid
         }
@@ -1471,26 +1505,7 @@ class SceneGraph                : MMWidget
             mmView.renderer.setClipRect()
             mmView.renderer.setClipRect(MMRect(rect.x, rect.bottom() - bottomHeight + tHeight, rect.width - 1, bottomHeight - tHeight))
 
-            if infoState == .Material {
-                // Material
-                graphX = 0
-                graphY = (bottomOffset + tHeight) / graphZoom
-                for child in object.children {
-                    if let comp = child.components[child.defaultName], comp.componentType == .Material3D {
-                        
-                        child.values["_graphX"] = 80
-                        child.values["_graphY"] = 40
-                        drawObject(stage: shapeStage, o: child, skin: skin)
-                    } else
-                    if let comp = child.components[child.defaultName], comp.componentType == .UVMAP3D {
-                        
-                        child.values["_graphX"] = rect.width - 80
-                        child.values["_graphY"] = 50
-                        
-                        drawObject(stage: shapeStage, o: child, skin: skin)
-                    }
-                }
-            } else {
+            if infoState == .Modifier || infoState == .Boolean {
                 infoListWidget.rect.x = rect.x
                 infoListWidget.rect.y = rect.y + bottomOffset + tHeight
                 infoListWidget.rect.width = rect.width
@@ -1797,7 +1812,7 @@ class SceneGraph                : MMWidget
         
         hasMinMaxButton = false
         minMaxButtonHoverState = false
-        
+                
         func buildChangeComponent(_ item: SceneGraphItem, name: String, ids: [String])
         {
             if let stageItem = item.stageItem {
@@ -1896,10 +1911,14 @@ class SceneGraph                : MMWidget
         if let uuid = uuid {
             if let item = itemMap[uuid] {
                 
+                if maximizedObject != nil && (item.itemType != .ShapeItem || currentComponent == nil) {
+                    return
+                }
+
                 if item.itemType == .Stage {
                     hasMinMaxButton = true
                 }
-                
+                                
                 if let comp = item.component {
                                         
                     if comp.componentType == .RayMarch3D {
@@ -2439,6 +2458,7 @@ class SceneGraph                : MMWidget
                                         
                     hasMinMaxButton = true
                     
+                    /*
                     let addChildItem = MMMenuItem(text: "Add Child", cb: { () in
 
                         //getStringDialog(view: self.mmView, title: "Child Object", message: "Object name", defaultValue: "Child Object", cb: { (value) -> Void in
@@ -2457,6 +2477,7 @@ class SceneGraph                : MMWidget
                         //} )
                     } )
                     items.append(addChildItem)
+                    */
                     
                     let scene = globalApp!.project.selected!
                     let shapeStage = scene.getStage(.ShapeStage)
@@ -2522,7 +2543,7 @@ class SceneGraph                : MMWidget
                             let dialog = UploadObjectsDialog(self.mmView, object: item.stageItem!)
                             dialog.show()
                         } )
-                        items.append(MMMenuItem())
+                        //items.append(MMMenuItem())
                         items.append(uploadItem)
                         items.append(MMMenuItem())
                         
@@ -3183,10 +3204,10 @@ class SceneGraph                : MMWidget
                         drawObject(stage: stage, o: c, parent: item, skin: skin)
                     }
                 } else
-                if component.componentType == .Ground3D {
-                    drawShapesBox(parent: item, skin: skin)
-                    drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
-                    drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)
+                if component.componentType == .Ground3D || component.componentType == .Transform3D {
+                    //drawShapesBox(parent: item, skin: skin)
+                    //drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
+                    //drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)
                     
                     for c in o.children {
                         drawObject(stage: stage, o: c, parent: item, skin: skin)
@@ -3467,6 +3488,7 @@ class SceneGraph                : MMWidget
         }
     }
     
+    /*
     func drawGroup(stageItem: StageItem, graphId: String, name: String, skin: SceneGraphSkin, color: SIMD4<Float>? = nil)
     {
         let itemSize    : Float = 35 * graphZoom
@@ -3526,6 +3548,71 @@ class SceneGraph                : MMWidget
                 
                 if stageItem.componentLabels[comp.libraryName] == nil || stageItem.componentLabels[comp.libraryName]!.scale != skin.fontScale {
                     stageItem.componentLabels[comp.libraryName] = MMTextLabel(mmView, font: mmView.openSans, text: comp.libraryName, scale: skin.fontScale, color: skin.normalTextColor)
+                }
+                if let label = stageItem.componentLabels[comp.libraryName] {
+                    label.rect.x = rect.x + item.rect.x + (totalWidth - label.rect.width) / 2
+                    label.rect.y = rect.y + item.rect.y + (itemSize - skin.lineHeight) / 2
+                    label.draw()
+                }
+                top += itemSize
+            }
+        }
+    }*/
+    
+    func drawGroup(stageItem: StageItem, graphId: String, name: String, skin: SceneGraphSkin, color: SIMD4<Float>? = nil)
+    {
+        let graphZoom: Float = 0.8
+        let fontScale : Float = 0.4 * graphZoom
+        
+        let itemSize    : Float = 35 * graphZoom
+        let totalWidth  : Float = 140 * graphZoom
+        let headerHeight: Float = 30 * graphZoom
+        var top         : Float = headerHeight + 7.5 * graphZoom
+
+        if let list = stageItem.getComponentList("shapes") {
+                       
+            let amount : Float = Float(list.count)
+            let height : Float = amount * itemSize + headerHeight + (list.count > 0 ? 15 * graphZoom : 3 * graphZoom)
+
+            let x : Float = 10
+            let y : Float = 10
+            
+            let container = SceneGraphItem(.ShapesContainer, stage: shapeStage, stageItem: stageItem)
+            container.rect.set(x, y, totalWidth, height)
+            itemMap[stageItem.uuid] = container
+            
+            //mmView.drawLine.drawDotted(sx: rect.x + parent.rect.x + parent.rect.width / 2, sy: rect.y + parent.rect.y + parent.rect.height / 2, ex: rect.x + x + totalWidth / 2, ey: rect.y + y + headerHeight / 2, radius: 1.5, fillColor: skin.normalBorderColor)
+            
+            let containerIsSelected : Bool = currentStageItem === stageItem
+            
+            mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: containerIsSelected ? 1 : 0, fillColor: skin.normalInteriorColor, borderColor: containerIsSelected ? skin.selectedBorderColor : SIMD4<Float>(0,0,0,0))
+            
+            drawPlusButton(item: container, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
+                self.getShape(item: container, replace: false)
+            }, skin: skin)
+            
+            skin.font.getTextRect(text: name, scale: fontScale, rectToUse: skin.tempRect)
+            
+            mmView.drawText.drawText(skin.font, text: "Shapes", x: rect.x + x + 10 * graphZoom, y: rect.y + y + 7 * graphZoom, scale: fontScale, color: skin.normalTextColor)
+            
+            if list.count == 0 {
+                return
+            }
+            
+            mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight, radius: 0.6, fillColor: skin.normalBorderColor)
+
+            for comp in list {
+                
+                let item = SceneGraphItem(.ShapeItem, stage: shapeStage, stageItem: stageItem, component: comp)
+                item.rect.set(x, y + top, totalWidth, itemSize)
+                itemMap[comp.uuid] = item
+                
+                if comp === currentComponent {
+                    mmView.drawBox.draw( x: rect.x + item.rect.x + 2 * graphZoom, y: rect.y + item.rect.y, width: totalWidth - 4 * graphZoom, height: itemSize, round: 6 * graphZoom, fillColor: skin.selectedItemColor)
+                }
+                
+                if stageItem.componentLabels[comp.libraryName] == nil || stageItem.componentLabels[comp.libraryName]!.scale != fontScale {
+                    stageItem.componentLabels[comp.libraryName] = MMTextLabel(mmView, font: mmView.openSans, text: comp.libraryName, scale: fontScale, color: skin.normalTextColor)
                 }
                 if let label = stageItem.componentLabels[comp.libraryName] {
                     label.rect.x = rect.x + item.rect.x + (totalWidth - label.rect.width) / 2

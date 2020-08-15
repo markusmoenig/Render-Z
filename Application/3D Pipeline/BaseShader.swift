@@ -75,10 +75,6 @@ class BaseShader
     // Ids for objects inside the instance
     var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
     
-    // Ids for materials inside the instance
-    var materialIds         : [Int:StageItem] = [:]
-    var materialIdHierarchy : [Int] = []
-    
     var idStart             : Float = 0
     var idEnd               : Float = 0
             

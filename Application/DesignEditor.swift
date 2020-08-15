@@ -189,9 +189,27 @@ class DesignEditor          : MMWidget
                                
                     if let id = globalApp!.currentPipeline!.ids[Int(value.w)], valid {
                         blockRendering = true
+                        
+                        if let object = id.0.last, event.clickCount > 1 {
+                            let sceneGraph = globalApp!.sceneGraph
+                            if sceneGraph.maximizedObject == nil {
+                                sceneGraph.openMaximized(object)
+                            } else {
+                                if sceneGraph.maximizedObject !== object {
+                                    sceneGraph.closeMaximized()
+                                    sceneGraph.openMaximized(object)
+                                }
+                            }
+                        }
+                        
                         globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: event.clickCount == 1 ? nil : id.1)
                         blockRendering = false
                     } else {
+                        let sceneGraph = globalApp!.sceneGraph
+
+                        if sceneGraph.maximizedObject != nil {
+                            sceneGraph.closeMaximized()
+                        }
                         // Select Base Object
                         //globalApp!.sceneGraph.setCurrent(stage: globalApp!.sceneGraph.currentStage!, stageItem: globalApp!.sceneGraph.currentStageItem)
                         // Select World

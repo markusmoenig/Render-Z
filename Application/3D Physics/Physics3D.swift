@@ -201,6 +201,9 @@ class Physics3D
         for (index, object) in objects.enumerated() {
             let transform = object.components[object.defaultName]!
             transform.values = valueCopies[index]
+            
+            object.shader?.elasticity = 0
+            object.shader?.updateData()
         }
         globalApp!.currentEditor.render()
     }
@@ -247,7 +250,7 @@ class Physics3D
                 
                 //print("vel", body.velocity.x, body.velocity.y, body.velocity.z)
 
-                if let object = body.object.shader as? ObjectShader {
+                if let object = body.object.shader as? ObjectShader, body.elasticity > 0 {
                     body.objectSpheres.updateSpheres(spheres: object.buildSpheres())
                 }
                 

@@ -1926,9 +1926,6 @@ class ObjectShader      : BaseShader
         var globalsAddedFor     : [UUID] = []
         
         var componentCounter    : Int = 0
-
-        var materialIdCounter   : Int = 0
-        var currentMaterialId   : Int = 0
         
         var materialFuncCode    = ""
 
@@ -2130,7 +2127,7 @@ class ObjectShader      : BaseShader
             """
              
             float4 shapeA = outShape;
-            float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, \(currentMaterialId), \(id));
+            float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, 0, \(id));
              
             """
             
@@ -2169,7 +2166,7 @@ class ObjectShader      : BaseShader
                 materialFuncCode +=
                 """
                 
-                void material\(materialIdCounter)(float3 rayOrigin, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+                void material(float3 rayOrigin, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
                 float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
                 {
                     float2 uv = float2(0);
@@ -2298,7 +2295,6 @@ class ObjectShader      : BaseShader
                         materialBumpCode +=
                         """
                         
-                        if (shape.z > \(Float(materialIdCounter) - 0.5) && shape.z < \(Float(materialIdCounter) + 0.5))
                         {
                             float3 realPosition = position;
                             float3 position = realPosition; float3 normal = outNormal;
@@ -2401,19 +2397,9 @@ class ObjectShader      : BaseShader
                 materialCode +=
                 """
                 
-                if (shape.z > \(Float(materialIdCounter) - 0.5) && shape.z < \(Float(materialIdCounter) + 0.5))
-                {
-                    material\(materialIdCounter)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-                }
+                material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
 
                 """
-                
-                // Push it on the stack
-                
-                materialIdHierarchy.append(materialIdCounter)
-                materialIds[materialIdCounter] = stageItem
-                currentMaterialId = materialIdCounter
-                materialIdCounter += 1
             } else
             if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform2D || transform.componentType == .Transform3D {
                 
@@ -2449,20 +2435,8 @@ class ObjectShader      : BaseShader
             }
         }
         
-        func pullStageItem()
-        {
-            let stageItem = hierarchy.removeLast()
-            
-            // If object had a material, pop the materialHierarchy
-            if getFirstComponentOfType(stageItem.children, .Material3D) != nil {
-                
-                materialIdHierarchy.removeLast()
-                if materialIdHierarchy.count > 0 {
-                    currentMaterialId = materialIdHierarchy.last!
-                } else {
-                    currentMaterialId = 0
-                }
-            }
+        func pullStageItem() {
+            _ = hierarchy.removeLast()
         }
         
         /// Recursively iterate the object hierarchy

@@ -474,6 +474,7 @@ struct MMMenuItem
     var textBuffer  : MMTextBuffer?
     
     var custom      : Any? = nil
+    var isDisabled  : Bool = false
     
     init()
     {
@@ -483,10 +484,11 @@ struct MMMenuItem
         custom = nil
     }
 
-    init(text: String, cb: @escaping ()->() )
+    init(text: String, cb: @escaping ()->(), isDisabled: Bool = false )
     {
         self.text = text
         self.cb = cb
+        self.isDisabled = isDisabled
         textBuffer = nil
         custom = nil
     }
@@ -510,7 +512,6 @@ class MMMenuWidget : MMWidget
     var itemHeight  : Int = 0
     
     var firstClick  : Bool = false
-    
     var textLabel   : MMTextLabel? = nil
     
     init( _ view: MMView, skinToUse: MMSkinMenuWidget? = nil, type: MenuType = .BoxedMenu, items: [MMMenuItem] = [])
