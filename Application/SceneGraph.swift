@@ -559,11 +559,16 @@ class SceneGraph                : MMWidget
                             self.fakeMaterialItem!.components[self.fakeMaterialItem!.defaultName] = subComp
                             self.fakeMaterialItem!.name = subComp.libraryName
                         }
+                        
+                        globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.maximizedObject!)
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     }
                 }),
                 MMMenuItem(text: "Remove Material", cb: { () in
                     if let component = self.currentComponent {
                         component.subComponent = nil
+                        globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.maximizedObject!)
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     }
                 })
             ])

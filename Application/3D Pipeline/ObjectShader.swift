@@ -2063,7 +2063,6 @@ class ObjectShader      : BaseShader
                 """
             }
             
-            
             // Domain Modifiers (Both for the object and the component)
             var modifierList : [CodeComponent] = []
             if let stageItem = hierarchy.last {
@@ -2142,12 +2141,226 @@ class ObjectShader      : BaseShader
             code += "\n    }\n"
             mapCode += code
              
+            
+            // If the component has its own material, create it
+            if let subComponent = component.subComponent, subComponent.componentType == .Material3D {
+                if let stageItem = hierarchy.last {
+                    if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform3D {
+                        generateMaterial(stageItem: stageItem, material: subComponent, transform: transform, componentId: id)
+                    }
+                }
+            }
+            
             // If we have a stageItem, store the id
             //if hierarchy.count > 0 {
                 claimedIds.append(id)
                 ids[id] = (hierarchy, component)
             //}
             componentCounter += 1
+        }
+        
+        func generateMaterial(stageItem: StageItem, material: CodeComponent, transform: CodeComponent, componentId: Int? = nil)
+        {
+            let materialName : String
+            
+            if let id = componentId {
+                materialName = "material\(id)"
+            } else {
+                materialName = "material"
+            }
+            
+            materialFuncCode +=
+            """
+            
+            void \(materialName)(float3 rayOrigin, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+            float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
+            {
+                float2 uv = float2(0);
+                constant float4 *__data = __funcData->__data;
+                float GlobalTime = __funcData->GlobalTime;
+                float GlobalSeed = __funcData->GlobalSeed;
+                __CREATE_TEXTURE_DEFINITIONS__
+
+                float4 outColor = __materialOut->color;
+                float3 outMask = __materialOut->mask;
+                float3 outReflectionDir = float3(0);
+                float outReflectionDist = 0.;
+            
+                float3 localPosition = hitPosition;
+            
+            """
+            
+            let posX = getTransformPropertyIndex(transform, "_posX")
+            let posY = getTransformPropertyIndex(transform, "_posY")
+            let posZ = getTransformPropertyIndex(transform, "_posZ")
+                            
+            let rotateX = getTransformPropertyIndex(transform, "_rotateX")
+            let rotateY = getTransformPropertyIndex(transform, "_rotateY")
+            let rotateZ = getTransformPropertyIndex(transform, "_rotateZ")
+            
+            //let scale = getTransformPropertyIndex(transform, "_scale")
+            
+            let transformCode =
+            """
+            
+                float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
+                localPosition = __translate(hitPosition, __originalPosition);
+            
+                localPosition.yz = rotate( localPosition.yz, radians(__data[\(rotateX)].x\(getInstantiationModifier("_rotateRandomX", transform.values))) );
+                localPosition.xz = rotate( localPosition.xz, radians(__data[\(rotateY)].x\(getInstantiationModifier("_rotateRandomY", transform.values))) );
+                localPosition.xy = rotate( localPosition.xy, radians(__data[\(rotateZ)].x\(getInstantiationModifier("_rotateRandomZ", transform.values))) );
+            
+            """
+            
+            materialFuncCode += transformCode
+            
+            // Create the UVMapping for this material
+            var uvMappingCode = ""
+            
+            if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
+                
+                materialFuncCode +=
+                """
+                
+                {
+                float3 position = localPosition; float3 normal = hitNormal;
+                float2 outUV = float2(0);
+                
+                """
+                    
+                dryRunComponent(uvMap, data.count)
+                collectProperties(uvMap)
+                if let globalCode = uvMap.globalCode {
+                    headerCode += globalCode
+                }
+                if let code = uvMap.code {
+                    materialFuncCode += code
+                    uvMappingCode = code
+                }
+                
+                materialFuncCode +=
+                """
+                
+                    uv = outUV;
+                    }
+                
+                """
+            }
+            
+            // Get the patterns of the material if any
+            var patterns : [CodeComponent] = []
+            if let materialStageItem = getFirstStageItemOfComponentOfType(stageItem.children, .Material3D) {
+                if materialStageItem.componentLists["patterns"] != nil {
+                    patterns = materialStageItem.componentLists["patterns"]!
+                }
+            }
+            
+            dryRunComponent(material, data.count, patternList: patterns)
+            collectProperties(material)
+            if let globalCode = material.globalCode {
+                headerCode += globalCode
+            }
+            if let code = material.code {
+                materialFuncCode += code
+            }
+
+            // Check if material has a bump
+            //var hasBump = false
+            for (_, conn) in material.propertyConnections {
+                let fragment = conn.2
+                if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
+                    
+                    // Needs shape, outNormal, position
+                    materialBumpCode +=
+                    """
+                    
+                    {
+                        float3 hitPosition = position;
+                        float3 localPosition = position;
+
+                        \(transformCode)
+
+                        float3 realPosition = localPosition;
+                        float3 position = realPosition; float3 normal = outNormal;
+                        float2 outUV = float2(0);
+                        float bumpFactor = 0.2;
+                    
+                        // bref
+                        {
+                            \(uvMappingCode)
+                        }
+                    
+                        struct PatternOut data;
+                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                        float bRef = data.\(conn.1);
+                    
+                        const float2 e = float2(.001, 0);
+                    
+                        // b1
+                        position = realPosition - e.xyy;
+                        {
+                            \(uvMappingCode)
+                        }
+                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                        float b1 = data.\(conn.1);
+                    
+                        // b2
+                        position = realPosition - e.yxy;
+                        {
+                            \(uvMappingCode)
+                        }
+                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                        float b2 = data.\(conn.1);
+                    
+                        // b3
+                        position = realPosition - e.yyx;
+                        \(uvMappingCode)
+                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                        float b3 = data.\(conn.1);
+                    
+                        float3 grad = (float3(b1, b2, b3) - bRef) / e.x;
+                    
+                        grad -= normal * dot(normal, grad);
+                        outNormal = normalize(normal + grad * bumpFactor);
+                    }
+
+                    """
+                    
+                }
+            }
+
+            materialFuncCode +=
+            """
+                
+                __materialOut->color = outColor;
+                __materialOut->mask = outMask;
+                __materialOut->reflectionDir = outReflectionDir;
+                __materialOut->reflectionDist = outReflectionDist;
+            }
+            
+            """
+
+            if let id = componentId {
+                let code = """
+
+                if (shape.w > \(Float(id) - 0.5) && shape.w < \(Float(id) + 0.5))
+                {
+                    material\(id)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+                } else
+
+                """
+                
+                materialCode = code + materialCode
+            } else {
+                materialCode +=
+                """
+
+                {
+                    material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+                }
+
+                """
+            }
         }
         
         func pushStageItem(_ stageItem: StageItem)
@@ -2159,31 +2372,8 @@ class ObjectShader      : BaseShader
             hierarchy.append(stageItem)
             // Handle the materials
             if let material = getFirstComponentOfType(stageItem.children, .Material3D) {
+                
                 // If this item has a material, generate the material function code and push it on the stack
-                
-                // Material Function Code
-                
-                materialFuncCode +=
-                """
-                
-                void material(float3 rayOrigin, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
-                float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
-                {
-                    float2 uv = float2(0);
-                    constant float4 *__data = __funcData->__data;
-                    float GlobalTime = __funcData->GlobalTime;
-                    float GlobalSeed = __funcData->GlobalSeed;
-                    __CREATE_TEXTURE_DEFINITIONS__
-
-                    float4 outColor = __materialOut->color;
-                    float3 outMask = __materialOut->mask;
-                    float3 outReflectionDir = float3(0);
-                    float outReflectionDist = 0.;
-                
-                    float3 localPosition = hitPosition;
-                
-                """
-                
                 if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform3D {
                     
                     dryRunComponent(transform, data.count)
@@ -2192,11 +2382,7 @@ class ObjectShader      : BaseShader
                     let posX = getTransformPropertyIndex(transform, "_posX")
                     let posY = getTransformPropertyIndex(transform, "_posY")
                     let posZ = getTransformPropertyIndex(transform, "_posZ")
-                                    
-                    let rotateX = getTransformPropertyIndex(transform, "_rotateX")
-                    let rotateY = getTransformPropertyIndex(transform, "_rotateY")
-                    let rotateZ = getTransformPropertyIndex(transform, "_rotateZ")
-                    
+                                                        
                     let scale = getTransformPropertyIndex(transform, "_scale")
                                     
                     // Handle scaling the object
@@ -2220,186 +2406,8 @@ class ObjectShader      : BaseShader
                         """
                     }
                     
-                    materialFuncCode +=
-                    """
-                    
-                        float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
-                        localPosition = __translate(hitPosition, __originalPosition);
-                    
-                        localPosition.yz = rotate( localPosition.yz, radians(__data[\(rotateX)].x\(getInstantiationModifier("_rotateRandomX", transform.values))) );
-                        localPosition.xz = rotate( localPosition.xz, radians(__data[\(rotateY)].x\(getInstantiationModifier("_rotateRandomY", transform.values))) );
-                        localPosition.xy = rotate( localPosition.xy, radians(__data[\(rotateZ)].x\(getInstantiationModifier("_rotateRandomZ", transform.values))) );
-                    
-                    """
+                    generateMaterial(stageItem: stageItem, material: material, transform: transform)
                 }
-                    
-                // Create the UVMapping for this material
-                
-                // In case we need to reuse it for displacement bumps
-                var uvMappingCode = ""
-                
-                if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
-                    
-                    materialFuncCode +=
-                    """
-                    
-                    {
-                    float3 position = localPosition; float3 normal = hitNormal;
-                    float2 outUV = float2(0);
-                    
-                    """
-                        
-                    dryRunComponent(uvMap, data.count)
-                    collectProperties(uvMap)
-                    if let globalCode = uvMap.globalCode {
-                        headerCode += globalCode
-                    }
-                    if let code = uvMap.code {
-                        materialFuncCode += code
-                        uvMappingCode = code
-                    }
-                    
-                    materialFuncCode +=
-                    """
-                    
-                        uv = outUV;
-                        }
-                    
-                    """
-                }
-                
-                // Get the patterns of the material if any
-                var patterns : [CodeComponent] = []
-                if let materialStageItem = getFirstStageItemOfComponentOfType(stageItem.children, .Material3D) {
-                    if materialStageItem.componentLists["patterns"] != nil {
-                        patterns = materialStageItem.componentLists["patterns"]!
-                    }
-                }
-                
-                dryRunComponent(material, data.count, patternList: patterns)
-                collectProperties(material)
-                if let globalCode = material.globalCode {
-                    headerCode += globalCode
-                }
-                if let code = material.code {
-                    materialFuncCode += code
-                }
-        
-                // Check if material has a bump
-                //var hasBump = false
-                for (_, conn) in material.propertyConnections {
-                    let fragment = conn.2
-                    if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
-                        
-                        // Needs shape, outNormal, position
-                        materialBumpCode +=
-                        """
-                        
-                        {
-                            float3 realPosition = position;
-                            float3 position = realPosition; float3 normal = outNormal;
-                            float2 outUV = float2(0);
-                            float bumpFactor = 0.2;
-                        
-                            // bref
-                            {
-                                \(uvMappingCode)
-                            }
-                        
-                            struct PatternOut data;
-                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
-                            float bRef = data.\(conn.1);
-                        
-                            const float2 e = float2(.001, 0);
-                        
-                            // b1
-                            position = realPosition - e.xyy;
-                            {
-                                \(uvMappingCode)
-                            }
-                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
-                            float b1 = data.\(conn.1);
-                        
-                            // b2
-                            position = realPosition - e.yxy;
-                            {
-                                \(uvMappingCode)
-                            }
-                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
-                            float b2 = data.\(conn.1);
-                        
-                            // b3
-                            position = realPosition - e.yyx;
-                            \(uvMappingCode)
-                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
-                            float b3 = data.\(conn.1);
-                        
-                            float3 grad = (float3(b1, b2, b3) - bRef) / e.x;
-                        
-                            grad -= normal * dot(normal, grad);
-                            outNormal = normalize(normal + grad * bumpFactor);
-                        }
-
-                        """
-                        
-                        
-                        /*
-                        // First, insert the uvmapping code
-                        mapCode +=
-                        """
-                        
-                        {
-                        float3 position = __origin; float3 normal = float3(0);
-                        float2 outUV = float2(0);
-                        
-                        """
-                        
-                        mapCode += uvMappingCode
-                        
-                        // Than call the pattern and assign it to the output of the bump terminal
-                        mapCode +=
-                        """
-                        
-                        struct PatternOut data;
-                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
-                        bump = data.\(conn.1) * 0.02;
-                        }
-                        
-                        """
-                        
-                        hasBump = true
-                        */
-                    }
-                }
-                
-                /*
-                // If material has no bump, reset it
-                if hasBump == false {
-                    mapCode +=
-                    """
-                    
-                    bump = 0;
-                    
-                    """
-                }*/
-
-                materialFuncCode +=
-                """
-                    
-                    __materialOut->color = outColor;
-                    __materialOut->mask = outMask;
-                    __materialOut->reflectionDir = outReflectionDir;
-                    __materialOut->reflectionDist = outReflectionDist;
-                }
-                
-                """
-
-                materialCode +=
-                """
-                
-                material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-
-                """
             } else
             if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform2D || transform.componentType == .Transform3D {
                 

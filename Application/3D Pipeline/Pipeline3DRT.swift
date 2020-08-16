@@ -211,6 +211,11 @@ class Pipeline3DRT          : Pipeline
             
             if item.shader == nil {
                 if item.getComponentList("shapes") != nil {
+                    
+                    #if DEBUG
+                    print("compiling", item.name)
+                    #endif
+                    
                     // Object
                     if item.componentLists["nodes3D"] == nil || item.componentLists["nodes3D"]?.count == 0 {
                         item.addNodes3D()
