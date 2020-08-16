@@ -1628,7 +1628,7 @@ class CodeComponent         : Codable, Equatable
     var code                : String? = nil
     var globalCode          : String? = nil
 
-    // Subcomponent, used for boolean operation
+    // Subcomponent, used for material
     var subComponent        : CodeComponent? = nil
     
     // All modifiers of this component, booleans, domain etc.
