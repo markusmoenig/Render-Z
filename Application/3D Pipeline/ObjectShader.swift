@@ -84,8 +84,23 @@ class ObjectShader      : BaseShader
         let mapCode = createMapCode()
 
         if claimedIds.first != nil {
-            idStart = Float(claimedIds.first!)
-            idEnd = Float(claimedIds.last!)
+            
+            idStart = 1000
+            idEnd = -1
+            
+            for b in claimedIds {
+                let a = Float(b)
+                
+                if a < idStart {
+                    idStart = a
+                }
+                
+                if a > idEnd {
+                    idEnd = a
+                }
+            }
+            
+            //print(idStart, idEnd)
         }
                 
         // Raymarch
@@ -2121,7 +2136,7 @@ class ObjectShader      : BaseShader
             }
 
             let id = prtInstance.claimId()
-
+            
             code +=
             """
              
@@ -2140,7 +2155,6 @@ class ObjectShader      : BaseShader
          
             code += "\n    }\n"
             mapCode += code
-             
             
             // If the component has its own material, create it
             if let subComponent = component.subComponent, subComponent.componentType == .Material3D {

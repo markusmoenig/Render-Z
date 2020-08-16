@@ -757,20 +757,26 @@ class Stage                 : Codable, Equatable
             stageItem.componentLists["shapes2D"] = []//[defComponent]
             stageItem.componentLists["shapes3D"] = []//defComponent3D]
             
+            if globalApp!.currentSceneMode == .ThreeD {
+                if let shape = globalApp!.libraryDialog.getItem(ofId: "SDF3D", withName: "Sphere") {
+                    stageItem.componentLists["shapes3D"]!.append(shape)
+                }
+            }
+            
             //let defComponent3D = CodeComponent(.Domain3D, "domain")
             //defComponent3D.createDefaultFunction(.Domain3D)
             
-            stageItem.componentLists["domain2D"] = []
-            stageItem.componentLists["domain3D"] = []
+            //stageItem.componentLists["domain2D"] = []
+            //stageItem.componentLists["domain3D"] = []
             
             //let defComponent3D = CodeComponent(.Modifier3D, "modifier")
             //defComponent3D.createDefaultFunction(.Modifier3D)
             
-            stageItem.componentLists["modifier2D"] = []
-            stageItem.componentLists["modifier3D"] = []//defComponent3D
+            //stageItem.componentLists["modifier2D"] = []
+            //stageItem.componentLists["modifier3D"] = []//defComponent3D
             
             if parent == nil {
-                stageItem.addMaterial()
+                stageItem.addMaterial(defaults: true)
             }
         } else
         if stageItem.stageItemType == .LightStage {

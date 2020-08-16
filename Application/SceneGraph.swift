@@ -529,14 +529,14 @@ class SceneGraph                : MMWidget
             
             self.fakeMaterialItem = StageItem(.ShapeStage)
             self.fakeMaterialItem!.componentLists["patterns"] = []
-            if let subComp = self.currentComponent?.subComponent {
+            if let subComp = self.currentMaxComponent?.subComponent {
                 self.fakeMaterialItem!.components[self.fakeMaterialItem!.defaultName] = subComp
                 self.fakeMaterialItem!.name = subComp.libraryName
             }
             
             self.infoMenuWidget.setItems( [
                 MMMenuItem(text: "Add Material", cb: { () in
-                    if let component = self.currentComponent {
+                    if let component = self.currentMaxComponent {
                         
                         var materialComp : CodeComponent? = nil
                         
@@ -565,7 +565,7 @@ class SceneGraph                : MMWidget
                     }
                 }),
                 MMMenuItem(text: "Remove Material", cb: { () in
-                    if let component = self.currentComponent {
+                    if let component = self.currentMaxComponent {
                         component.subComponent = nil
                         globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.maximizedObject!)
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
@@ -593,12 +593,14 @@ class SceneGraph                : MMWidget
                         
                         let undo = globalApp!.currentEditor.undoStageStart(shapeStage, "Add Object")
                         let objectItem = shapeStage.createChild("New Object")//value)
-                        
+
+                        objectItem.components[objectItem.defaultName]!.values["_posY"] = 1
                         objectItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x) / self.graphZoom - self.graphX
                         objectItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y) / self.graphZoom - self.graphY
 
                         globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
                         globalApp!.currentEditor.undoStageEnd(shapeStage, undo)
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     }
                 //} )
             })
