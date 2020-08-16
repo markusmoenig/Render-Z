@@ -27,6 +27,8 @@ class XRayShader      : BaseShader
     var claimedIds      : [Int] = []
     
     var instance        : PRTInstance
+    
+    var id              : Int = -1
 
     init(scene: Scene, object: StageItem, camera: CodeComponent)
     {
@@ -126,6 +128,8 @@ class XRayShader      : BaseShader
             float3 outDirection = float3(0,0,0);
             float2 jitter = float2(0.5);
 
+            float selectedId = uniforms.ambientColor.x;
+
             \(camera.code!)
             
             float d = bbox( outPosition, outDirection, uniforms.P, uniforms.L, uniforms.F );
@@ -133,7 +137,6 @@ class XRayShader      : BaseShader
             {
                 float3 rayOrigin = outPosition + (d - 1.0) * outDirection;
                 float3 rayDirection = outDirection;
-
                 float rayLength = 0.;
                 float dist = 0.;
 
@@ -142,11 +145,16 @@ class XRayShader      : BaseShader
                     rayLength += max(0.0001, abs(dist) * 0.25);
                     float3 pos = rayOrigin + rayDirection * rayLength;
 
-                    dist = sceneMap(pos, __funcData).x;
+                    float4 shape = sceneMap(pos, __funcData);
+                    dist = shape.x;
 
-                    float3 c = float3(max(0., .001 - abs(dist)) * 1.5);
-
-                    outColor.xyz += c;
+                    if (isNotEqual(shape.w, selectedId)) {
+                        float3 c = float3(max(0., .001 - abs(dist)) * 4.5);
+                        outColor.xyz += c;
+                    } else {
+                        float3 c = max(0., .001 - abs(dist)) * 4.5 * float3(0.278, 0.553, 0.722);
+                        outColor.xyz += c;
+                    }
 
                     if (rayLength > maxDistance + 2.0)
                         break;
@@ -215,6 +223,7 @@ class XRayShader      : BaseShader
             
             // --- Fragment
             var fragmentUniforms = createFragmentUniform()
+            fragmentUniforms.ambientColor.x = Float(id)
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -326,11 +335,6 @@ class XRayShader      : BaseShader
         var globalsAddedFor     : [UUID] = []
         
         var componentCounter    : Int = 0
-
-        var materialIdCounter   : Int = 0
-        var currentMaterialId   : Int = 0
-        
-        var materialFuncCode    = ""
 
         var headerCode = ""
         var mapCode = """
@@ -530,7 +534,7 @@ class XRayShader      : BaseShader
             """
              
             float4 shapeA = outShape;
-            float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, \(currentMaterialId), \(id));
+            float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, 0, \(id));
              
             """
             
@@ -633,6 +637,6 @@ class XRayShader      : BaseShader
         
         """
 
-        return headerCode + mapCode + materialFuncCode
+        return headerCode + mapCode
     }
 }

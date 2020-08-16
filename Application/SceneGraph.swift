@@ -341,6 +341,7 @@ class SceneGraph                : MMWidget
     var xrayAngle               : Float = 0
     var xrayZoom                : Float = 5
     
+    var xraySelectedId          : Int = -1
     var xrayNeedsUpdate         : Bool = false
     
     override init(_ view: MMView)
@@ -455,7 +456,7 @@ class SceneGraph                : MMWidget
         }
         infoButtons.append(infoBoolButton)
         
-        infoModifierButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Shape Modifier")
+        infoModifierButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Shape Mod")
         infoModifierButton.clicked = { (event) in
             self.mmView.deregisterWidget(self.infoListWidget)
             self.mmView.widgets.insert(self.infoListWidget, at: 0)
@@ -511,15 +512,16 @@ class SceneGraph                : MMWidget
         }
         infoButtons.append(infoModifierButton)
         
-        /*
-        let materialButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Material")
+        
+        let materialButton = MMButtonWidget(mmView, skinToUse: infoButtonSkin, text: "Material Mod")
         materialButton.clicked = { (event) in
             self.mmView.deregisterWidget(self.infoListWidget)
             for b in self.infoButtons { if b !== materialButton { b.removeState(.Checked) }}
             self.infoState = .Material
             self.infoList = []
+            self.infoListWidget.setItems(self.getInfoList())
         }
-        infoButtons.append(materialButton)*/
+        infoButtons.append(materialButton)
         
         infoListWidget.selectionChanged = { (item: MMDListWidgetItem) in
             if let infoItem = item as? InfoAreaItem {
@@ -752,6 +754,9 @@ class SceneGraph                : MMWidget
             currentUUID = stageItem.uuid
         }
         
+        xrayNeedsUpdate = true
+        xraySelectedId = -1
+
         if let component = component {
             globalApp!.currentEditor.setComponent(component)
             if globalApp!.currentEditor === globalApp!.developerEditor {
@@ -1295,6 +1300,9 @@ class SceneGraph                : MMWidget
             currentUUID = uuid
             consumed = true
             if let shapeContainer = shapesCont {
+                xrayNeedsUpdate = true
+                xraySelectedId = -1
+                
                 currentComponent = nil
                 globalApp!.currentEditor.setComponent(shapeContainer.components[shapeContainer.defaultName]!)
                 buildMenu(uuid: currentUUID)
@@ -1419,6 +1427,15 @@ class SceneGraph                : MMWidget
                 
         if xrayShader!.isXrayValid() {
             if xrayNeedsUpdate == true {
+                
+                xrayShader!.id = -1
+                for (index, item) in globalApp!.currentPipeline!.ids {
+                    if item.1 === currentComponent {
+                        xrayShader!.id = index
+                        break
+                    }
+                }
+                
                 xrayShader!.render(texture: xrayTexture!)
                 xrayNeedsUpdate = false
             }
@@ -1462,7 +1479,8 @@ class SceneGraph                : MMWidget
                 }
                 
                 infoButtons[0].isDisabled = container == true
-                
+                infoButtons[2].isDisabled = container == true
+
                 for w in infoButtons {
                     if w.isDisabled == false {
                         mmView.widgets.insert(w, at: 0)

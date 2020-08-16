@@ -365,6 +365,7 @@ class ArtistEditor          : Editor
                         
             if globalApp!.currentEditor.textureAlpha >= 1 {
                 
+                /*
                 // Draw selected component
                 if let component = designEditor.designComponent, component.componentType == .SDF2D || component.componentType == .SDF3D
                 {
@@ -394,7 +395,7 @@ class ArtistEditor          : Editor
                         renderEncoder.setRenderPipelineState( drawComponentId! )
                         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
                     }
-                }
+                }*/
                 
                 if let gizmo = designEditor.currentGizmo, designEditor.designComponent != nil {
                     gizmo.rect.copy(designEditor.rect)
