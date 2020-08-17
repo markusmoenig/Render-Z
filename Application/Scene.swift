@@ -213,9 +213,13 @@ class Terrain               : Codable
         texture = globalApp!.currentPipeline?.checkTextureSize(terrainSize, terrainSize, texture, .r8Sint)
         globalApp!.currentPipeline?.codeBuilder.renderClearTerrain(texture: texture!)
         
-        if let material = globalApp!.libraryDialog.getMaterial(ofId: "Organic", withName: "Ground") {
-            material.uuid = UUID()
-            material.components[material.defaultName]!.uuid = UUID()
+        if let materialComponent = globalApp!.libraryDialog.getMaterial(ofId: "Basic", withName: "PBR") {
+            
+            print("here")
+            materialComponent.uuid = UUID()
+
+            let material = StageItem(.ShapeStage, "Terrain")
+            material.components[material.defaultName] = materialComponent
             materials.append(material)
             
             material.values["maxSlope"] = 1
@@ -301,6 +305,12 @@ class StageItem             : Codable, Equatable
         children = try container.decode([StageItem].self, forKey: .children)
         defaultName = try container.decode(String.self, forKey: .defaultName)
         values = try container.decode([String:Float].self, forKey: .values)
+        
+        componentLists["patterns"] = nil
+        componentLists["domain2D"] = nil
+        componentLists["domain3D"] = nil
+        componentLists["modifier2D"] = nil
+        componentLists["modifier3D"] = nil
     }
     
     func encode(to encoder: Encoder) throws

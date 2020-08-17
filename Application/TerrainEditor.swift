@@ -686,7 +686,7 @@ class TerrainEditor         : PropertiesWidget
             stageItem.values["minSlope"] = 0
         }
         
-        globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent, jsonStageItem) in
+        globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent) in
             if jsonComponent.count > 0 {
                 if let comp = decodeComponentAndProcess(jsonComponent) {
  
@@ -694,28 +694,6 @@ class TerrainEditor         : PropertiesWidget
 
                     stageItem.components[stageItem.defaultName] = comp
 
-                    fillInDefaults(stageItem)
-                    callback(stageItem)
-                }
-            } else {
-                if let newStageItem = decodeStageItemAndProcess(jsonStageItem) {
-                                        
-                    let stageItem = StageItem(.ShapeStage)
-
-                    stageItem.components[stageItem.defaultName] = newStageItem.components[stageItem.defaultName]
-                    stageItem.components[stageItem.defaultName]!.uuid = UUID()
-                    
-                    stageItem.componentLists["patterns"] = newStageItem.componentLists["patterns"]
-                    
-                    stageItem.components[stageItem.defaultName]!.libraryName = newStageItem.name
-
-                    stageItem.libraryCategory = newStageItem.libraryCategory
-                    stageItem.libraryDescription = newStageItem.libraryDescription
-                    stageItem.libraryAuthor = newStageItem.libraryAuthor
-                    
-                    stageItem.name = newStageItem.name
-                    stageItem.label = nil
-                    
                     fillInDefaults(stageItem)
                     callback(stageItem)
                 }

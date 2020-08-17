@@ -528,7 +528,6 @@ class SceneGraph                : MMWidget
             self.infoListWidget.setItems(self.getInfoList())
             
             self.fakeMaterialItem = StageItem(.ShapeStage)
-            self.fakeMaterialItem!.componentLists["patterns"] = []
             if let subComp = self.currentMaxComponent?.subComponent {
                 self.fakeMaterialItem!.components[self.fakeMaterialItem!.defaultName] = subComp
                 self.fakeMaterialItem!.name = subComp.libraryName
@@ -1254,81 +1253,80 @@ class SceneGraph                : MMWidget
             var out : [CodeComponent] = []
             var validConnections : [UUID:[UUID]] = [:]
 
-            if let patterns = materialItem.componentLists["patterns"] {
-                
-                func getPatternOfUUID(_ uuid: UUID) -> CodeComponent?
-                {
-                    for p in patterns {
-                        if p.uuid == uuid {
-                            return p
-                        }
-                    }
-                    
-                    #if DEBUG
-                    print("pattern not found")
-                    #endif
-                    return nil
-                }
-                                
-                func resolvePatterns(_ component: CodeComponent)
-                {
-                    for (propertyUUID, conn) in component.connections {
-                        let uuid = conn.componentUUID!
-                        
-                        if let pattern = getPatternOfUUID(uuid) {
-                            if out.contains(pattern) == false {
-                                out.append(pattern)
-                                if validConnections[component.uuid] == nil {
-                                    validConnections[component.uuid] = [pattern.uuid]
-                                } else {
-                                    validConnections[component.uuid]!.append(pattern.uuid)
-                                }
-                                resolvePatterns(pattern)
-                            } else {
-                                let myIndex = out.firstIndex(of: component)
-                                var patternIndex = out.firstIndex(of: pattern)!
-                                
-                                //print("index", myIndex, patternIndex)
-                                
-                                if let index = myIndex {
-
-                                    out.remove(at: index)
-                                    patternIndex = out.firstIndex(of: pattern)!
-                                    out.insert(component, at: patternIndex)
-                                    
-                                    //let myIndex = out.firstIndex(of: component)
-                                    //let patternIndex = out.firstIndex(of: pattern)!
-                                    //print("new index", myIndex, patternIndex)
-                                }
-
-                                //resolvePatterns(pattern)
-
-                                /*
-                                // Pattern already in out, that means recursion!
-                                let list = validConnections[component.uuid]
-                                if list == nil || list!.contains(pattern.uuid) == false  {
-                                    #if DEBUG
-                                    print("recursion")
-                                    #endif
-                                    component.connections[propertyUUID] = nil
-                                }*/
-                            }
-                        } else {
-                            // Pattern not found, delete reference
-                            component.connections[propertyUUID] = nil
-                        }
-                    }
-                }
-                
-                resolvePatterns(material)
+            let patterns = material.components
+            
+            func getPatternOfUUID(_ uuid: UUID) -> CodeComponent?
+            {
                 for p in patterns {
-                    // Add the not connected patterns
-                    if out.contains(p) == false {
-                        out.append(p)
+                    if p.uuid == uuid {
+                        return p
                     }
                 }
-                materialItem.componentLists["patterns"] = out
+                
+                #if DEBUG
+                print("pattern not found")
+                #endif
+                return nil
             }
+                            
+            func resolvePatterns(_ component: CodeComponent)
+            {
+                for (propertyUUID, conn) in component.connections {
+                    let uuid = conn.componentUUID!
+                    
+                    if let pattern = getPatternOfUUID(uuid) {
+                        if out.contains(pattern) == false {
+                            out.append(pattern)
+                            if validConnections[component.uuid] == nil {
+                                validConnections[component.uuid] = [pattern.uuid]
+                            } else {
+                                validConnections[component.uuid]!.append(pattern.uuid)
+                            }
+                            resolvePatterns(pattern)
+                        } else {
+                            let myIndex = out.firstIndex(of: component)
+                            var patternIndex = out.firstIndex(of: pattern)!
+                            
+                            //print("index", myIndex, patternIndex)
+                            
+                            if let index = myIndex {
+
+                                out.remove(at: index)
+                                patternIndex = out.firstIndex(of: pattern)!
+                                out.insert(component, at: patternIndex)
+                                
+                                //let myIndex = out.firstIndex(of: component)
+                                //let patternIndex = out.firstIndex(of: pattern)!
+                                //print("new index", myIndex, patternIndex)
+                            }
+
+                            //resolvePatterns(pattern)
+
+                            /*
+                            // Pattern already in out, that means recursion!
+                            let list = validConnections[component.uuid]
+                            if list == nil || list!.contains(pattern.uuid) == false  {
+                                #if DEBUG
+                                print("recursion")
+                                #endif
+                                component.connections[propertyUUID] = nil
+                            }*/
+                        }
+                    } else {
+                        // Pattern not found, delete reference
+                        component.connections[propertyUUID] = nil
+                    }
+                }
+            }
+            
+            resolvePatterns(material)
+            for p in patterns {
+                // Add the not connected patterns
+                if out.contains(p) == false {
+                    out.append(p)
+                }
+            }
+            material.components = out
         }
     }
     
@@ -1969,7 +1967,7 @@ class SceneGraph                : MMWidget
         {
             if let stageItem = item.stageItem {
                 let menuItem = MMMenuItem(text: "Change " + name, cb: { () in
-                    globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent, jsonStageItem) in
+                    globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent) in
                         if jsonComponent.count > 0 {
                             if let comp = decodeComponentAndProcess(jsonComponent) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Change " + name)
@@ -1981,8 +1979,6 @@ class SceneGraph                : MMWidget
                                 globalApp!.currentEditor.setComponent(comp)
                                 globalApp!.project.selected!.updateComponent(comp)
                                 
-                                //stageItem.componentLists["patterns"] = []
-
                                 globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
                                 self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
                                 globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
@@ -1992,35 +1988,6 @@ class SceneGraph                : MMWidget
                                     stageItem.name = comp.libraryName
                                     stageItem.label = nil
                                 }
-                            }
-                        } else {
-                            if let newStageItem = decodeStageItemAndProcess(jsonStageItem) {
-                                let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Change " + name)
-                                
-                                let comp = newStageItem.components[newStageItem.defaultName]!
-                                
-                                stageItem.components[stageItem.defaultName] = newStageItem.components[stageItem.defaultName]
-                                stageItem.components[stageItem.defaultName]!.uuid = UUID()
-                                
-                                stageItem.componentLists["patterns"] = newStageItem.componentLists["patterns"]
-                                
-                                stageItem.components[stageItem.defaultName]!.libraryName = newStageItem.name
-
-                                stageItem.libraryCategory = newStageItem.libraryCategory
-                                stageItem.libraryDescription = newStageItem.libraryDescription
-                                stageItem.libraryAuthor = newStageItem.libraryAuthor
-
-                                globalApp!.currentEditor.setComponent(comp)
-                                globalApp!.project.selected!.updateComponent(comp)
-                                globalApp!.project.selected!.updateStageItem(stageItem)
-
-                                globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
-                                self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
-                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                                
-                                stageItem.name = newStageItem.name
-                                stageItem.label = nil
                             }
                         }
                     })
@@ -2380,10 +2347,10 @@ class SceneGraph                : MMWidget
                         items.append(disconnectItem)
 
                         let removeItem = MMMenuItem(text: "Remove", cb: { () in
-                            if let index = item.stageItem!.componentLists["patterns"]!.firstIndex(of: item.component!) {
+                            if let index = item.stageItem!.components[item.stageItem!.defaultName]!.components.firstIndex(of: item.component!) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart("Remove Pattern")
                                 globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
-                                item.stageItem!.componentLists["patterns"]!.remove(at: index)
+                                item.stageItem!.components[item.stageItem!.defaultName]!.components.remove(at: index)
                                 self.removeConnectionsFor(item.stageItem!, comp)
                                 globalApp!.currentEditor.undoStageItemEnd(undo)
                                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
@@ -2786,12 +2753,13 @@ class SceneGraph                : MMWidget
                     material.connections[uuid] = nil
                 }
             }
-        }
-        for p in stageItem.componentLists["patterns"]! {
-            // Check Patterns
-            for (uuid,connection) in p.connections {
-                if connection.componentUUID == pattern.uuid {
-                    p.connections[uuid] = nil
+            
+            for p in material.components {
+                // Check Patterns
+                for (uuid,connection) in p.connections {
+                    if connection.componentUUID == pattern.uuid {
+                        p.connections[uuid] = nil
+                    }
                 }
             }
         }
@@ -3069,7 +3037,8 @@ class SceneGraph                : MMWidget
             if let component = potentialComponent, component.componentType == .Material3D || component.componentType == .Pattern {
                 
                 // Material, draw all the patterns
-                if let patterns = stageItem.componentLists["patterns"], item.component!.componentType == .Material3D {
+                if item.component!.componentType == .Material3D {
+                    let patterns = item.component!.components
                     for p in patterns {
                         let pItem = SceneGraphItem(.StageItem, stage: item.stage, stageItem: stageItem, component: p)
                         pItem.rect.set(item.rect.x + p.values["_graphX"]! * graphZoom, item.rect.y + p.values["_graphY"]! * graphZoom, item.rect.width, item.rect.height)
@@ -3106,8 +3075,7 @@ class SceneGraph                : MMWidget
                                     comp.uuid = UUID()
                                     comp.selected = nil
                                     
-                                    if stageItem.componentLists["patterns"] == nil { stageItem.componentLists["patterns"] = [] }
-                                    stageItem.componentLists["patterns"]?.append(comp)
+                                    component.components.append(comp)
 
                                     globalApp!.currentEditor.undoStageItemEnd(undo)
                                     self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)

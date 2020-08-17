@@ -1028,13 +1028,9 @@ class TerrainShader     : BaseShader
             """
            
             // Get the patterns of the material if any
-            var patterns : [CodeComponent] = []
-            if materialStageItem.componentLists["patterns"] != nil {
-                patterns = materialStageItem.componentLists["patterns"]!
-            }
-           
             let material = materialStageItem.components[materialStageItem.defaultName]!
-            
+            let patterns : [CodeComponent] = material.components
+
             dryRunComponent(material, data.count, patternList: patterns)
             collectProperties(material)
             if let globalCode = material.globalCode {

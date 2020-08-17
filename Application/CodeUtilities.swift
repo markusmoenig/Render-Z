@@ -423,14 +423,11 @@ func decodeStageItemAndProcess(_ json: String) -> StageItem?
     {
         if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
             
-            if let patterns = stageItem.componentLists["patterns"] {
-                for p in patterns.reversed() {
-                    processComponent(p)
-                }
-            }
-            
             if let def = stageItem.components[stageItem.defaultName] {
                 processComponent(def)
+                for p in def.components {
+                    processComponent(p)
+                }
             }
             
             return stageItem

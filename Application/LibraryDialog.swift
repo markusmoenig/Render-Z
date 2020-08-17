@@ -278,7 +278,7 @@ class LibraryDialog: MMDialog {
     var currentType     : String = ""
     
     var _cb             : ((String)->())? = nil
-    var _cbMaterials    : ((String, String)->())? = nil
+    var _cbMaterials    : ((String)->())? = nil
     var _cbObjects      : ((String)->())? = nil
 
     var borderlessSkin  : MMSkinButton
@@ -574,7 +574,7 @@ class LibraryDialog: MMDialog {
         mmView.showDialog(self)
     }
     
-    func showMaterials(style: Style = .List, cb: ((String, String)->())? = nil )
+    func showMaterials(style: Style = .List, cb: ((String)->())? = nil )
     {
         _cb = nil
         _cbMaterials = cb
@@ -718,20 +718,37 @@ class LibraryDialog: MMDialog {
         }
     }
     
-    func getMaterial(ofId: String, withName: String = "") -> StageItem?
+    func getMaterial(ofId: String, withName: String = "") -> CodeComponent?
     {
         var json = ""
         
-        if let typeList = materialsItemMap[ofId] {
-            if withName == "" {
-                if typeList.count > 0 {
-                    json = typeList[0].json
+        if ofId == "Basic" {
+            if let typeList = itemMap["Material3D"] {
+                if withName == "" {
+                    if typeList.count > 0 {
+                        json = typeList[0].json
+                    }
+                } else {
+                    for item in typeList {
+                        if item.titleLabel.text == withName {
+                            json = item.json
+                            break
+                        }
+                    }
                 }
-            } else {
-                for item in typeList {
-                    if item.titleLabel.text == withName {
-                        json = item.json
-                        break
+            }
+        } else {
+            if let typeList = materialsItemMap[ofId] {
+                if withName == "" {
+                    if typeList.count > 0 {
+                        json = typeList[0].json
+                    }
+                } else {
+                    for item in typeList {
+                        if item.titleLabel.text == withName {
+                            json = item.json
+                            break
+                        }
                     }
                 }
             }
@@ -740,7 +757,7 @@ class LibraryDialog: MMDialog {
         if json == "" {
             return nil
         } else {
-            return decodeStageItemFromJSON(json)
+            return decodeComponentAndProcess(json)
         }
     }
     
@@ -776,9 +793,9 @@ class LibraryDialog: MMDialog {
                 DispatchQueue.main.async {
                     if let cb = self._cbMaterials {
                         if self.currentId == "Basic" {
-                            cb(selected.json, "")
+                            cb(selected.json)
                         } else {
-                            cb("", selected.json)
+                            cb(selected.json)
                         }
                     }
                 }

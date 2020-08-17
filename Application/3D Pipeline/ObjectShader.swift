@@ -2262,12 +2262,7 @@ class ObjectShader      : BaseShader
             }
             
             // Get the patterns of the material if any
-            var patterns : [CodeComponent] = []
-            if let materialStageItem = getFirstStageItemOfComponentOfType(stageItem.children, .Material3D) {
-                if materialStageItem.componentLists["patterns"] != nil {
-                    patterns = materialStageItem.componentLists["patterns"]!
-                }
-            }
+            let patterns : [CodeComponent] = material.components
             
             dryRunComponent(material, data.count, patternList: patterns)
             collectProperties(material)
