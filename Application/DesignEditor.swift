@@ -190,10 +190,18 @@ class DesignEditor          : MMWidget
                     if let id = globalApp!.currentPipeline!.ids[Int(value.w)], valid {
                         blockRendering = true
                         
-                        if let object = id.0.last, event.clickCount > 1 {
+                        if let object = id.0.last {
                             let sceneGraph = globalApp!.sceneGraph
-                            if sceneGraph.maximizedObject == nil {
-                                sceneGraph.openMaximized(object)
+
+                            if event.clickCount > 1 {
+                                if sceneGraph.maximizedObject == nil {
+                                    sceneGraph.openMaximized(object)
+                                } else {
+                                    if sceneGraph.maximizedObject !== object {
+                                        sceneGraph.closeMaximized()
+                                        sceneGraph.openMaximized(object)
+                                    }
+                                }
                             } else {
                                 if sceneGraph.maximizedObject !== object {
                                     sceneGraph.closeMaximized()
