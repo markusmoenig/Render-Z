@@ -194,6 +194,8 @@
 		2B7A3C5523B479F4002EC5FC /* CodeFragList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */; };
 		2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */; };
 		2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */; };
+		2B8129A324EA6640001EBDE1 /* Minimal.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B8129A224EA6640001EBDE1 /* Minimal.shape-z */; };
+		2B8129A424EA6640001EBDE1 /* Minimal.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B8129A224EA6640001EBDE1 /* Minimal.shape-z */; };
 		2B8444DC24945B890082EE1D /* BackShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackShader.swift */; };
 		2B8444DD24945B8A0082EE1D /* BackShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackShader.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
@@ -466,8 +468,6 @@
 		2BE9488823D0677700DB0BCD /* DefaultItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE9488623D0675600DB0BCD /* DefaultItems.swift */; };
 		2BEA8C3722573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
 		2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
-		2BEC0E9A24BE9922004B36DA /* Minimal.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BEC0E9924BE9922004B36DA /* Minimal.shape-z */; };
-		2BEC0E9B24BE9922004B36DA /* Minimal.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BEC0E9924BE9922004B36DA /* Minimal.shape-z */; };
 		2BED879D228B9D9C005CE147 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
 		2BED879E228B9D9C005CE147 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
 		2BF1ABE62499E3E000466979 /* UtilityShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF1ABE52499E3E000466979 /* UtilityShader.swift */; };
@@ -588,6 +588,7 @@
 		2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeFragList.swift; sourceTree = "<group>"; };
 		2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeEditor.swift; sourceTree = "<group>"; };
 		2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSemantics.swift; sourceTree = "<group>"; };
+		2B8129A224EA6640001EBDE1 /* Minimal.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Minimal.shape-z"; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
@@ -724,7 +725,6 @@
 		2BE847B52453C49700409AAE /* NewDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewDialog.swift; sourceTree = "<group>"; };
 		2BE9488623D0675600DB0BCD /* DefaultItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultItems.swift; sourceTree = "<group>"; };
 		2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatWidget.swift; sourceTree = "<group>"; };
-		2BEC0E9924BE9922004B36DA /* Minimal.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Minimal.shape-z"; sourceTree = "<group>"; };
 		2BED879C228B9D9C005CE147 /* MMScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScreen.swift; sourceTree = "<group>"; };
 		2BF1ABE52499E3E000466979 /* UtilityShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilityShader.swift; sourceTree = "<group>"; };
 		2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectNodes.swift; sourceTree = "<group>"; };
@@ -1181,7 +1181,7 @@
 		2BE847BB2453E0EA00409AAE /* Templates */ = {
 			isa = PBXGroup;
 			children = (
-				2BEC0E9924BE9922004B36DA /* Minimal.shape-z */,
+				2B8129A224EA6640001EBDE1 /* Minimal.shape-z */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -1361,7 +1361,7 @@
 				2B8C51BD24B730CE0070E8D8 /* fileicon.tiff in Resources */,
 				2B9CB6F62485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B2B5FEC242442AD00B9CCF1 /* dev_off.tiff in Resources */,
-				2BEC0E9A24BE9922004B36DA /* Minimal.shape-z in Resources */,
+				2B8129A324EA6640001EBDE1 /* Minimal.shape-z in Resources */,
 				2B7A3C0723B4652E002EC5FC /* OpenSans.tiff in Resources */,
 				2B666FB72464D5CF00BE3E4F /* scale.tiff in Resources */,
 				2B8E2FE323C71F36005619E4 /* SourceCodePro.json in Resources */,
@@ -1400,7 +1400,7 @@
 				2B666FB52464D58F00BE3E4F /* rotate.tiff in Resources */,
 				2B666FB82464D5CF00BE3E4F /* scale.tiff in Resources */,
 				2B9CB6FA2485CD1000CFFA51 /* X_blue.tiff in Resources */,
-				2BEC0E9B24BE9922004B36DA /* Minimal.shape-z in Resources */,
+				2B8129A424EA6640001EBDE1 /* Minimal.shape-z in Resources */,
 				2B9B29B923BB452B00C2F387 /* rz_toolbar.tiff in Resources */,
 				2B8C51BB24B6A55D0070E8D8 /* render.tiff in Resources */,
 				2BD0E1DA245A5F6100A61586 /* minimize.tiff in Resources */,

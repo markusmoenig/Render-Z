@@ -24,7 +24,6 @@ class XRayShader      : BaseShader
     var materialBumpCode = ""
     
     var bbTriangles     : [Float] = []
-    var claimedIds      : [Int] = []
     
     var instance        : PRTInstance
     
@@ -41,6 +40,11 @@ class XRayShader      : BaseShader
         super.init(instance: instance)
         self.rootItem = object
 
+        let objectShader = object.shader as? ObjectShader
+        if let shader = objectShader {
+            claimedIds = shader.claimedIds
+        }
+            
         buildShader()
     }
     
@@ -55,11 +59,6 @@ class XRayShader      : BaseShader
         var headerCode = ""
         
         let mapCode = createMapCode()
-
-        if claimedIds.first != nil {
-            idStart = Float(claimedIds.first!)
-            idEnd = Float(claimedIds.last!)
-        }
                 
         // Raymarch
         let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D)!
@@ -528,7 +527,7 @@ class XRayShader      : BaseShader
                 """
             }
 
-            let id = prtInstance.claimId()
+            let id = claimedIds[componentCounter]
 
             code +=
             """
@@ -550,10 +549,9 @@ class XRayShader      : BaseShader
             mapCode += code
              
             // If we have a stageItem, store the id
-            //if hierarchy.count > 0 {
-                claimedIds.append(id)
-                ids[id] = (hierarchy, component)
-            //}
+            //claimedIds.append(id)
+            //ids[id] = (hierarchy, component)
+
             componentCounter += 1
         }
         

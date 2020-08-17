@@ -67,11 +67,14 @@ class Pipeline
     {
         var result  : MTLTexture? = texture
         
-        if texture == nil || texture!.width != Int(round(width)) || texture!.height != Int(round(height)) || texture?.pixelFormat != pixelFormat {
+        let rWidth = round(width)
+        let rHeight = round(height)
+        
+        if texture == nil || texture!.width != Int(rWidth) || texture!.height != Int(rHeight) || texture?.pixelFormat != pixelFormat {
             if texture != nil {
                 texture!.setPurgeableState(.empty)
             }
-            result = codeBuilder.compute.allocateTexture(width: width, height: height, pixelFormat: pixelFormat)
+            result = codeBuilder.compute.allocateTexture(width: rWidth, height: rHeight, pixelFormat: pixelFormat)
         }
         
         return result

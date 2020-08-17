@@ -77,7 +77,9 @@ class BaseShader
     
     var idStart             : Float = 0
     var idEnd               : Float = 0
-            
+
+    var claimedIds          : [Int] = []
+
     weak var prtInstance    : PRTInstance!
     
     var shaders             : [String:Shader] = [:]

@@ -24,7 +24,6 @@ class ObjectShader      : BaseShader
     var materialBumpCode = ""
     
     var bbTriangles     : [Float] = []
-    var claimedIds      : [Int] = []
     
     var sphereBuilderState : MTLComputePipelineState? = nil
 

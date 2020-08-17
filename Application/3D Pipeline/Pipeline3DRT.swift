@@ -221,14 +221,14 @@ class Pipeline3DRT          : Pipeline
                         item.addNodes3D()
                     }
                     
+                    let shader = ObjectShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
+                    shaders.append(shader)
+                    item.shader = shader
+                    
                     // Check if we need to recompile the xray
                     if globalApp!.sceneGraph.maximizedObject === item {
                         globalApp!.sceneGraph.buildXray()
                     }
-                    
-                    let shader = ObjectShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
-                    shaders.append(shader)
-                    item.shader = shader
                 } else {
                     let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
                     if shapeStage.terrain != nil {
