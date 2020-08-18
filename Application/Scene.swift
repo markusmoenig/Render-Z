@@ -215,7 +215,6 @@ class Terrain               : Codable
         
         if let materialComponent = globalApp!.libraryDialog.getMaterial(ofId: "Basic", withName: "PBR") {
             
-            print("here")
             materialComponent.uuid = UUID()
 
             let material = StageItem(.ShapeStage, "Terrain")

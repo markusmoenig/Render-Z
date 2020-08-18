@@ -1582,6 +1582,8 @@ class CodeComponent         : Codable, Equatable
     
     let componentType       : ComponentType
     
+    var name                : String = ""
+    
     var functions           : [CodeFunction] = []
     var uuid                : UUID = UUID()
     
@@ -1648,6 +1650,7 @@ class CodeComponent         : Codable, Equatable
 
     private enum CodingKeys: String, CodingKey {
         case componentType
+        case name
         case functions
         case uuid
         case selected
@@ -1669,6 +1672,7 @@ class CodeComponent         : Codable, Equatable
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         componentType = try container.decode(ComponentType.self, forKey: .componentType)
+        
         functions = try container.decode([CodeFunction].self, forKey: .functions)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         selected = try container.decode(UUID?.self, forKey: .selected)
@@ -1683,6 +1687,13 @@ class CodeComponent         : Codable, Equatable
         if let category = try container.decodeIfPresent(String.self, forKey: .libraryCategory) {
             libraryCategory = category
         }
+        
+        if let n = try container.decodeIfPresent(String.self, forKey: .name) {
+            name = n
+        } else {
+            name = libraryName
+        }
+        
         libraryComment = try container.decode(String.self, forKey: .libraryComment)
         values = try container.decode([String:Float].self, forKey: .values)
         subComponent = try container.decode(CodeComponent?.self, forKey: .subComponent)
@@ -1804,6 +1815,7 @@ class CodeComponent         : Codable, Equatable
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(componentType, forKey: .componentType)
+        try container.encode(name, forKey: .name)
         try container.encode(functions, forKey: .functions)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(selected, forKey: .selected)
