@@ -119,8 +119,9 @@ class DesignProperties      : MMWidget
             
             if physics == 1 {
                 let resitution = comp.values["restitution"] == nil ? 0.4 : comp.values["restitution"]!
-                let restituitonVar = NodeUINumber(c1Node!, variable: "restitution", title: "Restitution", range: SIMD2<Float>(0, 1), value: resitution, precision: Int(2))
+                let restituitonVar = NodeUINumber(c1Node!, variable: "restitution", title: "Restitution", range: SIMD2<Float>(0, 1), value: resitution, precision: Int(3))
                 restituitonVar.titleShadows = true
+                restituitonVar.autoAdjustMargin = true
                 c1Node!.uiItems.append(restituitonVar)
                 
                 let friction = comp.values["friction"] == nil ? 0.3 : comp.values["friction"]!

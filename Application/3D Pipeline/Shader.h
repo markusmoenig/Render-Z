@@ -51,4 +51,22 @@ typedef struct {
     simd_float3         rotation;
 } SphereUniforms;
 
+typedef struct
+{
+    simd_float2  size;
+    float        hoverState;
+    float        lockedScaleAxes;
+    
+    simd_float4  origin;
+    simd_float4  lookAt;
+    simd_float4  position;
+    simd_float4  rotation;
+    simd_float4  pivot;
+    
+    simd_float3  P;
+    simd_float3  L;
+    simd_float3x3 F;
+
+} GIZMO3D;
+
 #endif /* Shader_h */

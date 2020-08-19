@@ -334,8 +334,8 @@ class GizmoCombo3D          : GizmoBase
                 compute.texture = compute.allocateTexture(width: rect.width, height: rect.height, pixelFormat: .r32Float)
             }
             
-            let data = computeGizmoData()
-            let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
+            var data = computeGizmoData()
+            let buffer = compute.device.makeBuffer(bytes: &data, length: MemoryLayout<GIZMO3D>.stride, options: [])!
             
             if isPoint == false {
                 compute.run(idState, outTexture: compute.texture, inBuffer: buffer, syncronize: true)
@@ -350,6 +350,7 @@ class GizmoCombo3D          : GizmoBase
             texArray.withUnsafeMutableBytes { texArrayPtr in
                 compute.texture!.getBytes(texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * compute.texture!.width), from: region, mipmapLevel: 0)
             }
+            
             let value = texArray[0]
             //print(value)
 
@@ -627,7 +628,7 @@ class GizmoCombo3D          : GizmoBase
         globalApp!.currentEditor.updateOnNextDraw(compile: false)
     }
     
-    func computeGizmoData() -> [Float]
+    func computeGizmoData() -> GIZMO3D
     {
         let origin = getCameraPropertyValue3("origin")
         let lookAt = getCameraPropertyValue3("lookAt")
@@ -677,6 +678,7 @@ class GizmoCombo3D          : GizmoBase
         hierarchyY *= scale
         hierarchyZ *= scale
 
+        /*
         // --- Render Gizmo
         let data: [Float] = [
             rect.width, rect.height,
@@ -686,13 +688,52 @@ class GizmoCombo3D          : GizmoBase
             transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0,
             rotateX, rotateY, rotateZ, 0,
             hierarchyX, hierarchyY, hierarchyZ, 0
-        ]
+        ]*/
         
+        var data = GIZMO3D()
+        data.size = float2(rect.width, rect.height)
+        data.hoverState = hoverState.rawValue
+        data.lockedScaleAxes = 0
+        data.origin = float4(origin.x, origin.y, origin.z, fov)
+        data.lookAt = float4(lookAt.x, lookAt.y, lookAt.z, 0)
+        data.position = float4(transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0)
+        data.rotation = float4(rotateX, rotateY, rotateZ, 0)
+        data.pivot = float4(hierarchyX, hierarchyY, hierarchyZ, 0)
+
         gizmoDistance = simd_distance(origin, SIMD3<Float>(transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!))
         
-        //print("pos", transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!)
-        //print("rotate", rotateX, rotateY, rotateZ)
-        //print("pivot", hierarchyX, hierarchyY, hierarchyZ)
+        var bboxPos = SIMD3<Float>(data.position.x, data.position.y, data.position.z)
+        let bboxSize = SIMD3<Float>(1.5, 1.5, 1.5)
+
+        bboxPos -= bboxSize / 2;
+        
+        //fragmentUniforms.maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
+        
+        let rotationMatrix = float4x4(rotationZYX: [(-rotateX).degreesToRadians, (rotateY).degreesToRadians, (-rotateZ).degreesToRadians])
+        
+        var X0 = SIMD4<Float>(bboxSize.x, 0, 0, 1)
+        var X1 = SIMD4<Float>(0, bboxSize.y, 0, 1)
+        var X2 = SIMD4<Float>(0, 0, bboxSize.z, 1)
+        
+        var C = SIMD3<Float>(0,0,0)
+        C.x = bboxPos.x + (X0.x + X1.x + X2.x) / 2.0
+        C.y = bboxPos.y + (X0.y + X1.y + X2.y) / 2.0
+        C.z = bboxPos.z + (X0.z + X1.z + X2.z) / 2.0
+                    
+        X0 = X0 * rotationMatrix
+        X1 = X1 * rotationMatrix
+        X2 = X2 * rotationMatrix
+        
+        data.P.x = C.x - (X0.x + X1.x + X2.x) / 2.0
+        data.P.y = C.y - (X0.y + X1.y + X2.y) / 2.0
+        data.P.z = C.z - (X0.z + X1.z + X2.z) / 2.0
+            
+        let X03 = SIMD3<Float>(X0.x, X0.y, X0.z)
+        let X13 = SIMD3<Float>(X1.x, X1.y, X1.z)
+        let X23 = SIMD3<Float>(X2.x, X2.y, X2.z)
+        
+        data.L = SIMD3<Float>(length(X03), length(X13), length(X23))
+        data.F = float3x3( X03 / dot(X03, X03), X13 / dot(X13, X13), X23 / dot(X23, X23) )
         
         return data
     }
@@ -701,7 +742,7 @@ class GizmoCombo3D          : GizmoBase
     {
         if component.componentType == .Dummy { return }
                 
-        let data = computeGizmoData()
+        var data = computeGizmoData()
         mmView.renderer.setClipRect(rect)
 
         let mmRenderer = mmView.renderer!
@@ -709,7 +750,7 @@ class GizmoCombo3D          : GizmoBase
 
         let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( rect.x, rect.y, rect.width, rect.height, scale: mmView.scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        renderEncoder.setFragmentBytes(data, length: data.count * MemoryLayout<Float>.stride, index: 0)
+        renderEncoder.setFragmentBytes(&data, length: MemoryLayout<GIZMO3D>.stride, index: 0)
         
         if isPoint == false {
             renderEncoder.setRenderPipelineState(state!)

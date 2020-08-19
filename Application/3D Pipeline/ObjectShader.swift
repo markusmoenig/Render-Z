@@ -1940,6 +1940,7 @@ class ObjectShader      : BaseShader
         var globalsAddedFor     : [UUID] = []
         
         var componentCounter    : Int = 0
+        var bumpCount           : Int = 0
         
         var materialFuncCode    = ""
 
@@ -2278,62 +2279,79 @@ class ObjectShader      : BaseShader
                 let fragment = conn.2
                 if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
                     
-                    // Needs shape, outNormal, position
-                    materialBumpCode +=
-                    """
-                    
-                    {
-                        float3 hitPosition = position;
-                        float3 localPosition = position;
+                    var bumpCode = ""
+                    if let id = componentId {
 
-                        \(transformCode)
+                        // Needs shape, outNormal, position
+                        bumpCode +=
+                        """
+                        
+                        if (shape.w > \(Float(id) - 0.5) && shape.w < \(Float(id) + 0.5))
 
-                        float3 realPosition = localPosition;
-                        float3 position = realPosition; float3 normal = outNormal;
-                        float2 outUV = float2(0);
-                        float bumpFactor = 0.2;
-                    
-                        // bref
-                        {
-                            \(uvMappingCode)
-                        }
-                    
-                        struct PatternOut data;
-                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
-                        float bRef = data.\(conn.1);
-                    
-                        const float2 e = float2(.001, 0);
-                    
-                        // b1
-                        position = realPosition - e.xyy;
-                        {
-                            \(uvMappingCode)
-                        }
-                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
-                        float b1 = data.\(conn.1);
-                    
-                        // b2
-                        position = realPosition - e.yxy;
-                        {
-                            \(uvMappingCode)
-                        }
-                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
-                        float b2 = data.\(conn.1);
-                    
-                        // b3
-                        position = realPosition - e.yyx;
-                        \(uvMappingCode)
-                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
-                        float b3 = data.\(conn.1);
-                    
-                        float3 grad = (float3(b1, b2, b3) - bRef) / e.x;
-                    
-                        grad -= normal * dot(normal, grad);
-                        outNormal = normalize(normal + grad * bumpFactor);
+                        """
                     }
+                        
+                    bumpCode +=
+                    """
+
+                        {
+                            float3 hitPosition = position;
+                            float3 localPosition = position;
+
+                            \(transformCode)
+
+                            float3 realPosition = localPosition;
+                            float3 position = realPosition; float3 normal = outNormal;
+                            float2 outUV = float2(0);
+                            float bumpFactor = 0.2;
+                        
+                            // bref
+                            {
+                                \(uvMappingCode)
+                            }
+                        
+                            struct PatternOut data;
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float bRef = data.\(conn.1);
+                        
+                            const float2 e = float2(.001, 0);
+                        
+                            // b1
+                            position = realPosition - e.xyy;
+                            {
+                                \(uvMappingCode)
+                            }
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float b1 = data.\(conn.1);
+                        
+                            // b2
+                            position = realPosition - e.yxy;
+                            {
+                                \(uvMappingCode)
+                            }
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float b2 = data.\(conn.1);
+                        
+                            // b3
+                            position = realPosition - e.yyx;
+                            \(uvMappingCode)
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float b3 = data.\(conn.1);
+                        
+                            float3 grad = (float3(b1, b2, b3) - bRef) / e.x;
+                        
+                            grad -= normal * dot(normal, grad);
+                            outNormal = normalize(normal + grad * bumpFactor);
+                        }
 
                     """
                     
+                    if componentId != nil && bumpCount > 0 {
+                        bumpCode += " else "
+                    }
+                    
+                    bumpCount += 1
+                    materialBumpCode = bumpCode + materialBumpCode
                 }
             }
 
@@ -2354,6 +2372,13 @@ class ObjectShader      : BaseShader
                 if (shape.w > \(Float(id) - 0.5) && shape.w < \(Float(id) + 0.5))
                 {
                     material\(id)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+
+                    /*
+                    MaterialOut matOut;
+                    material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
+
+                    __materialOut.color = mix(__materialOut.color, matOut.color, 0.5);*/
+
                 } else
 
                 """

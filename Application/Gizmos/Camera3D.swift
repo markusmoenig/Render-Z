@@ -292,6 +292,8 @@ class GizmoCamera3D         : GizmoBase
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
+        globalApp!.sceneGraph.xrayUpdateLocked = true
+
         if event.deltaX == 0 && event.deltaY == 0 {
             let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
 
@@ -342,6 +344,7 @@ class GizmoCamera3D         : GizmoBase
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.mmView.unlockFramerate()
                 self.dispatched = false
+                globalApp!.sceneGraph.xrayUpdateLocked = false
             }
             dispatched = true
         }

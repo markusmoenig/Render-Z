@@ -273,7 +273,12 @@ class Pipeline3DRT          : Pipeline
     {
         width = round(widthIn); height = round(heightIn)
         
-        globalApp!.sceneGraph.xrayNeedsUpdate = true
+        // Update xray if no over time animation is running
+        if globalApp!.sceneGraph.maximizedObject != nil {
+            if mmView.maxHardLocks == 0 {
+                globalApp!.sceneGraph.xrayNeedsUpdate = true
+            }
+        }
         
         //let startTime = Double(Date().timeIntervalSince1970)
         

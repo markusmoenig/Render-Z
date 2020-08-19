@@ -1720,7 +1720,7 @@ class CodeComponent         : Codable, Equatable
                 
                 if f.header.statement.fragments[2].name != "distance2D" {
                     let arg = CodeFragment(.VariableDefinition, "float", "distance2D", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
-                    f.header.statement.fragments.insert(arg, at: 1)
+                    f.header.statement.fragments.insert(arg, at: 2)
                 }
             }
         }

@@ -403,6 +403,8 @@ class BaseShader
                             
                             value = value + Float(velocity.x) * indirect
                             value = value + Float(velocity.z) * indirect
+                            
+                            value = max(0.01, value)
                         }
                         
                         if name == "width" {
@@ -410,6 +412,8 @@ class BaseShader
 
                             value = value + Float(velocity.y) * indirect
                             value = value + Float(velocity.z) * indirect
+                            
+                            value = max(0.01, value)
                         }
                         
                         if name == "depth" {
@@ -417,6 +421,8 @@ class BaseShader
 
                             value = value + Float(velocity.x) * indirect
                             value = value + Float(velocity.y) * indirect
+                            
+                            value = max(0.01, value)
                         }
                     }
                     self.data[dataIndex].x = value

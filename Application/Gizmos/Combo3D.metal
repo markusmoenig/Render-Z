@@ -36,6 +36,10 @@ typedef struct
     float4  position;
     float4  rotation;
     float4  pivot;
+    
+    float3  P;
+    float3  L;
+    float3x3 F;
 
 } GIZMO3D;
 
@@ -522,13 +526,12 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     
     dir = normalize(dir);
     
-    float3 X0 = float3(1.5, 0,0), X1 = float3(0, 1.5, 0), X2 = float3(0, 0, 1.5);
-    float d = bbox(origin, dir, data->position.xyz - float3(0.75), float3(length(X0), length(X1), length(X2)), float3x3( X0/dot(X0,X0), X1/dot(X1,X1), X2/dot(X2,X2) ) );
+    float d = bbox(origin, dir, data->P, data->L, data->F);
     
     if (d >= 0.0) {
-        
         float3 hit = castRay(origin, dir, d, data);
-        
+        //finalColor = float4(1,0,0,0.5);
+
         if (hit.y > -0.5) {
             if (hit.y == MOVE_X) {
                 finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
@@ -620,8 +623,7 @@ fragment float4 drawGizmoCombo3DPoint(RasterizerData        in [[stage_in]],
 
     dir = normalize(dir);
     
-    float3 X0 = float3(1.5, 0,0), X1 = float3(0, 1.5, 0), X2 = float3(0, 0, 1.5);
-    float d = bbox(origin, dir, data->position.xyz - float3(0.75), float3(length(X0), length(X1), length(X2)), float3x3( X0/dot(X0,X0), X1/dot(X1,X1), X2/dot(X2,X2) ) );
+    float d = bbox(origin, dir, data->P, data->L, data->F);
     
     if (d >= 0.0) {
         float3 hit = castRayPoint(origin, dir, pos, d, data);

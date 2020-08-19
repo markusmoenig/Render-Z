@@ -342,7 +342,9 @@ class SceneGraph                : MMWidget
     var xrayZoom                : Float = 5
     
     var xraySelectedId          : Int = -1
+    
     var xrayNeedsUpdate         : Bool = false
+    var xrayUpdateLocked        : Bool = false
     
     var shapesTB                : MMTextBuffer? = nil
     var addMaterialTB           : MMTextBuffer? = nil
@@ -1493,8 +1495,7 @@ class SceneGraph                : MMWidget
         xrayTexture = globalApp!.currentPipeline?.checkTextureSize(topRect.width, topRect.height, xrayTexture, .rgba16Float)
                 
         if xrayShader!.isXrayValid() {
-            if xrayNeedsUpdate == true {
-                
+            if xrayNeedsUpdate == true && xrayUpdateLocked == false {
                 xrayShader!.id = -1
                 for (index, item) in globalApp!.currentPipeline!.ids {
                     if item.1 === currentMaxComponent {
@@ -1502,7 +1503,6 @@ class SceneGraph                : MMWidget
                         break
                     }
                 }
-                
                 xrayShader!.render(texture: xrayTexture!)
                 xrayNeedsUpdate = false
             }

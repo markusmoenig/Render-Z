@@ -1111,7 +1111,7 @@ class Scene                 : Codable, Equatable
         {
             if result.component == nil {
                 for (_,c) in stageItem.components {
-                    if  c === component {
+                    if c === component {
                         result.component = c
                         result.stageItem = stageItem
                         break
@@ -1119,6 +1119,15 @@ class Scene                 : Codable, Equatable
                     if c.subComponent === component {
                         result.component = c.subComponent
                         result.stageItem = stageItem
+                    } else
+                    {
+                        for cc in c.components {
+                            if  cc === component {
+                                result.component = cc
+                                result.stageItem = stageItem
+                                break
+                            }
+                        }
                     }
                 }
             }
@@ -1133,6 +1142,15 @@ class Scene                 : Codable, Equatable
                         if c.subComponent === component {
                             result.component = c.subComponent
                             result.stageItem = stageItem
+                        } else
+                        {
+                            for cc in c.components {
+                                if  cc === component {
+                                    result.component = cc
+                                    result.stageItem = stageItem
+                                    break
+                                }
+                            }
                         }
                     }
                 }
