@@ -23,6 +23,8 @@ class ObjectShader      : BaseShader
     var materialCode     = ""
     var materialBumpCode = ""
     
+    var materialIds     : [Int] = []
+    
     var bbTriangles     : [Float] = []
     
     var sphereBuilderState : MTLComputePipelineState? = nil
@@ -2160,7 +2162,7 @@ class ObjectShader      : BaseShader
             if let subComponent = component.subComponent, subComponent.componentType == .Material3D {
                 if let stageItem = hierarchy.last {
                     if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform3D {
-                        generateMaterial(stageItem: stageItem, material: subComponent, transform: transform, componentId: id)
+                        generateMaterial(stageItem: stageItem, material: subComponent, transform: transform, shape: component, componentId: id)
                     }
                 }
             }
@@ -2173,7 +2175,7 @@ class ObjectShader      : BaseShader
             componentCounter += 1
         }
         
-        func generateMaterial(stageItem: StageItem, material: CodeComponent, transform: CodeComponent, componentId: Int? = nil)
+        func generateMaterial(stageItem: StageItem, material: CodeComponent, transform: CodeComponent, shape: CodeComponent? = nil, componentId: Int? = nil)
         {
             let materialName : String
             
@@ -2367,29 +2369,39 @@ class ObjectShader      : BaseShader
             """
 
             if let id = componentId {
+                
                 let code = """
 
                 if (shape.w > \(Float(id) - 0.5) && shape.w < \(Float(id) + 0.5))
                 {
                     material\(id)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-
                     /*
                     MaterialOut matOut;
+                    matOut.color = float4(0,0,0,1);
                     material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
 
-                    __materialOut.color = mix(__materialOut.color, matOut.color, 0.5);*/
-
+                    __materialOut.color = mix(__materialOut.color, matOut.color, smoothstep(0, 1, shape.z));*/
                 } else
 
                 """
                 
                 materialCode = code + materialCode
+                materialIds.append(id)
             } else {
                 materialCode +=
                 """
 
                 {
                     material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+
+                    /*
+                    MaterialOut matOut;
+                    matOut.color = float4(0,0,0,1);
+
+                    material3(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
+
+                    __materialOut.color = mix(matOut.color, __materialOut.color, smoothstep(0, 1, shape.z));
+                    */
                 }
 
                 """
@@ -2513,6 +2525,82 @@ class ObjectShader      : BaseShader
         
         """
 
+        // Generate the smooth blending between materials in materialCode
+        
+        if materialIds.count > 0 {
+            var code = """
+            
+            if (shape.z > 0.0) {
+
+                
+                MaterialOut matOut;
+                matOut.color = float4(0,0,0,1);
+
+                material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
+
+                //__materialOut
+
+                float blendFactor = fract(shape.z);
+                float idB = floor(shape.z);
+                float idA = shape.w;
+            
+            """
+
+            for id in materialIds {
+                code +=
+                """
+
+                if (\(id) > (idB - 0.5) && \(id) < (idB + 0.5))
+                {
+                    material\(id)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
+                } else
+
+                """
+            }
+            
+            code +=
+            """
+
+            {
+                material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
+            }
+
+            """
+            
+            for id in materialIds {
+                code +=
+                """
+
+                if (\(id) > (idA - 0.5) && \(id) < (idA + 0.5))
+                {
+                    material\(id)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+                } else
+
+                """
+            }
+            
+            code +=
+            """
+
+            {
+                material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+            }
+
+            """
+            
+            code +=
+            """
+            
+                __materialOut.color = mix(matOut.color, __materialOut.color, smoothstep(0.0, 1.0, blendFactor));
+            } else
+                        
+            """
+            
+            materialCode = code + materialCode;
+        }
+        
+        //
+        
         return headerCode + mapCode + materialFuncCode
     }
 }

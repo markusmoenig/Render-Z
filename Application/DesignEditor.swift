@@ -124,7 +124,7 @@ class DesignEditor          : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if let gizmo = currentGizmo, editor.designProperties.hoverMode != .NodeUIMouseLocked, editor.designProperties.hoverUITitle == nil, editor.designProperties.hoverUIRandom == nil {
+        if let gizmo = currentGizmo, editor.designProperties.hoverMode != .NodeUIMouseLocked, editor.designProperties.hoverUITitle == nil, editor.designProperties.hoverUIRandom == nil, mmView.maxHardLocks == 0, mmView.maxFramerateLocks == 0 {
             gizmo.rect.copy(rect)
             gizmo.mouseMoved(event)
         }
@@ -202,7 +202,8 @@ class DesignEditor          : MMWidget
                                         sceneGraph.openMaximized(object)
                                     }
                                 }
-                            } else {
+                            } else
+                            if sceneGraph.maximizedObject != nil {
                                 if sceneGraph.maximizedObject !== object {
                                     sceneGraph.closeMaximized()
                                     sceneGraph.openMaximized(object)
