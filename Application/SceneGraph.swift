@@ -1532,7 +1532,7 @@ class SceneGraph                : MMWidget
         xrayTexture = globalApp!.currentPipeline?.checkTextureSize(topRect.width, topRect.height, xrayTexture, .rgba16Float)
                 
         if xrayShader!.isXrayValid() {
-            //if xrayNeedsUpdate == true && xrayUpdateLocked == false {
+            if xrayNeedsUpdate == true && xrayUpdateLocked == false {
                 xrayShader!.id = -1
                 for (index, item) in globalApp!.currentPipeline!.ids {
                     if item.1 === currentMaxComponent {
@@ -1542,7 +1542,7 @@ class SceneGraph                : MMWidget
                 }
                 xrayShader!.render(texture: xrayTexture!)
                 xrayNeedsUpdate = false
-            //}
+            }
             mmView.drawTexture.draw(xrayTexture!, x: topRect.x, y: topRect.y, zoom: 1)
         } else {
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
@@ -3639,6 +3639,28 @@ class SceneGraph                : MMWidget
         let totalWidth  : Float = 150 * graphZoom
         let headerHeight: Float = 30 * graphZoom
         var top         : Float = headerHeight + 7.5 * graphZoom
+        
+        var objectColor  = float3(0,0,0)
+        var shapeColor  = float3(0,0,0)
+        
+        for child in stageItem.children {
+            if let comp = child.components[child.defaultName], comp.componentType == .Material3D {
+                if comp.properties.count > 0 {
+                    let rc = comp.getPropertyOfUUID(comp.properties[0])
+                    if rc.0 != nil && rc.1?.name == "float4" {
+
+                        let color = extractValueFromFragment(rc.1!)
+                        shapeColor.x = color.x
+                        shapeColor.y = color.y
+                        shapeColor.z = color.z
+                        
+                        objectColor.x = color.x
+                        objectColor.y = color.y
+                        objectColor.z = color.z
+                    }
+                }
+            }
+        }
 
         if let list = stageItem.getComponentList("shapes") {
                        
@@ -3684,8 +3706,27 @@ class SceneGraph                : MMWidget
                     comp.label = MMTextLabel(mmView, font: mmView.openSans, text: comp.name, scale: fontScale, color: skin.normalTextColor)
                 }
                 
+                // Copy the shape color into shapeColor
+                if let materialComp = comp.subComponent {
+                    if materialComp.properties.count > 0 {
+                        let rc = materialComp.getPropertyOfUUID(materialComp.properties[0])
+                        if rc.0 != nil && rc.1?.name == "float4" {
+
+                            let color = extractValueFromFragment(rc.1!)
+                            shapeColor.x = color.x
+                            shapeColor.y = color.y
+                            shapeColor.z = color.z
+                        }
+                    }
+                } else
+                if comp.values["lastMaterial"] != 1 {
+                    shapeColor.x = objectColor.x
+                    shapeColor.y = objectColor.y
+                    shapeColor.z = objectColor.z
+                }
+                
                 if let thumb = globalApp!.thumbnail.request(comp.libraryName + " :: SDF" + (comp.componentType == .SDF3D ? "3D" : "2D")) {
-                    mmView.drawTexture.draw(thumb, x: rect.x + item.rect.x + 3, y: rect.y + item.rect.y + 2, zoom: 8)
+                    mmView.drawTexture.draw(thumb, x: rect.x + item.rect.x + 3, y: rect.y + item.rect.y + 2, zoom: 8, color: shapeColor)
                 }
                 
                 if let label = comp.label {

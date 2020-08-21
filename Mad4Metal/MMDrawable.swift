@@ -462,7 +462,7 @@ class MMDrawTexture : MMDrawable
         mmRenderer = renderer
     }
     
-    func draw( _ texture: MTLTexture, x: Float, y: Float, zoom: Float = 1, fragment: MMFragment? = nil, prem: Bool = false, round: Float = 0, roundingRect: SIMD4<Float> = SIMD4<Float>(0,0,0,0), globalAlpha: Float = 1)
+    func draw( _ texture: MTLTexture, x: Float, y: Float, zoom: Float = 1, fragment: MMFragment? = nil, prem: Bool = false, round: Float = 0, roundingRect: SIMD4<Float> = SIMD4<Float>(0,0,0,0), color: float3 = float3(1,1,1), globalAlpha: Float = 1)
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let width : Float = Float(texture.width)
@@ -474,7 +474,7 @@ class MMDrawTexture : MMDrawable
             width * scaleFactor, height * scaleFactor,
             prem == true ? 1 : 0, round,
             globalAlpha, 0, 0, 0,
-            roundingRect.x, roundingRect.y, roundingRect.z, roundingRect.w
+            round != 0 ? roundingRect.x : color.x, round != 0 ? roundingRect.y : color.y, round != 0 ? roundingRect.z : color.z, roundingRect.w
         ];
         
         let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
@@ -492,7 +492,7 @@ class MMDrawTexture : MMDrawable
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
     
-    func drawScaled( _ texture: MTLTexture, x: Float, y: Float, width: Float, height: Float, globalAlpha: Float = 1, fragment: MMFragment? = nil)
+    func drawScaled( _ texture: MTLTexture, x: Float, y: Float, width: Float, height: Float, globalAlpha: Float = 1, color: float3 = float3(1,1,1), fragment: MMFragment? = nil)
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
 
@@ -502,7 +502,7 @@ class MMDrawTexture : MMDrawable
             width * scaleFactor, height * scaleFactor,
             0, 0,
             globalAlpha, 0, 0, 0,
-            0, 0, 0, 0
+            color.x, color.y, color.z, 0
         ];
         
         let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
