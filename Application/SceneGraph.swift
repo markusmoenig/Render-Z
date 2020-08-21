@@ -348,7 +348,8 @@ class SceneGraph                : MMWidget
     
     var shapesTB                : MMTextBuffer? = nil
     var addMaterialTB           : MMTextBuffer? = nil
-    
+    var useLastMaterialTB       : MMTextBuffer? = nil
+
     var fakeMaterialItem        : StageItem? = nil
     
     var currentMaxComponent     : CodeComponent? = nil
@@ -565,9 +566,17 @@ class SceneGraph                : MMWidget
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     }
                 }),
+                MMMenuItem(text: "Use Previous Material", cb: { () in
+                    if let component = self.currentMaxComponent {
+                        component.values["lastMaterial"] = 1
+                        globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.maximizedObject!)
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                    }
+                }),
                 MMMenuItem(text: "Remove Material", cb: { () in
                     if let component = self.currentMaxComponent {
                         component.subComponent = nil
+                        component.values["lastMaterial"] = nil
                         globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.maximizedObject!)
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     }
@@ -655,7 +664,10 @@ class SceneGraph                : MMWidget
     {
         if maximizedObject != nil {
             xrayAngle += event.deltaX!
+            
+            #if os(OSX)
             xrayZoom += event.deltaY!
+            #endif
             
             xrayZoom = min(xrayZoom, 20)
             xrayZoom = max(xrayZoom, 1)
@@ -705,6 +717,29 @@ class SceneGraph                : MMWidget
     {
         clickWasConsumed = true
 
+        if maximizedObject != nil {
+            
+            if firstTouch == true {
+                zoomBuffer = xrayZoom
+            }
+            
+            xrayZoom = zoomBuffer * scale
+            
+            xrayZoom = min(xrayZoom, 20)
+            xrayZoom = max(xrayZoom, 1)
+
+            let c = cos(xrayAngle.degreesToRadians)
+            let s = sin(xrayAngle.degreesToRadians)
+            
+            xrayOrigin.x = xrayZoom * c
+            xrayOrigin.z = xrayZoom * s
+
+            setPropertyValue3(component: xrayCamera!, name: "origin", value: xrayOrigin)
+            xrayNeedsUpdate = true
+            mmView.update()
+            return
+        }
+        
         if firstTouch == true {
             zoomBuffer = graphZoom
         }
@@ -752,7 +787,9 @@ class SceneGraph                : MMWidget
         if currentComponent == nil {
             currentUUID = nil
         }
-        buildMenu(uuid: currentUUID)
+        
+        hasMinMaxButton = false
+        itemMenu.setItems([])
     }
     
     func closeMaximized()
@@ -1495,7 +1532,7 @@ class SceneGraph                : MMWidget
         xrayTexture = globalApp!.currentPipeline?.checkTextureSize(topRect.width, topRect.height, xrayTexture, .rgba16Float)
                 
         if xrayShader!.isXrayValid() {
-            if xrayNeedsUpdate == true && xrayUpdateLocked == false {
+            //if xrayNeedsUpdate == true && xrayUpdateLocked == false {
                 xrayShader!.id = -1
                 for (index, item) in globalApp!.currentPipeline!.ids {
                     if item.1 === currentMaxComponent {
@@ -1505,7 +1542,7 @@ class SceneGraph                : MMWidget
                 }
                 xrayShader!.render(texture: xrayTexture!)
                 xrayNeedsUpdate = false
-            }
+            //}
             mmView.drawTexture.draw(xrayTexture!, x: topRect.x, y: topRect.y, zoom: 1)
         } else {
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
@@ -1600,6 +1637,9 @@ class SceneGraph                : MMWidget
                     currentMaxComponent?.subComponent = nil
                 }
                 
+                if currentMaxComponent?.values["lastMaterial"] == 1 {
+                    useLastMaterialTB = mmView.drawText.drawTextCentered(mmView.openSans, text: "Uses Previous Material", x: bottomRect.x, y: bottomRect.y, width: bottomRect.width, height: bottomRect.height - 20, scale: 0.4, textBuffer: useLastMaterialTB)
+                } else
                 if currentMaxComponent?.subComponent == nil {
                     addMaterialTB = mmView.drawText.drawTextCentered(mmView.openSans, text: "Menu / Add Material to create custom Material", x: bottomRect.x, y: bottomRect.y, width: bottomRect.width, height: bottomRect.height - 20, scale: 0.4, textBuffer: addMaterialTB)
                 } else {
@@ -1999,9 +2039,9 @@ class SceneGraph                : MMWidget
         if let uuid = uuid {
             if let item = itemMap[uuid] {
                 
-                if maximizedObject != nil && (item.itemType != .ShapeItem || currentComponent == nil) {
-                    return
-                }
+                //if maximizedObject != nil && (item.itemType != .ShapeItem || currentComponent == nil) {
+                //    return
+                //}
 
                 if item.itemType == .Stage {
                     hasMinMaxButton = true

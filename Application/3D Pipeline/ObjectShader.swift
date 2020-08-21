@@ -24,7 +24,7 @@ class ObjectShader      : BaseShader
     var materialBumpCode = ""
     
     var materialIds     : [Int] = []
-    
+    var materialMaps    : [Int:Int] = [:]
     var bbTriangles     : [Float] = []
     
     var sphereBuilderState : MTLComputePipelineState? = nil
@@ -543,6 +543,8 @@ class ObjectShader      : BaseShader
                     float4 lightColor = lights.lights[0].lightColor;
                     float shadow = shadows.y;
                     float occlusion = shadows.x;
+
+                    shape = reflectionShape;
 
                     \(materialCode)
                 
@@ -2143,7 +2145,7 @@ class ObjectShader      : BaseShader
             """
              
             float4 shapeA = outShape;
-            float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, 0, \(id));
+            float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, \(id), \(id));
              
             """
             
@@ -2164,6 +2166,12 @@ class ObjectShader      : BaseShader
                     if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform3D {
                         generateMaterial(stageItem: stageItem, material: subComponent, transform: transform, shape: component, componentId: id)
                     }
+                }
+            } else
+            if component.values["lastMaterial"] == 1 {
+                // Reuse last material
+                if materialIds.count > 0 {
+                    materialMaps[id] = materialIds.last!
                 }
             }
             
@@ -2375,12 +2383,6 @@ class ObjectShader      : BaseShader
                 if (shape.w > \(Float(id) - 0.5) && shape.w < \(Float(id) + 0.5))
                 {
                     material\(id)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-                    /*
-                    MaterialOut matOut;
-                    matOut.color = float4(0,0,0,1);
-                    material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
-
-                    __materialOut.color = mix(__materialOut.color, matOut.color, smoothstep(0, 1, shape.z));*/
                 } else
 
                 """
@@ -2393,15 +2395,6 @@ class ObjectShader      : BaseShader
 
                 {
                     material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-
-                    /*
-                    MaterialOut matOut;
-                    matOut.color = float4(0,0,0,1);
-
-                    material3(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
-
-                    __materialOut.color = mix(matOut.color, __materialOut.color, smoothstep(0, 1, shape.z));
-                    */
                 }
 
                 """
@@ -2538,8 +2531,6 @@ class ObjectShader      : BaseShader
 
                 material(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
 
-                //__materialOut
-
                 float blendFactor = fract(shape.z);
                 float idB = floor(shape.z);
                 float idA = shape.w;
@@ -2550,12 +2541,20 @@ class ObjectShader      : BaseShader
                 code +=
                 """
 
-                if (\(id) > (idB - 0.5) && \(id) < (idB + 0.5))
+                if ((\(id) > (idB - 0.5) && \(id) < (idB + 0.5))__PH__)
                 {
                     material\(id)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &matOut, __funcData);
                 } else
 
                 """
+                
+                var replaceCode = ""
+                for (reuseId, idd) in materialMaps {
+                    if idd == id {
+                        replaceCode += " || (\(reuseId) > (idB - 0.5) && \(reuseId) < (idB + 0.5))"
+                    }
+                }
+                code = code.replacingOccurrences(of: "__PH__", with: replaceCode)
             }
             
             code +=
@@ -2571,12 +2570,20 @@ class ObjectShader      : BaseShader
                 code +=
                 """
 
-                if (\(id) > (idA - 0.5) && \(id) < (idA + 0.5))
+                if ((\(id) > (idA - 0.5) && \(id) < (idA + 0.5))__PH__)
                 {
                     material\(id)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
                 } else
 
                 """
+                
+                var replaceCode = ""
+                for (reuseId, idd) in materialMaps {
+                    if idd == id {
+                        replaceCode += " || (\(reuseId) > (idB - 0.5) && \(reuseId) < (idB + 0.5))"
+                    }
+                }
+                code = code.replacingOccurrences(of: "__PH__", with: replaceCode)
             }
             
             code +=
@@ -2590,8 +2597,9 @@ class ObjectShader      : BaseShader
             
             code +=
             """
-            
-                __materialOut.color = mix(matOut.color, __materialOut.color, smoothstep(0.0, 1.0, blendFactor));
+                float blend = smoothstep(0.0, 1.0, blendFactor);
+                __materialOut.color = mix(matOut.color, __materialOut.color, blend);
+                __materialOut.mask = mix(matOut.mask, __materialOut.mask, blend);
             } else
                         
             """

@@ -254,6 +254,8 @@
 		2B91CBE72358477300DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
 		2B91CBE9235848AC00DED7B1 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE8235848AC00DED7B1 /* Pong.shape-z */; };
 		2B91CBEA235848AC00DED7B1 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE8235848AC00DED7B1 /* Pong.shape-z */; };
+		2B95201D24EF67A500E48841 /* Happy.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B95201C24EF67A400E48841 /* Happy.shape-z */; };
+		2B95201E24EF67A500E48841 /* Happy.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B95201C24EF67A400E48841 /* Happy.shape-z */; };
 		2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
 		2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B9B299123BA327900C2F387 /* rz_toolbar.tiff */; };
 		2B9B299C23BAD15700C2F387 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B299B23BAD15700C2F387 /* Node.swift */; };
@@ -617,6 +619,7 @@
 		2B91CBE22358477300DED7B1 /* Square.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Square.tiff; sourceTree = "<group>"; };
 		2B91CBE32358477300DED7B1 /* Square.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Square.json; sourceTree = "<group>"; };
 		2B91CBE8235848AC00DED7B1 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
+		2B95201C24EF67A400E48841 /* Happy.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Happy.shape-z"; sourceTree = "<group>"; };
 		2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeBuilder.swift; sourceTree = "<group>"; };
 		2B9B299123BA327900C2F387 /* rz_toolbar.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = rz_toolbar.tiff; sourceTree = "<group>"; };
 		2B9B299B23BAD15700C2F387 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
@@ -1182,6 +1185,7 @@
 			isa = PBXGroup;
 			children = (
 				2B8129A224EA6640001EBDE1 /* Minimal.shape-z */,
+				2B95201C24EF67A400E48841 /* Happy.shape-z */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -1379,6 +1383,7 @@
 				2B8DB3872489D20B00D57DC4 /* StoneWall.tiff in Resources */,
 				2B7A3C0223B4652E002EC5FC /* Square.json in Resources */,
 				2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */,
+				2B95201D24EF67A500E48841 /* Happy.shape-z in Resources */,
 				2B8C51B724B6A47E0070E8D8 /* timeline.tiff in Resources */,
 				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
 				2B8DB3842489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
@@ -1414,6 +1419,7 @@
 				2B9B29DA23BB453B00C2F387 /* Square.json in Resources */,
 				2B9B29DC23BB453B00C2F387 /* GameCuben.json in Resources */,
 				2B9B29B023BB44C000C2F387 /* Assets.xcassets in Resources */,
+				2B95201E24EF67A500E48841 /* Happy.shape-z in Resources */,
 				2B8E2FE623C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B8DB3852489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B8C51B224B6A35F0070E8D8 /* material.tiff in Resources */,

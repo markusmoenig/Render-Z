@@ -106,7 +106,7 @@ class NewDialog: MMDialog {
         // Template Items
         let templates3D = Template(view, "3D Templates")
         templates3D.items.append(TemplateItem(view, "Minimal", "Minimal"))
-        //templates3D.items.append(TemplateItem(view, "Density Test", "DensityTest"))
+        templates3D.items.append(TemplateItem(view, "Happy", "Happy"))
         templates.append(templates3D)
         
         let materials3D = Template(view, "Material Examples")

@@ -139,9 +139,9 @@ class XRayShader      : BaseShader
                 float rayLength = 0.;
                 float dist = 0.;
 
-                for (float i = 0.; i < 400; i++)
+                for (float i = 0.; i < 120; i++)
                 {
-                    rayLength += max(0.0001, abs(dist) * 0.25);
+                    rayLength += max(0.0001, abs(dist) * 0.25 * 2.0);
                     float3 pos = rayOrigin + rayDirection * rayLength;
 
                     float4 shape = sceneMap(pos, __funcData);
