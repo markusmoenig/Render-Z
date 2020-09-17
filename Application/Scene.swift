@@ -359,6 +359,16 @@ class StageItem             : Codable, Equatable
                 components[id] = comp
                 return
             }
+            if c.subComponent?.uuid == comp.uuid {
+                c.subComponent = comp
+                return
+            }
+            for (index,sub) in c.components.enumerated() {
+                if sub.uuid == comp.uuid {
+                    c.components[index] = comp
+                    return
+                }
+            }
         }
         for (id, list) in componentLists {
             if let index = list.firstIndex(of: comp) {

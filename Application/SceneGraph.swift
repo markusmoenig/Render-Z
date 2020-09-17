@@ -141,11 +141,13 @@ class MMDListWidget     : MMWidget
     func setItems(_ it: [MMDListWidgetItem])
     {
         items = it
+        selectedItem = nil
+        /*
         if items.count > 0 {
             selectedItem = items[0]
         } else {
             selectedItem = nil
-        }
+        }*/
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
@@ -443,7 +445,7 @@ class SceneGraph                : MMWidget
                 MMMenuItem(text: "Change Boolean", cb: { () in
                     globalApp!.libraryDialog.show(ids: ["Boolean"], cb: { (json) in
                         if let comp = decodeComponentFromJSON(json) {
-                            //let undo = globalApp!.currentEditor.undoStageItemStart(self.maximizedObject!, "Add Domain Modifier")
+                            let undo = globalApp!.currentEditor.undoStageItemStart(self.maximizedObject!, "Add Domain Modifier")
                             
                             comp.uuid = UUID()
                             comp.selected = nil
@@ -454,7 +456,7 @@ class SceneGraph                : MMWidget
                             
                             globalApp!.currentEditor.setComponent(comp)
                             
-                            //globalApp!.currentEditor.undoStageItemEnd(self.maximizedObject!, undo)
+                            globalApp!.currentEditor.undoStageItemEnd(self.maximizedObject!, undo)
                             globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.maximizedObject!)
                             globalApp!.currentEditor.updateOnNextDraw(compile: true)
                             
@@ -542,6 +544,8 @@ class SceneGraph                : MMWidget
                         
                         var materialComp : CodeComponent? = nil
                         
+                        component.values["lastMaterial"] = nil
+
                         // Copy main material
                         if let object = self.maximizedObject {
                             for child in object.children {
@@ -549,7 +553,6 @@ class SceneGraph                : MMWidget
                                     let encodedData = try? JSONEncoder().encode(comp)
                                     if let copiedMaterial =  try? JSONDecoder().decode(CodeComponent.self, from: encodedData!) {
                                         copiedMaterial.uuid = UUID()
-                                        copiedMaterial.connections = [:]
                                         materialComp = copiedMaterial
                                     }
                                 }
