@@ -502,7 +502,7 @@ class BaseShader
         }
         
         if buffer != nil {
-            buffer!.setPurgeableState(.empty)
+            //buffer!.setPurgeableState(.empty)
             buffer = nil
         }
         
