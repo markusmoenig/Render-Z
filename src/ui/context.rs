@@ -10,7 +10,7 @@ pub enum Mode {
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Command {
-    None
+    SetDragFunction(String)
 }
 
 pub struct Context {
@@ -31,6 +31,11 @@ pub struct Context {
     pub color_blue              : [u8;4],
     pub color_white             : [u8;4],
     pub color_black             : [u8;4],
+
+    pub color_code_blue         : [u8;4],
+    pub color_code_red          : [u8;4],
+    pub color_code_yellow       : [u8;4],
+    pub color_code_green        : [u8;4],
 
     pub curr_key                : Option<Vec3i>,
 
@@ -176,6 +181,11 @@ impl Context {
             color_blue          : [27, 79, 136, 255],
             color_white         : [255, 255, 255, 255],
             color_black         : [0, 0, 0, 255],
+
+            color_code_blue     : [89, 154, 184, 255],
+            color_code_red      : [221, 102, 154, 255],
+            color_code_yellow   : [201, 187, 111, 255],
+            color_code_green    : [171, 228, 214, 255],
 
             curr_key            : None,
 

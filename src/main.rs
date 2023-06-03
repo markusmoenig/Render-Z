@@ -5,6 +5,7 @@ pub mod ui;
 pub mod property;
 pub mod tool;
 pub mod buffer;
+pub mod syntax;
 
 use rust_embed::RustEmbed;
 #[derive(RustEmbed)]
@@ -31,14 +32,20 @@ pub mod prelude {
     pub use crate::property::*;
     pub use crate::tool::Tool;
     pub use crate::ui::UI;
+
+    pub use crate::syntax::function::{Function, FunctionName, FunctionName::*};
+    pub use crate::syntax::value::{Value, Value::*};
+    pub use crate::syntax::block::*;
+    pub use crate::syntax::line::*;
+    pub use crate::syntax::variable::*;
 }
 
 use prelude::*;
 
 fn main() {
 
-    let circle = Editor::new();
+    let editor = Editor::new();
     let mut app = TheApp::new();
 
-    _ = app.run(Box::new(circle));
+    _ = app.run(Box::new(editor));
 }

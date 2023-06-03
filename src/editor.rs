@@ -185,7 +185,10 @@ impl MyEditor for Editor {
     /// Process possible UI commands
     fn process_cmds(&mut self) {
         if let Some(cmd) = &self.context.cmd {
+            println!("cmd {:?}", cmd);
             match cmd {
+                Command::SetDragFunction(function) => {
+                },
                 _ => {}
             }
         }

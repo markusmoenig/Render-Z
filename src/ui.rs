@@ -11,6 +11,7 @@ pub mod prelude {
     pub use crate::ui::widgets::settings::*;
     pub use crate::ui::widgets::browser::*;
     pub use crate::ui::widgets::functionbar::*;
+    pub use crate::ui::widgets::text_list_drag::*;
 }
 
 #[repr(usize)]
@@ -48,7 +49,7 @@ impl UI {
         let browser = Box::new(Browser::new());
         widgets.push(browser);
 
-        let modebar: Box<_> = Box::new(ModeBar::new());
+        let modebar: Box<_> = Box::new(FunctionBar::new());
         widgets.push(modebar);
 
         // let perspective = Box::new(PerspectiveBar::new());

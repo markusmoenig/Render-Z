@@ -5,6 +5,7 @@ pub mod settings;
 pub mod browser;
 pub mod functionbar;
 pub mod color_widget;
+pub mod text_list_drag;
 
 #[derive(Clone, Debug)]
 
@@ -19,6 +20,7 @@ pub trait Widget : Sync + Send {
 
     fn set_rect(&mut self, rect: Rect);
     fn set_text(&mut self, text: String) {}
+    fn set_text_list(&mut self, text: Vec<String>) {}
     fn set_cmd(&mut self, cmd: Command) {}
 
     fn get_state(&mut self) -> bool { false }

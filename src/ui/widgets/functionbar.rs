@@ -1,17 +1,27 @@
 
 use crate::prelude::*;
 
-pub struct ModeBar {
+pub struct FunctionBar {
+
+    widgets             : Vec<Box<dyn Widget>>,
 
     rect                : Rect
 }
 
-impl Widget for ModeBar {
+impl Widget for FunctionBar {
 
     fn new() -> Self {
 
+        let mut widgets : Vec<Box<dyn Widget>> = vec![];
+
+        let mut text_list: Box<TextListDrag> = Box::new(TextListDrag::new());
+        text_list.set_text_list(vec!["abs".to_string(), "sin".to_string()]);
+        widgets.push(text_list);
+
         Self {
-            rect        : Rect::empty()
+            widgets,
+
+            rect        : Rect::empty(),
         }
     }
 
@@ -25,6 +35,12 @@ impl Widget for ModeBar {
 
         ctx.draw.rect(pixels, &r, ctx.width, &context.color_toolbar);
         ctx.draw.rect(pixels, &(r.0, r.1, r.2, 2), ctx.width, &[0, 0, 0, 255]);
+
+        self.widgets[0].set_rect(self.rect);
+
+        for w in &mut self.widgets {
+            w.draw(pixels, context, ctx);
+        }
 
         /*
         let mut y = r.1 + 2;
@@ -72,30 +88,29 @@ impl Widget for ModeBar {
     }
 
     fn touch_down(&mut self, x: f32, y: f32, context: &mut Context) -> bool {
-
-        if self.rect.is_inside((x as usize, y as usize)) {
-
-            if (y as usize) < self.rect.y + 42 {
-                context.curr_mode = Mode::Select;
-                return true;
-            } else
-            if (y as usize) < self.rect.y + 42 * 2 {
-                context.curr_mode = Mode::Edit;
+        for w in &mut self.widgets {
+            if w.touch_down(x, y, context) {
                 return true;
             }
         }
-
         false
     }
 
-    /*
     fn touch_dragged(&mut self, x: f32, y: f32, context: &mut Context) -> bool {
-
-
-        true
+        for w in &mut self.widgets {
+            if w.touch_dragged(x, y, context) {
+                return true;
+            }
+        }
+        false
     }
 
-    fn touch_up(&mut self, _x: f32, _y: f32, context: &mut Context) -> bool {
+    fn touch_up(&mut self, x: f32, y: f32, context: &mut Context) -> bool {
+        for w in &mut self.widgets {
+            if w.touch_up(x, y, context) {
+                return true;
+            }
+        }
         false
-    }*/
+    }
 }
