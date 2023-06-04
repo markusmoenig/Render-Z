@@ -6,6 +6,7 @@ pub mod browser;
 pub mod functionbar;
 pub mod color_widget;
 pub mod text_list_drag;
+pub mod code_editor;
 
 #[derive(Clone, Debug)]
 

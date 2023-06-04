@@ -37,10 +37,10 @@ pub struct Context {
     pub color_code_yellow       : [u8;4],
     pub color_code_green        : [u8;4],
 
-    pub curr_key                : Option<Vec3i>,
+    pub project                 : Project,
 
-    pub curr_tool               : Tool,
-    pub curr_tools              : Vec<String>,
+    pub curr_object             : Option<Uuid>,
+    pub curr_node               : Option<Uuid>,
 
     pub cmd                     : Option<Command>,
 
@@ -48,27 +48,6 @@ pub struct Context {
 
     pub font                    : Option<Font>,
     pub icons                   : FxHashMap<String, (Vec<u8>, usize, usize)>,
-
-    // Tools
-
-    pub tools                   : FxHashMap<String, Tool>,
-
-    /*
-    pub curr_perspective    : Perspective,
-    pub curr_shape          : usize,
-    pub curr_pattern        : usize,
-    pub curr_color_index    : usize,
-
-    pub curr_property       : Props,
-    pub curr_properties     : Properties,
-
-    pub selected_pos        : Option<(i32, i32)>,
-    pub selected_id         : Option<Uuid>,
-
-    pub font                : Option<Font>,
-    pub icons               : FxHashMap<String, (Vec<u8>, u32, u32)>,
-
-    pub palette             : Palette,*/
 }
 
 impl Context {
@@ -76,7 +55,6 @@ impl Context {
     pub fn new() -> Self {
 
         let mut curr_tool = Tool::new("".into());
-        let mut curr_tools = vec![];
 
         let mut tools : FxHashMap<String, Tool> = FxHashMap::default();
 
@@ -109,64 +87,18 @@ impl Context {
                         icons.insert(cut_name.to_string(), (bytes.to_vec(), info.width as usize, info.height as usize));
                     }
                 }
-            } else
-            if name.starts_with("tools/") {
-                if let Some(bytes) = Embedded::get(name) {
-                    if let Some(string) = std::str::from_utf8(bytes.data.as_ref()).ok() {
-                        //println!("{}", string);
-
-                        let mut tool = Tool::new(string.into());
-
-                        //tool.init(&mut engine);
-                        let name = tool.name();
-                        println!("{}", name);
-
-                        curr_tool = tool.clone();
-
-                        curr_tools.push(name.clone());
-                        tools.insert(name, tool);
-                    }
-                }
             }
         }
 
-        // --
-        /*
-        let palette = Palette::new();
+        // Generate Project
 
-        let mut shapes : Vec<Tile> = vec![];
+        let mut project = Project::new();
+        project.gen_default_shader_project();
 
-        /*
-        let mut tile = Tile::new(100);
-        tile.shapes.push(Box::new(Wall::new()));
-        tile.shapes[0].update();
-        tile.render(&palette);
-
-        shapes.push(tile);*/
-
-        let mut tile = Tile::new(100);
-        tile.shapes.push(Box::new(Voxels::new()));
-        tile.shapes[0].update();
-        tile.render(&palette);
-
-        shapes.push(tile);
-
-        let mut patterns : Vec<Box<dyn Pattern>> = vec![];
-
-        let brick = Brick::new();
-        patterns.push(Box::new(brick));
-
-        let value = Value::new();
-        patterns.push(Box::new(value));
-
-        let voronoi: Voronoi = Voronoi::new();
-        patterns.push(Box::new(voronoi));
-        */
+        let curr_object = Some(project.objects[0].id);
+        let curr_node = Some(project.objects[0].nodes[0].id);
 
         Self {
-            // shapes,
-            // patterns,
-
             width               : 0,
             height              : 0,
 
@@ -187,10 +119,10 @@ impl Context {
             color_code_yellow   : [201, 187, 111, 255],
             color_code_green    : [171, 228, 214, 255],
 
-            curr_key            : None,
+            project,
 
-            curr_tool,
-            curr_tools,
+            curr_object,
+            curr_node,
 
             cmd                 : None,
 
@@ -198,26 +130,20 @@ impl Context {
 
             font,
             icons,
-
-            tools,
-
-            // curr_mode       : Mode::InsertShape,
-            // curr_shape      : 0,
-            // curr_pattern    : 0,
-            // curr_color_index: 3,
-
-            // curr_property   : Props::Shape,
-            // curr_properties : Properties::new(),
-
-            // selected_pos    : None,
-            // selected_id     : None,
-
-            // curr_perspective: Perspective::Iso,
-
-            // font,
-            // icons,
-
-            // palette,
         }
+    }
+
+    /// Returns a mutable reference to the current node
+    pub fn get_node_mut(&mut self) -> Option<&mut Node> {
+        if let Some(curr_object) = self.curr_object {
+            if let Some(object) = self.project.get_object_mut(curr_object) {
+                if let Some(curr_node) = self.curr_node {
+                    if let Some(node) = object.get_node_mut(curr_node) {
+                        return Some(node);
+                    }
+                }
+            }
+        }
+        None
     }
 }

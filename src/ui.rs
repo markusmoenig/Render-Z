@@ -12,6 +12,7 @@ pub mod prelude {
     pub use crate::ui::widgets::browser::*;
     pub use crate::ui::widgets::functionbar::*;
     pub use crate::ui::widgets::text_list_drag::*;
+    pub use crate::ui::widgets::code_editor::*;
 }
 
 #[repr(usize)]
@@ -19,6 +20,7 @@ enum WidgetIndices {
     SettingsIndex,
     BrowserIndex,
     ModeBarIndex,
+    CodeEditorIndex,
 }
 
 use WidgetIndices::*;
@@ -52,12 +54,8 @@ impl UI {
         let modebar: Box<_> = Box::new(FunctionBar::new());
         widgets.push(modebar);
 
-        // let perspective = Box::new(PerspectiveBar::new());
-        // let property = Box::new(PropertyWidget::new());
-
-        // widgets.push(modebar);
-        // widgets.push(perspective);
-        // widgets.push(property);
+        let code_editor: Box<_> = Box::new(CodeEditor::new());
+        widgets.push(code_editor);
 
         Self {
             widgets,
@@ -93,9 +91,16 @@ impl UI {
 
         // --- Browser
 
-        let browser_rect: Rect = Rect::new( self.functionbar_width, (context.height - self.browser_height), context.width - self.functionbar_width, self.browser_height);
+        let browser_rect: Rect = Rect::new( self.functionbar_width, context.height - self.browser_height, context.width - self.functionbar_width, self.browser_height);
 
         self.widgets[BrowserIndex as usize].set_rect(browser_rect.clone());
+
+        // --- Browser
+
+        let code_editor_margin = 20;
+        let code_editor_rect: Rect = Rect::new( self.functionbar_width + code_editor_margin, self.toolbar_height + code_editor_margin, context.width - self.functionbar_width - self.settings_width - code_editor_margin * 2, context.height - self.browser_height - self.toolbar_height - code_editor_margin * 2);
+
+        self.widgets[CodeEditorIndex as usize].set_rect(code_editor_rect);
 
         // ---
 

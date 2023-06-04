@@ -1,27 +1,16 @@
 
 use crate::prelude::*;
 
-pub struct ColorWidget {
+pub struct CodeEditor {
     rect                : Rect,
-
-    id                  : String,
-    text                : String,
-
-    cmd                 : Option<Command>,
-
-    clicked             : bool,
 }
 
-impl Widget for ColorWidget {
+impl Widget for CodeEditor {
 
     fn new() -> Self {
 
         Self {
             rect        : Rect::empty(),
-            id          : "".to_string(),
-            text        : "".to_string(),
-            cmd         : None,
-            clicked     : false,
         }
     }
 
@@ -29,28 +18,31 @@ impl Widget for ColorWidget {
         self.rect = rect;
     }
 
-    fn set_text(&mut self, text: String) {
-        self.text = text;
-    }
-
-    fn set_cmd(&mut self, cmd: Command) {
-        self.cmd = Some(cmd);
-    }
-
     fn draw(&mut self, pixels: &mut [u8], context: &mut Context, ctx: &TheContext) {
 
-        ctx.draw.rect(pixels, &self.rect.to_usize(), ctx.width, &context.color_black);
+        let mut r = self.rect.to_usize();
 
-        if let Some(curr_object) = context.curr_object {
-            if let Some(object) = context.project.get_object_mut(curr_object) {
-                if let Some(curr_node) = context.curr_node {
-                    if let Some(node) = object.get_node_mut(curr_node) {
+        ctx.draw.blend_rect(pixels, &r, ctx.width, &[0, 0, 0, 128]);
 
-                    }
-                }
+        if let Some(node) = context.get_node_mut() {
+
+        }
+
+        /*
+        self.text_rects = vec![];
+
+        r.0 += 10;
+        r.1 += 10;
+        r.3 = 20;
+
+        if let Some(font) = &context.font {
+            for t in &self.text {
+                ctx.draw.blend_text_rect(pixels, &r, context.width, font, 16.0, &t.as_str(), &context.color_code_blue, theframework::thedraw2d::TheTextAlignment::Left);
+                self.text_rects.push(Rect::new(r.0, r.1, r.2, r.3));
+                r.1 += 24;
             }
         }
-        /*
+
         let color: [u8; 4] = if !self.clicked && !self.state { context.color_selected } else { context.color_button };
 
         let r = self.rect.to_usize();
@@ -70,12 +62,6 @@ impl Widget for ColorWidget {
     }
 
     fn touch_down(&mut self, x: f32, y: f32, context: &mut Context) -> bool {
-
-        if self.rect.is_inside((x as usize, y as usize)) {
-            context.cmd = self.cmd.clone();
-            return true;
-        }
-
         false
     }
 
@@ -87,10 +73,6 @@ impl Widget for ColorWidget {
     }*/
 
     fn touch_up(&mut self, _x: f32, _y: f32, _context: &mut Context) -> bool {
-        if self.clicked {
-            self.clicked = false;
-            return true;
-        }
         false
     }
 }

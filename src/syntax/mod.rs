@@ -4,3 +4,6 @@ pub mod expression;
 pub mod line;
 pub mod block;
 pub mod variable;
+pub mod node;
+pub mod object;
+pub mod project;

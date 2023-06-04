@@ -54,6 +54,9 @@ impl TheTrait for Editor {
             self.buffer = ColorBuffer::new(world_width, world_height);
         }
 
+        if let Some(object) = &self.context.curr_object {
+            self.context.project.render_object(&mut self.buffer, *object, self.context.curr_node);
+        }
         // Render world
         // if WORLD.lock().unwrap().needs_update {
         //     WORLD.lock().unwrap().render(&mut self.buffer, &self.context);

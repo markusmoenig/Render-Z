@@ -15,7 +15,6 @@ use rust_embed::RustEmbed;
 pub struct Embedded;
 
 pub mod prelude {
-
     pub use theframework::TheContext;
 
     pub use crate::Embedded;
@@ -38,6 +37,10 @@ pub mod prelude {
     pub use crate::syntax::block::*;
     pub use crate::syntax::line::*;
     pub use crate::syntax::variable::*;
+    pub use crate::syntax::expression::*;
+    pub use crate::syntax::node::*;
+    pub use crate::syntax::object::*;
+    pub use crate::syntax::project::*;
 }
 
 use prelude::*;

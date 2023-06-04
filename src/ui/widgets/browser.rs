@@ -35,6 +35,7 @@ impl Widget for Browser {
         ctx.draw.rect(pixels, &(r.0, r.1, 1, r.3), ctx.width, &context.color_black);
         // ctx.draw.rect(pixels, &(r.0 + r.2, r.1, 1, r.3), ctx.width, &context.color_black);
         return;
+        /*
         r.3 = self.header_height;
 
         ctx.draw.rect(pixels, &r, ctx.width, &context.color_toolbar);
@@ -72,7 +73,7 @@ impl Widget for Browser {
             } else {
                 r.1 += r.3;
             }
-        }
+        }*/
     }
 
     fn contains(&mut self, x: f32, y: f32) -> bool {
@@ -87,6 +88,7 @@ impl Widget for Browser {
 
         if self.contains(x, y) {
 
+            /*
             for (index, r) in self.content_rects.iter().enumerate() {
                 if r.is_inside((x as usize, y as usize)) {
                     if let Some(tool) = context.tools.get(&context.curr_tools[index]) {
@@ -94,7 +96,7 @@ impl Widget for Browser {
                         return true;
                     }
                 }
-            }
+            }*/
 
             /*
             if context.is_color_property(){
