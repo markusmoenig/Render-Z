@@ -3,7 +3,6 @@ use theframework::*;
 pub mod editor;
 pub mod ui;
 pub mod property;
-pub mod tool;
 pub mod buffer;
 pub mod syntax;
 
@@ -29,7 +28,6 @@ pub mod prelude {
 
     pub use crate::editor::{Editor};
     pub use crate::property::*;
-    pub use crate::tool::Tool;
     pub use crate::ui::UI;
 
     pub use crate::syntax::function::{Function, FunctionName, FunctionName::*};

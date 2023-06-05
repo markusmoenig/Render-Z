@@ -14,9 +14,6 @@ pub enum Command {
 }
 
 pub struct Context {
-    //pub shapes              : Vec<Tile>,
-    //pub patterns            : Vec<Box<dyn Pattern>>,
-
     pub width                   : usize,
     pub height                  : usize,
 
@@ -47,28 +44,36 @@ pub struct Context {
     pub curr_mode               : Mode,
 
     pub font                    : Option<Font>,
+    pub code_font               : Option<Font>,
     pub icons                   : FxHashMap<String, (Vec<u8>, usize, usize)>,
+
+    pub meta                    : Vec<MetaElement>,
 }
 
 impl Context {
 
     pub fn new() -> Self {
 
-        let mut curr_tool = Tool::new("".into());
-
-        let mut tools : FxHashMap<String, Tool> = FxHashMap::default();
-
         // Load Font
 
         let mut font : Option<Font> = None;
+        let mut code_font : Option<Font> = None;
         let mut icons : FxHashMap<String, (Vec<u8>, usize, usize)> = FxHashMap::default();
 
         for file in Embedded::iter() {
             let name = file.as_ref();
             if name.starts_with("fonts/") {
-                if let Some(font_bytes) = Embedded::get(name) {
-                    if let Some(f) = Font::from_bytes(font_bytes.data, fontdue::FontSettings::default()).ok() {
-                        font = Some(f);
+                if name.contains("Roboto") {
+                    if let Some(font_bytes) = Embedded::get(name) {
+                        if let Some(f) = Font::from_bytes(font_bytes.data, fontdue::FontSettings::default()).ok() {
+                            font = Some(f);
+                        }
+                    }
+                } else {
+                    if let Some(font_bytes) = Embedded::get(name) {
+                        if let Some(f) = Font::from_bytes(font_bytes.data, fontdue::FontSettings::default()).ok() {
+                            code_font = Some(f);
+                        }
                     }
                 }
             } else
@@ -129,8 +134,26 @@ impl Context {
             curr_mode           : Mode::Select,
 
             font,
+            code_font,
+
             icons,
+
+            meta                : vec![],
         }
+    }
+
+    /// Returns a reference to the current node
+    pub fn get_node(&mut self) -> Option<&Node> {
+        if let Some(curr_object) = self.curr_object {
+            if let Some(object) = self.project.get_object(curr_object) {
+                if let Some(curr_node) = self.curr_node {
+                    if let Some(node) = object.get_node(curr_node) {
+                        return Some(node);
+                    }
+                }
+            }
+        }
+        None
     }
 
     /// Returns a mutable reference to the current node

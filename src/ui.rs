@@ -1,11 +1,13 @@
 pub mod widgets;
 pub mod rect;
 pub mod context;
+pub mod code_drawer;
 
 pub mod prelude {
     pub use crate::ui::widgets::*;
     pub use crate::ui::rect::Rect;
     pub use crate::ui::context::*;
+    pub use crate::ui::code_drawer::*;
 
     pub use crate::ui::widgets::text_button::*;
     pub use crate::ui::widgets::settings::*;

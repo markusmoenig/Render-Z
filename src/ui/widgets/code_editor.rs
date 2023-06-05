@@ -1,8 +1,13 @@
 
+use std::borrow::BorrowMut;
+
 use crate::prelude::*;
 
 pub struct CodeEditor {
-    rect                : Rect,
+    rect                    : Rect,
+
+    code_drawer             : CodeDrawer
+
 }
 
 impl Widget for CodeEditor {
@@ -10,7 +15,9 @@ impl Widget for CodeEditor {
     fn new() -> Self {
 
         Self {
-            rect        : Rect::empty(),
+            rect            : Rect::empty(),
+            code_drawer     : CodeDrawer::new(),
+
         }
     }
 
@@ -24,9 +31,22 @@ impl Widget for CodeEditor {
 
         ctx.draw.blend_rect(pixels, &r, ctx.width, &[0, 0, 0, 128]);
 
-        if let Some(node) = context.get_node_mut() {
-
+        let mut node_to_draw : Option<Node> = None;
+        if let Some(curr_object) = context.curr_object {
+            if let Some(object) = context.project.get_object(curr_object) {
+                if let Some(curr_node) = context.curr_node {
+                    if let Some(node) = object.get_node(curr_node) {
+                        node_to_draw = Some(node.clone());
+                    }
+                }
+            }
         }
+
+        if let Some(node_to_draw) = node_to_draw {
+            self.code_drawer.draw(&node_to_draw, context, ctx);
+        }
+
+        ctx.draw.blend_slice(pixels, &self.code_drawer.buffer, &(r.0, r.1, self.code_drawer.max_width, self.code_drawer.height), ctx.width);
 
         /*
         self.text_rects = vec![];
