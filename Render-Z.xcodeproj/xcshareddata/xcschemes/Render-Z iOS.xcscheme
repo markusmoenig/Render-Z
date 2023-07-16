@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2B91CD7E235959CC00DED7B1"
-               BuildableName = "IOS_Framework.framework"
-               BlueprintName = "IOS Framework"
-               ReferencedContainer = "container:Shape-Z.xcodeproj">
+               BlueprintIdentifier = "2B9B29A323BB44BF00C2F387"
+               BuildableName = "Shape-Z.app"
+               BlueprintName = "Render-Z iOS"
+               ReferencedContainer = "container:Render-Z.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -40,6 +40,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "2B9B29A323BB44BF00C2F387"
+            BuildableName = "Shape-Z.app"
+            BlueprintName = "Render-Z iOS"
+            ReferencedContainer = "container:Render-Z.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -47,15 +57,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2B91CD7E235959CC00DED7B1"
-            BuildableName = "IOS_Framework.framework"
-            BlueprintName = "IOS Framework"
-            ReferencedContainer = "container:Shape-Z.xcodeproj">
+            BlueprintIdentifier = "2B9B29A323BB44BF00C2F387"
+            BuildableName = "Shape-Z.app"
+            BlueprintName = "Render-Z iOS"
+            ReferencedContainer = "container:Render-Z.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

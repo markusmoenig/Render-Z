@@ -212,7 +212,7 @@ class MMRenderer : NSObject, MTKViewDelegate {
         
         // Setup the vertex buffer
         if vertexBuffer != nil {
-            vertexBuffer?.setPurgeableState(.empty)
+            //vertexBuffer?.setPurgeableState(.empty)
         }
         vertexBuffer = createVertexBuffer( MMRect( 0, 0, width, height ) )
     }

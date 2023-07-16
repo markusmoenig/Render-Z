@@ -70,7 +70,7 @@ class App
         mmView = view
         mmFile = MMFile( view, "shape-z" )
                 
-        mmView.registerIcon("sz_toolbar")
+        mmView.registerIcon("rz_toolbar")
         mmView.registerIcon("scenegraph")
         mmView.registerIcon("timeline")
         mmView.registerIcon("camera")

@@ -66,7 +66,7 @@ class TopRegion: MMRegion
             self.app.currentEditor.activate()
         }
         
-        logoTexture = view.icons["sz_toolbar"]
+        logoTexture = view.icons["rz_toolbar"]
         
         var borderlessSkin = MMSkinButton()
         borderlessSkin.margin = MMMargin( 8, 4, 8, 4 )

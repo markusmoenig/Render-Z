@@ -214,12 +214,8 @@
 		2B8C51B224B6A35F0070E8D8 /* material.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B024B6A35E0070E8D8 /* material.tiff */; };
 		2B8C51B424B6A4330070E8D8 /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B324B6A4330070E8D8 /* scenegraph.tiff */; };
 		2B8C51B524B6A4330070E8D8 /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B324B6A4330070E8D8 /* scenegraph.tiff */; };
-		2B8C51B724B6A47E0070E8D8 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B624B6A47D0070E8D8 /* timeline.tiff */; };
-		2B8C51B824B6A47E0070E8D8 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B624B6A47D0070E8D8 /* timeline.tiff */; };
 		2B8C51BA24B6A55D0070E8D8 /* render.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B924B6A55C0070E8D8 /* render.tiff */; };
 		2B8C51BB24B6A55D0070E8D8 /* render.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B924B6A55C0070E8D8 /* render.tiff */; };
-		2B8C51BD24B730CE0070E8D8 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51BC24B730CE0070E8D8 /* fileicon.tiff */; };
-		2B8C51BE24B730CE0070E8D8 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51BC24B730CE0070E8D8 /* fileicon.tiff */; };
 		2B8C51C124B941CE0070E8D8 /* PostShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C51C024B941CC0070E8D8 /* PostShader.swift */; };
 		2B8C51C224B941CF0070E8D8 /* PostShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C51C024B941CC0070E8D8 /* PostShader.swift */; };
 		2B8CC6CB23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */; };
@@ -484,6 +480,10 @@
 		2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 		2BFC2A1924C2EBD80036C047 /* Physics3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC2A1824C2EBD80036C047 /* Physics3D.swift */; };
 		2BFC2A1A24C2EBD80036C047 /* Physics3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC2A1824C2EBD80036C047 /* Physics3D.swift */; };
+		DDE0AB562A636CCD006084A9 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB552A636CCD006084A9 /* fileicon.tiff */; };
+		DDE0AB572A636CCD006084A9 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB552A636CCD006084A9 /* fileicon.tiff */; };
+		DDE0AB592A636DCF006084A9 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB582A636DCF006084A9 /* timeline.tiff */; };
+		DDE0AB5A2A636DCF006084A9 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB582A636DCF006084A9 /* timeline.tiff */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -568,7 +568,7 @@
 		2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerAreaMaxDelegate.swift; sourceTree = "<group>"; };
 		2B716BED24A039CF002DA1FD /* ThumbnailShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailShader.swift; sourceTree = "<group>"; };
 		2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTreeWidget.swift; sourceTree = "<group>"; };
-		2B7A3BF123B4583A002EC5FC /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B7A3BF123B4583A002EC5FC /* Render-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Render-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B7A3BF323B4583A002EC5FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2B7A3BF523B4583A002EC5FC /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		2B7A3BF723B4583E002EC5FC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -599,9 +599,7 @@
 		2B8C51AD24B6A2FF0070E8D8 /* ground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = ground.tiff; sourceTree = "<group>"; };
 		2B8C51B024B6A35E0070E8D8 /* material.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = material.tiff; sourceTree = "<group>"; };
 		2B8C51B324B6A4330070E8D8 /* scenegraph.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scenegraph.tiff; sourceTree = "<group>"; };
-		2B8C51B624B6A47D0070E8D8 /* timeline.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline.tiff; sourceTree = "<group>"; };
 		2B8C51B924B6A55C0070E8D8 /* render.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = render.tiff; sourceTree = "<group>"; };
-		2B8C51BC24B730CE0070E8D8 /* fileicon.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = fileicon.tiff; sourceTree = "<group>"; };
 		2B8C51C024B941CC0070E8D8 /* PostShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostShader.swift; sourceTree = "<group>"; };
 		2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperEditor.swift; sourceTree = "<group>"; };
 		2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeAccess.swift; sourceTree = "<group>"; };
@@ -624,7 +622,7 @@
 		2B9B299123BA327900C2F387 /* rz_toolbar.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = rz_toolbar.tiff; sourceTree = "<group>"; };
 		2B9B299B23BAD15700C2F387 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		2B9B299E23BAD2DB00C2F387 /* NodeUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeUI.swift; sourceTree = "<group>"; };
-		2B9B29A423BB44BF00C2F387 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B9B29A423BB44BF00C2F387 /* Render-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Render-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B9B29A623BB44BF00C2F387 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2B9B29A823BB44BF00C2F387 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		2B9B29AA23BB44BF00C2F387 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -651,7 +649,7 @@
 		2BB6B05F231A069A0067B217 /* sz_ui_grey.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_grey.tiff; sourceTree = "<group>"; };
 		2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_blue.tiff; sourceTree = "<group>"; };
 		2BBF0F4B225C397A009950E3 /* Renderer.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Renderer.metal; sourceTree = "<group>"; };
-		2BBF10F621EAD2AF001C94E9 /* _Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "_Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BBF10F621EAD2AF001C94E9 /* _Render-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "_Render-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		2BBF10FE21EAD2AF001C94E9 /* Shape_Z.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Shape_Z.xcdatamodel; sourceTree = "<group>"; };
@@ -659,7 +657,7 @@
 		2BBF110321EAD2B0001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		2BBF110521EAD2B0001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2BBF110621EAD2B0001C94E9 /* Shape_Z.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Shape_Z.entitlements; sourceTree = "<group>"; };
-		2BBF112C21EAD38D001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BBF112C21EAD38D001C94E9 /* Render-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Render-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2BBF113021EAD38E001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		2BBF113321EAD38E001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -736,6 +734,8 @@
 		2BF632EC2361570600750990 /* MMTabButtonWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabButtonWidget.swift; sourceTree = "<group>"; };
 		2BFBC58622D2C51300A27FAD /* ReferenceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceList.swift; sourceTree = "<group>"; };
 		2BFC2A1824C2EBD80036C047 /* Physics3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics3D.swift; sourceTree = "<group>"; };
+		DDE0AB552A636CCD006084A9 /* fileicon.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = fileicon.tiff; sourceTree = "<group>"; };
+		DDE0AB582A636DCF006084A9 /* timeline.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline.tiff; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -882,7 +882,7 @@
 				2B8C51AD24B6A2FF0070E8D8 /* ground.tiff */,
 				2B8C51B024B6A35E0070E8D8 /* material.tiff */,
 				2B8C51B324B6A4330070E8D8 /* scenegraph.tiff */,
-				2B8C51B624B6A47D0070E8D8 /* timeline.tiff */,
+				DDE0AB582A636DCF006084A9 /* timeline.tiff */,
 				2B8C51B924B6A55C0070E8D8 /* render.tiff */,
 				2B2B5FE7242442AC00B9CCF1 /* dev_off.tiff */,
 				2B2B5FE6242442AC00B9CCF1 /* dev_on.tiff */,
@@ -892,7 +892,7 @@
 				2B7A3C4323B46AD8002EC5FC /* sz_toolbar.tiff */,
 				2B7A3C4623B46AD8002EC5FC /* sz_ui_grey.tiff */,
 				2B7A3C4C23B46AD8002EC5FC /* sz_ui_blue.tiff */,
-				2B8C51BC24B730CE0070E8D8 /* fileicon.tiff */,
+				DDE0AB552A636CCD006084A9 /* fileicon.tiff */,
 				2BD0E1D5245A5F6000A61586 /* maximize.tiff */,
 				2BD0E1D6245A5F6100A61586 /* minimize.tiff */,
 			);
@@ -994,10 +994,10 @@
 		2BBF10F721EAD2AF001C94E9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2BBF10F621EAD2AF001C94E9 /* _Shape-Z.app */,
-				2BBF112C21EAD38D001C94E9 /* Shape-Z.app */,
-				2B7A3BF123B4583A002EC5FC /* Shape-Z.app */,
-				2B9B29A423BB44BF00C2F387 /* Shape-Z.app */,
+				2BBF10F621EAD2AF001C94E9 /* _Render-Z.app */,
+				2BBF112C21EAD38D001C94E9 /* Render-Z.app */,
+				2B7A3BF123B4583A002EC5FC /* Render-Z.app */,
+				2B9B29A423BB44BF00C2F387 /* Render-Z.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1208,9 +1208,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2B7A3BF023B4583A002EC5FC /* Shape-Z */ = {
+		2B7A3BF023B4583A002EC5FC /* Render-Z */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2B7A3BFE23B4583E002EC5FC /* Build configuration list for PBXNativeTarget "Shape-Z" */;
+			buildConfigurationList = 2B7A3BFE23B4583E002EC5FC /* Build configuration list for PBXNativeTarget "Render-Z" */;
 			buildPhases = (
 				2B7A3BED23B4583A002EC5FC /* Sources */,
 				2B7A3BEE23B4583A002EC5FC /* Frameworks */,
@@ -1220,14 +1220,14 @@
 			);
 			dependencies = (
 			);
-			name = "Shape-Z";
+			name = "Render-Z";
 			productName = "Render-Z";
-			productReference = 2B7A3BF123B4583A002EC5FC /* Shape-Z.app */;
+			productReference = 2B7A3BF123B4583A002EC5FC /* Render-Z.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2B9B29A323BB44BF00C2F387 /* Shape-Z iOS */ = {
+		2B9B29A323BB44BF00C2F387 /* Render-Z iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2B9B29B523BB44C000C2F387 /* Build configuration list for PBXNativeTarget "Shape-Z iOS" */;
+			buildConfigurationList = 2B9B29B523BB44C000C2F387 /* Build configuration list for PBXNativeTarget "Render-Z iOS" */;
 			buildPhases = (
 				2B9B29A023BB44BF00C2F387 /* Sources */,
 				2B9B29A123BB44BF00C2F387 /* Frameworks */,
@@ -1237,14 +1237,14 @@
 			);
 			dependencies = (
 			);
-			name = "Shape-Z iOS";
+			name = "Render-Z iOS";
 			productName = "Render-Z iOS";
-			productReference = 2B9B29A423BB44BF00C2F387 /* Shape-Z.app */;
+			productReference = 2B9B29A423BB44BF00C2F387 /* Render-Z.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2BBF10F521EAD2AF001C94E9 /* _Shape-Z */ = {
+		2BBF10F521EAD2AF001C94E9 /* _Render-Z */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2BBF111F21EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "_Shape-Z" */;
+			buildConfigurationList = 2BBF111F21EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "_Render-Z" */;
 			buildPhases = (
 				2BBF10F221EAD2AF001C94E9 /* Sources */,
 				2BBF10F321EAD2AF001C94E9 /* Frameworks */,
@@ -1254,14 +1254,14 @@
 			);
 			dependencies = (
 			);
-			name = "_Shape-Z";
+			name = "_Render-Z";
 			productName = "Shape-Z";
-			productReference = 2BBF10F621EAD2AF001C94E9 /* _Shape-Z.app */;
+			productReference = 2BBF10F621EAD2AF001C94E9 /* _Render-Z.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2BBF112B21EAD38D001C94E9 /* _Shape-Z iOS */ = {
+		2BBF112B21EAD38D001C94E9 /* _Render-Z iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2BBF115421EAD38E001C94E9 /* Build configuration list for PBXNativeTarget "_Shape-Z iOS" */;
+			buildConfigurationList = 2BBF115421EAD38E001C94E9 /* Build configuration list for PBXNativeTarget "_Render-Z iOS" */;
 			buildPhases = (
 				2BBF112821EAD38D001C94E9 /* Sources */,
 				2BBF112921EAD38D001C94E9 /* Frameworks */,
@@ -1271,9 +1271,9 @@
 			);
 			dependencies = (
 			);
-			name = "_Shape-Z iOS";
+			name = "_Render-Z iOS";
 			productName = "Shape-Z iOS";
-			productReference = 2BBF112C21EAD38D001C94E9 /* Shape-Z.app */;
+			productReference = 2BBF112C21EAD38D001C94E9 /* Render-Z.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1324,7 +1324,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 2BBF10F121EAD2AF001C94E9 /* Build configuration list for PBXProject "Shape-Z" */;
+			buildConfigurationList = 2BBF10F121EAD2AF001C94E9 /* Build configuration list for PBXProject "Render-Z" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -1337,10 +1337,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2B7A3BF023B4583A002EC5FC /* Shape-Z */,
-				2B9B29A323BB44BF00C2F387 /* Shape-Z iOS */,
-				2BBF10F521EAD2AF001C94E9 /* _Shape-Z */,
-				2BBF112B21EAD38D001C94E9 /* _Shape-Z iOS */,
+				2B7A3BF023B4583A002EC5FC /* Render-Z */,
+				2B9B29A323BB44BF00C2F387 /* Render-Z iOS */,
+				2BBF10F521EAD2AF001C94E9 /* _Render-Z */,
+				2BBF112B21EAD38D001C94E9 /* _Render-Z iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -1353,6 +1353,7 @@
 				2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B8C51AB24B6A2A80070E8D8 /* camera.tiff in Resources */,
 				2B666FA82464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */,
+				DDE0AB562A636CCD006084A9 /* fileicon.tiff in Resources */,
 				2B666FAB2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
 				2B2DAAFE245C183F00067839 /* render-z.tiff in Resources */,
 				2B7A3C0523B4652E002EC5FC /* GameCuben.tiff in Resources */,
@@ -1362,7 +1363,6 @@
 				2B8C51B424B6A4330070E8D8 /* scenegraph.tiff in Resources */,
 				2B7A3C0623B4652E002EC5FC /* OpenSans.json in Resources */,
 				2B8C51AE24B6A3010070E8D8 /* ground.tiff in Resources */,
-				2B8C51BD24B730CE0070E8D8 /* fileicon.tiff in Resources */,
 				2B9CB6F62485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B2B5FEC242442AD00B9CCF1 /* dev_off.tiff in Resources */,
 				2B8129A324EA6640001EBDE1 /* Minimal.shape-z in Resources */,
@@ -1384,7 +1384,7 @@
 				2B7A3C0223B4652E002EC5FC /* Square.json in Resources */,
 				2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */,
 				2B95201D24EF67A500E48841 /* Happy.shape-z in Resources */,
-				2B8C51B724B6A47E0070E8D8 /* timeline.tiff in Resources */,
+				DDE0AB592A636DCF006084A9 /* timeline.tiff in Resources */,
 				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
 				2B8DB3842489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B666FAE2464D4AC00BE3E4F /* Z_green_ring.tiff in Resources */,
@@ -1410,7 +1410,6 @@
 				2B8C51BB24B6A55D0070E8D8 /* render.tiff in Resources */,
 				2BD0E1DA245A5F6100A61586 /* minimize.tiff in Resources */,
 				2B9B29DD23BB453B00C2F387 /* GameCuben.tiff in Resources */,
-				2B8C51BE24B730CE0070E8D8 /* fileicon.tiff in Resources */,
 				2B2B5FE1242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B666FB22464D4F500BE3E4F /* move.tiff in Resources */,
 				2B9B29B323BB44C000C2F387 /* LaunchScreen.storyboard in Resources */,
@@ -1423,7 +1422,6 @@
 				2B8E2FE623C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B8DB3852489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B8C51B224B6A35F0070E8D8 /* material.tiff in Resources */,
-				2B8C51B824B6A47E0070E8D8 /* timeline.tiff in Resources */,
 				2B9B29DF23BB453B00C2F387 /* OpenSans.tiff in Resources */,
 				2B8C51AF24B6A3010070E8D8 /* ground.tiff in Resources */,
 				2B666FA92464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */,
@@ -1437,10 +1435,12 @@
 				2B9CB6F42485CC9900CFFA51 /* Z_green.tiff in Resources */,
 				2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */,
 				2B8DB3882489D20B00D57DC4 /* StoneWall.tiff in Resources */,
+				DDE0AB5A2A636DCF006084A9 /* timeline.tiff in Resources */,
 				2B2B5FED242442AD00B9CCF1 /* dev_off.tiff in Resources */,
 				2B2B5FDF242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B9B29BA23BB452B00C2F387 /* sz_toolbar.tiff in Resources */,
 				2B9B29DB23BB453B00C2F387 /* Square.tiff in Resources */,
+				DDE0AB572A636CCD006084A9 /* fileicon.tiff in Resources */,
 				2B8C51AC24B6A2A80070E8D8 /* camera.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2000,7 +2000,7 @@
 				);
 				MARKETING_VERSION = 0.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderzios;
-				PRODUCT_NAME = "Shape-Z";
+				PRODUCT_NAME = "Render-Z";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "Application/3D Pipeline/Shader.h";
@@ -2025,7 +2025,7 @@
 				);
 				MARKETING_VERSION = 0.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderzios;
-				PRODUCT_NAME = "Shape-Z";
+				PRODUCT_NAME = "Render-Z";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "Application/3D Pipeline/Shader.h";
@@ -2223,7 +2223,7 @@
 				);
 				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
-				PRODUCT_NAME = "Shape-Z";
+				PRODUCT_NAME = "Render-Z";
 				SDKROOT = iphoneos;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
@@ -2251,7 +2251,7 @@
 				);
 				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
-				PRODUCT_NAME = "Shape-Z";
+				PRODUCT_NAME = "Render-Z";
 				SDKROOT = iphoneos;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
@@ -2264,7 +2264,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2B7A3BFE23B4583E002EC5FC /* Build configuration list for PBXNativeTarget "Shape-Z" */ = {
+		2B7A3BFE23B4583E002EC5FC /* Build configuration list for PBXNativeTarget "Render-Z" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2B7A3BFF23B4583E002EC5FC /* Debug */,
@@ -2273,7 +2273,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2B9B29B523BB44C000C2F387 /* Build configuration list for PBXNativeTarget "Shape-Z iOS" */ = {
+		2B9B29B523BB44C000C2F387 /* Build configuration list for PBXNativeTarget "Render-Z iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2B9B29B623BB44C000C2F387 /* Debug */,
@@ -2282,7 +2282,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2BBF10F121EAD2AF001C94E9 /* Build configuration list for PBXProject "Shape-Z" */ = {
+		2BBF10F121EAD2AF001C94E9 /* Build configuration list for PBXProject "Render-Z" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2BBF111D21EAD2B0001C94E9 /* Debug */,
@@ -2291,7 +2291,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2BBF111F21EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "_Shape-Z" */ = {
+		2BBF111F21EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "_Render-Z" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2BBF112021EAD2B0001C94E9 /* Debug */,
@@ -2300,7 +2300,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2BBF115421EAD38E001C94E9 /* Build configuration list for PBXNativeTarget "_Shape-Z iOS" */ = {
+		2BBF115421EAD38E001C94E9 /* Build configuration list for PBXNativeTarget "_Render-Z iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2BBF115521EAD38E001C94E9 /* Debug */,

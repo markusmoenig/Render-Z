@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:Shape-Z.xcodeproj">
+      location = "self:/Users/markusmoenig/Render-Z/Render-Z.xcodeproj">
    </FileRef>
 </Workspace>

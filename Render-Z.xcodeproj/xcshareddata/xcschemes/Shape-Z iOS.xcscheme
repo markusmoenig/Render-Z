@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2B9B29A323BB44BF00C2F387"
+               BlueprintIdentifier = "2BBF112B21EAD38D001C94E9"
                BuildableName = "Shape-Z.app"
-               BlueprintName = "Shape-Z iOS"
-               ReferencedContainer = "container:Shape-Z.xcodeproj">
+               BlueprintName = "_Render-Z iOS"
+               ReferencedContainer = "container:Render-Z.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -27,11 +27,20 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "2BBF112B21EAD38D001C94E9"
+            BuildableName = "Shape-Z.app"
+            BlueprintName = "_Render-Z iOS"
+            ReferencedContainer = "container:Render-Z.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -44,10 +53,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2B9B29A323BB44BF00C2F387"
+            BlueprintIdentifier = "2BBF112B21EAD38D001C94E9"
             BuildableName = "Shape-Z.app"
-            BlueprintName = "Shape-Z iOS"
-            ReferencedContainer = "container:Shape-Z.xcodeproj">
+            BlueprintName = "_Render-Z iOS"
+            ReferencedContainer = "container:Render-Z.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -61,18 +70,19 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2B9B29A323BB44BF00C2F387"
+            BlueprintIdentifier = "2BBF112B21EAD38D001C94E9"
             BuildableName = "Shape-Z.app"
-            BlueprintName = "Shape-Z iOS"
-            ReferencedContainer = "container:Shape-Z.xcodeproj">
+            BlueprintName = "_Render-Z iOS"
+            ReferencedContainer = "container:Render-Z.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "Debug">
+      buildConfiguration = "Release">
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release"
+      customArchiveName = "Shape-Z"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>

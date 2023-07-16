@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2B91CBEF2358629300DED7B1"
-               BuildableName = "OSX_Framework.framework"
-               BlueprintName = "OSX Framework"
-               ReferencedContainer = "container:Shape-Z.xcodeproj">
+               BlueprintIdentifier = "2B91CD7E235959CC00DED7B1"
+               BuildableName = "IOS_Framework.framework"
+               BlueprintName = "IOS Framework"
+               ReferencedContainer = "container:Render-Z.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -31,7 +31,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -50,10 +50,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2B91CBEF2358629300DED7B1"
-            BuildableName = "OSX_Framework.framework"
-            BlueprintName = "OSX Framework"
-            ReferencedContainer = "container:Shape-Z.xcodeproj">
+            BlueprintIdentifier = "2B91CD7E235959CC00DED7B1"
+            BuildableName = "IOS_Framework.framework"
+            BlueprintName = "IOS Framework"
+            ReferencedContainer = "container:Render-Z.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
