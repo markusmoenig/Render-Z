@@ -264,7 +264,7 @@ class DesignProperties      : MMWidget
                 } else {
                     comp.values[variable] = newValue
                 }
-                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                globalApp!.developerEditor.codeEditor.markComponentInvalid(comp)
                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
                 return
             }
@@ -275,7 +275,7 @@ class DesignProperties      : MMWidget
                     let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Image Changed") : nil
                     fragment.values[variable] = newValue
                     if variable == "imageIndex" {
-                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                        //globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                         self.editor.updateOnNextDraw(compile: true)
                     } else {
                         self.editor.updateOnNextDraw(compile: false)
@@ -287,7 +287,7 @@ class DesignProperties      : MMWidget
                     let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Noise Changed") : nil
                     fragment.values[variable] = newValue
                     if variable == "noise3D" || variable == "noiseMix3D" {
-                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                        globalApp!.developerEditor.codeEditor.markComponentInvalid(comp)
                         self.editor.updateOnNextDraw(compile: true)
                     } else {
                         self.editor.updateOnNextDraw(compile: false)
@@ -299,7 +299,7 @@ class DesignProperties      : MMWidget
                     let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Noise Changed") : nil
                     fragment.values[variable] = newValue
                     if variable == "noise2D" || variable == "noiseMix2D" {
-                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                        globalApp!.developerEditor.codeEditor.markComponentInvalid(comp)
                         self.editor.updateOnNextDraw(compile: true)
                     } else {
                         self.editor.updateOnNextDraw(compile: false)

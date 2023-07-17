@@ -64,7 +64,7 @@ class BaseShader
     var data                : [SIMD4<Float>] = []
     var buffer              : MTLBuffer!
             
-    var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent, [StageItem])] = []
+    var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent)] = []
     
     // Texture path, token, type (0 == Image, 1 == Texture)
     var textures            : [(String, String, Int)] = []
@@ -73,7 +73,7 @@ class BaseShader
     var textureRep          : [(String, Int)] = []
     
     // Ids for objects inside the instance
-    var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
+    //var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
     
     var idStart             : Float = 0
     var idEnd               : Float = 0
@@ -84,12 +84,10 @@ class BaseShader
     
     var shaders             : [String:Shader] = [:]
     var allShaders          : [Shader] = []
-
-    weak var rootItem       : StageItem? = nil
     
     var sphereContactsState : MTLComputePipelineState? = nil
     
-    var velocity            : _Vector3? = nil
+    //var velocity            : _Vector3? = nil
     var elasticity          : Float = 0
 
     init(instance: PFXInstance)
@@ -192,7 +190,8 @@ class BaseShader
                     self.shaders[shader.id] = shader
                 }
                 
-                if self as? ObjectShader != nil || self as? GroundShader != nil || self as? TerrainShader != nil || self as? BackgroundShader != nil {
+                
+                if /*self as? ObjectShader != nil || self as? GroundShader != nil || self as? TerrainShader != nil ||*/ self as? BackgroundShader != nil {
                     DispatchQueue.main.async {
                         globalApp!.currentEditor.render()
                         globalApp!.mmView.update()
@@ -287,9 +286,9 @@ class BaseShader
         fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
         fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
         fragmentUniforms.screenSize = prtInstance.screenSize
-        if let ambient = getGlobalVariableValue(withName: "World.worldAmbient") {
-            fragmentUniforms.ambientColor = ambient
-        }
+//        if let ambient = getGlobalVariableValue(withName: "World.worldAmbient") {
+//            fragmentUniforms.ambientColor = ambient
+//        }
         
         return fragmentUniforms
     }
@@ -309,6 +308,7 @@ class BaseShader
         }
     }
     
+    /*
     func createLightCode(scene: Scene) -> String
     {
         let lightStage = scene.getStage(.LightStage)
@@ -352,7 +352,7 @@ class BaseShader
         }
         
         return headerCode
-    }
+    }*/
     
     /// Update the instance data
     func updateData()
@@ -393,6 +393,7 @@ class BaseShader
                     let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
                     
                     var value = transformed[name]!
+                    /*
                     if let velocity = velocity, elasticity > 0 {
                         
                         let direct = elasticity / 10
@@ -426,6 +427,7 @@ class BaseShader
                         }
                     }
                     self.data[dataIndex].x = value
+                     */
                 } else
                 if components == 2 {
                     properties[name + "_x"] = data.x
@@ -469,7 +471,7 @@ class BaseShader
                 
                 // Recursively add the parent values for this transform
                 var parentValue : Float = 0
-                
+                /*
                 for stageItem in property.5.reversed() {
                     if let transComponent = stageItem.components[stageItem.defaultName] {
                         // Transform
@@ -483,7 +485,7 @@ class BaseShader
                             parentValue += transformed[name]!
                         }
                     }
-                }
+                }*/
                 
                 var properties : [String:Float] = [:]
                 if let value = component.values[name] {
@@ -517,6 +519,7 @@ class BaseShader
         return device.makeDepthStencilState( descriptor: descriptor)
     }
     
+    /*
     /// Adds a global variable to the instance data
     func addGlobalVariable(name: String) -> Int?
     {
@@ -535,10 +538,10 @@ class BaseShader
         }
         
         return nil
-    }
+    }*/
     
     /// Collects properties from the component to the instance data
-    func collectProperties(_ component: CodeComponent,_ hierarchy: [StageItem] = [])
+    func collectProperties(_ component: CodeComponent)
     {
         // Collect properties and globalVariables
         for (index,uuid) in component.inputDataList.enumerated() {
@@ -547,14 +550,14 @@ class BaseShader
                 // Normal property
                 let rc = propComponent.getPropertyOfUUID(uuid)
                 if rc.0 != nil && rc.1 != nil {
-                    properties.append((rc.0, rc.1, nil, data.count, propComponent, hierarchy))
+                    properties.append((rc.0, rc.1, nil, data.count, propComponent))
                     data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
                 }
             } else
             if let tool = propComponent.toolPropertyIndex[uuid] {
                 // Tool property, tool.0 is the name of fragment value
                 for t in tool {
-                    properties.append((t.1, t.1, t.0, data.count, propComponent, hierarchy))
+                    properties.append((t.1, t.1, t.0, data.count, propComponent))
                     data.append(SIMD4<Float>(t.1.values[t.0]!,0,0,0))
                 }
             } else
@@ -563,7 +566,7 @@ class BaseShader
                 for uuid in variableComp.properties {
                     let rc = variableComp.getPropertyOfUUID(uuid)
                     if rc.0!.values["variable"] == 1 {
-                        properties.append((rc.0, rc.1, nil, data.count, variableComp, []))
+                        properties.append((rc.0, rc.1, nil, data.count, variableComp))
                         data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
                     }
                 }
@@ -572,50 +575,50 @@ class BaseShader
         
         // Collect transforms, stored in the values map of the component
         if component.componentType == .SDF2D || component.componentType == .Transform2D {
-            properties.append((nil, nil, "_posX", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posX", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_posY", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posY", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
             
             if component.values["2DIn3D"] == 1 {
-                properties.append((nil, nil, "_posZ", data.count, component, hierarchy))
+                properties.append((nil, nil, "_posZ", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_rotateX", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rotateX", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_rotateY", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rotateY", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_rotateZ", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rotateZ", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_extrusion", data.count, component, hierarchy))
+                properties.append((nil, nil, "_extrusion", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_revolution", data.count, component, hierarchy))
+                properties.append((nil, nil, "_revolution", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_rounding", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rounding", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
             } else {
-                properties.append((nil, nil, "_rotate", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rotate", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
             }
         } else
         if component.componentType == .SDF3D || component.componentType == .Transform3D {
-            properties.append((nil, nil, "_posX", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posX", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_posY", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posY", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_posZ", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posZ", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_rotateX", data.count, component, hierarchy))
+            properties.append((nil, nil, "_rotateX", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_rotateY", data.count, component, hierarchy))
+            properties.append((nil, nil, "_rotateY", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_rotateZ", data.count, component, hierarchy))
+            properties.append((nil, nil, "_rotateZ", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
             if component.values["_bb_x"] != nil {
-                properties.append((nil, nil, "_bb_x", data.count, component, hierarchy))
+                properties.append((nil, nil, "_bb_x", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_bb_y", data.count, component, hierarchy))
+                properties.append((nil, nil, "_bb_y", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_bb_z", data.count, component, hierarchy))
+                properties.append((nil, nil, "_bb_z", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
             }
         }
@@ -623,7 +626,7 @@ class BaseShader
         // Scaling on the transforms
         if component.componentType == .Transform2D || component.componentType == .Transform3D {
             if component.values["_scale"] == nil { component.values["_scale"] = 1 }
-            properties.append((nil, nil, "_scale", data.count, component, hierarchy))
+            properties.append((nil, nil, "_scale", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
         }
         
@@ -789,6 +792,7 @@ class BaseShader
         return code
     }
     
+    /*
     /// Sphere contact code with this shader
     func sphereContacts(objectSpheres: [ObjectSpheres3D])
     {
@@ -866,7 +870,7 @@ class BaseShader
                 }
             }
         }
-    }
+    }*/
     
     /// Returns the header code required by every shader
     static func getHeaderCode() -> String

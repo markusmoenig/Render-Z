@@ -27,6 +27,7 @@ class GizmoBase              : MMWidget
     {
         component = comp
     }
+    /*
     
     /// Returns the StageItem hierarchy for the given component
     func getHierarchyOfComponent(_ comp: CodeComponent) -> [StageItem]
@@ -163,5 +164,5 @@ class GizmoBase              : MMWidget
         }
         
         return defaultValue
-    }
+    }*/
 }

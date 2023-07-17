@@ -9,6 +9,7 @@
 import MetalKit
 import CloudKit
 
+/*
 class UploadMaterialsDialog: MMDialog {
 
     enum HoverMode          : Float {
@@ -588,3 +589,4 @@ class UploadObjectsDialog: MMDialog {
         }
     }
 }
+*/

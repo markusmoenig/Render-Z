@@ -562,7 +562,7 @@ class CodeEditor        : MMWidget
                     // Set Scroll Area
                     if let comp = self.codeComponent {
                         self.scrollArea.offsetY = comp.scrollOffsetY
-                        globalApp!.project.selected!.updateComponent(comp)
+                        //globalApp!.project.selected!.updateComponent(comp)
                     }
 
                     self.codeHasRendered = true
@@ -573,7 +573,7 @@ class CodeEditor        : MMWidget
                     if self.codeChanged && self.liveEditing {
                         // Mark the current Component invalid
                         if let comp = self.codeComponent {
-                            self.markStageItemOfComponentInvalid(comp)
+                            self.markComponentInvalid(comp)
                         }
                         // Compile
                         globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
@@ -585,36 +585,11 @@ class CodeEditor        : MMWidget
         needsUpdate = false
     }
     
-    /// Invalidate the BuilderInstance of the StageItem of the current component
-    func markStageItemOfComponentInvalid(_ component: CodeComponent)
+    /// Invalidate the BuilderInstance of the current component
+    func markComponentInvalid(_ component: CodeComponent)
     {
         component.builderInstance = nil
-        if let stageItem = globalApp!.project.selected!.getStageItem(component) {
-            //print("markStageItemOfComponentInvalid", stageItem.stageItemType, stageItem.components[stageItem.defaultName]!.componentType, component.componentType)
-            markStageItemInvalid(stageItem)
-        }
-    }
-    
-    /// Invalidate the BuilderInstance of the StageItem
-    func markStageItemInvalid(_ stageItem: StageItem)
-    {
-        stageItem.shader = nil
-        
-        //print("markStageItemOfComponentInvalid", stageItem.stageItemType, component.componentType)
-        if stageItem.stageItemType == .RenderStage || stageItem.stageItemType == .PreStage || stageItem.stageItemType == .LightStage || stageItem.stageItemType == .PostStage {
-            globalApp!.project.selected!.invalidateCompilerInfos()
-        }
-        
-        if stageItem.stageItemType == .ShapeStage {
-            
-            let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
-            
-            var parent : StageItem? = stageItem
-            while parent != nil {
-                parent?.shader = nil
-                parent = shapeStage.getParentOfStageItem(parent!).1
-            }
-        }
+        component.shader = nil
     }
     
     /// Runs the component to generate code without any drawing

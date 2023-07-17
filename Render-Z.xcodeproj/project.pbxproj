@@ -25,8 +25,6 @@
 		2B128762225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
 		2B14E15323BF278800B45B9D /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B14E15223BF278800B45B9D /* CloudKit.framework */; };
 		2B14F3E724812B260055FA10 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5FE42822C213690046A435 /* CloudKit.framework */; };
-		2B169BE0246B67D000366E19 /* TerrainEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BDF246B67D000366E19 /* TerrainEditor.swift */; };
-		2B169BE1246B67D000366E19 /* TerrainEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BDF246B67D000366E19 /* TerrainEditor.swift */; };
 		2B169BE3246E19DE00366E19 /* UploadDialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BE2246E195400366E19 /* UploadDialogs.swift */; };
 		2B169BE4246E19DF00366E19 /* UploadDialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BE2246E195400366E19 /* UploadDialogs.swift */; };
 		2B1F2E13235EA08200838D46 /* Marble.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B1F2E12235EA08200838D46 /* Marble.shape-z */; };
@@ -77,8 +75,6 @@
 		2B501A5E22CC5602008D409F /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
 		2B50635823CEC98600124517 /* LibraryDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635723CEC98500124517 /* LibraryDialog.swift */; };
 		2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635723CEC98500124517 /* LibraryDialog.swift */; };
-		2B52E5AC2495C1FE009CFE1F /* GroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */; };
-		2B52E5AD2495C1FF009CFE1F /* GroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */; };
 		2B52E5B124972847009CFE1F /* MathLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5B024972846009CFE1F /* MathLibrary.swift */; };
 		2B52E5B224972847009CFE1F /* MathLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5B024972846009CFE1F /* MathLibrary.swift */; };
 		2B57D7902358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
@@ -108,8 +104,6 @@
 		2B639F1B221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
 		2B65083623D6F182003DE093 /* Thumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B65083523D6F182003DE093 /* Thumbnail.swift */; };
 		2B65083723D6F182003DE093 /* Thumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B65083523D6F182003DE093 /* Thumbnail.swift */; };
-		2B65083C23E50133003DE093 /* SceneGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B65083B23E50131003DE093 /* SceneGraph.swift */; };
-		2B65083D23E50133003DE093 /* SceneGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B65083B23E50131003DE093 /* SceneGraph.swift */; };
 		2B666FA82464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B666FA72464D3EE00BE3E4F /* X_blue_ring.tiff */; };
 		2B666FA92464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B666FA72464D3EE00BE3E4F /* X_blue_ring.tiff */; };
 		2B666FAB2464D48300BE3E4F /* Y_red_ring.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B666FAA2464D48200BE3E4F /* Y_red_ring.tiff */; };
@@ -204,8 +198,6 @@
 		2B8BBA8922A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
 		2B8BBA8A22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
 		2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
-		2B8C51A824B432A70070E8D8 /* TerrainShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C51A724B432A50070E8D8 /* TerrainShader.swift */; };
-		2B8C51A924B432A70070E8D8 /* TerrainShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C51A724B432A50070E8D8 /* TerrainShader.swift */; };
 		2B8C51AB24B6A2A80070E8D8 /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51AA24B6A2A70070E8D8 /* camera.tiff */; };
 		2B8C51AC24B6A2A80070E8D8 /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51AA24B6A2A70070E8D8 /* camera.tiff */; };
 		2B8C51AE24B6A3010070E8D8 /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51AD24B6A2FF0070E8D8 /* ground.tiff */; };
@@ -250,7 +242,6 @@
 		2B91CBEA235848AC00DED7B1 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE8235848AC00DED7B1 /* Pong.shape-z */; };
 		2B95201D24EF67A500E48841 /* Happy.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B95201C24EF67A400E48841 /* Happy.shape-z */; };
 		2B95201E24EF67A500E48841 /* Happy.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B95201C24EF67A400E48841 /* Happy.shape-z */; };
-		2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
 		2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B9B299123BA327900C2F387 /* rz_toolbar.tiff */; };
 		2B9B299C23BAD15700C2F387 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B299B23BAD15700C2F387 /* Node.swift */; };
 		2B9B299F23BAD2DC00C2F387 /* NodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B299E23BAD2DB00C2F387 /* NodeUI.swift */; };
@@ -308,7 +299,6 @@
 		2B9B29E923BB45CA00C2F387 /* ArtistEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5223B4768D002EC5FC /* ArtistEditor.swift */; };
 		2B9B29EA23BB45CA00C2F387 /* CodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */; };
 		2B9B29EB23BB45CA00C2F387 /* CodeProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9F42F023B9CB2800885B40 /* CodeProperties.swift */; };
-		2B9B29EC23BB45CA00C2F387 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
 		2B9B29ED23BB45CA00C2F387 /* CodeSemantics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */; };
 		2B9B29EE23BB45CA00C2F387 /* CodeFragList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */; };
 		2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B29F523BF1DD700C2F387 /* Dialogs.swift */; };
@@ -334,10 +324,6 @@
 		2BAC26DF226D6B8F00E20ADD /* GameNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */; };
 		2BAC26E1226FEC7E00E20ADD /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
 		2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
-		2BB4CC4C249C6AC000123017 /* ObjectShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67592494510E00E066C0 /* ObjectShader.swift */; };
-		2BB4CC4D249C6AC100123017 /* ObjectShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67592494510E00E066C0 /* ObjectShader.swift */; };
-		2BB625F224E6128B00FEA04C /* XRayShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB625F124E6120100FEA04C /* XRayShader.swift */; };
-		2BB625F324E6128B00FEA04C /* XRayShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB625F124E6120100FEA04C /* XRayShader.swift */; };
 		2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B05F231A069A0067B217 /* sz_ui_grey.tiff */; };
 		2BB6B063231A069A0067B217 /* sz_ui_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
@@ -422,20 +408,6 @@
 		2BCF5FA4227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
 		2BCFF4DA24C67B510003E102 /* PrimitivesShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */; };
 		2BCFF4DB24C67B510003E102 /* PrimitivesShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */; };
-		2BCFF4E624CBD0F90003E102 /* Particle3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E524CBD0F80003E102 /* Particle3D.swift */; };
-		2BCFF4E724CBD0F90003E102 /* Particle3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E524CBD0F80003E102 /* Particle3D.swift */; };
-		2BCFF4E924CE58440003E102 /* Particle3DContacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E824CE58420003E102 /* Particle3DContacts.swift */; };
-		2BCFF4EA24CE58440003E102 /* Particle3DContacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E824CE58420003E102 /* Particle3DContacts.swift */; };
-		2BCFF4EC24CE691E0003E102 /* Particle3DWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4EB24CE691E0003E102 /* Particle3DWorld.swift */; };
-		2BCFF4ED24CE691E0003E102 /* Particle3DWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4EB24CE691E0003E102 /* Particle3DWorld.swift */; };
-		2BCFF4EF24D0F9BD0003E102 /* PhysicsMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4EE24D0F9BC0003E102 /* PhysicsMath.swift */; };
-		2BCFF4F024D0F9BD0003E102 /* PhysicsMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4EE24D0F9BC0003E102 /* PhysicsMath.swift */; };
-		2BCFF4F224D111590003E102 /* RigidBody3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F124D111580003E102 /* RigidBody3D.swift */; };
-		2BCFF4F324D111590003E102 /* RigidBody3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F124D111580003E102 /* RigidBody3D.swift */; };
-		2BCFF4F524D14D490003E102 /* RigidBody3DContacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F424D14D480003E102 /* RigidBody3DContacts.swift */; };
-		2BCFF4F624D14D490003E102 /* RigidBody3DContacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F424D14D480003E102 /* RigidBody3DContacts.swift */; };
-		2BCFF4F824D2A1D70003E102 /* RigidBody3DWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F724D2A1280003E102 /* RigidBody3DWorld.swift */; };
-		2BCFF4F924D2A1D70003E102 /* RigidBody3DWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F724D2A1280003E102 /* RigidBody3DWorld.swift */; };
 		2BD0E1D7245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D6245A5F6100A61586 /* minimize.tiff */; };
@@ -476,12 +448,12 @@
 		2BF632EE2361579C00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
 		2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 		2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
-		2BFC2A1924C2EBD80036C047 /* Physics3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC2A1824C2EBD80036C047 /* Physics3D.swift */; };
-		2BFC2A1A24C2EBD80036C047 /* Physics3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC2A1824C2EBD80036C047 /* Physics3D.swift */; };
 		DDE024F42A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F52A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F82A63EB1A00BB6AF8 /* PipelineFX.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */; };
 		DDE024F92A63EB1A00BB6AF8 /* PipelineFX.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */; };
+		DDE024FA2A65570900BB6AF8 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
+		DDE024FB2A65570A00BB6AF8 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
 		DDE0AB562A636CCD006084A9 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB552A636CCD006084A9 /* fileicon.tiff */; };
 		DDE0AB572A636CCD006084A9 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB552A636CCD006084A9 /* fileicon.tiff */; };
 		DDE0AB592A636DCF006084A9 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB582A636DCF006084A9 /* timeline.tiff */; };
@@ -1540,8 +1512,6 @@
 				2B8C51C124B941CE0070E8D8 /* PostShader.swift in Sources */,
 				2B7A3C0B23B46546002EC5FC /* MMWidget.swift in Sources */,
 				2B7A3C5523B479F4002EC5FC /* CodeFragList.swift in Sources */,
-				2B65083C23E50133003DE093 /* SceneGraph.swift in Sources */,
-				2BCFF4EC24CE691E0003E102 /* Particle3DWorld.swift in Sources */,
 				2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */,
 				2BCFF4DA24C67B510003E102 /* PrimitivesShader.swift in Sources */,
 				2BD291BA23D43AB0006F66BC /* Base.swift in Sources */,
@@ -1549,16 +1519,15 @@
 				2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */,
 				2B59875823D15BD0007E335F /* Combo2D.swift in Sources */,
 				2B7A3C1323B46546002EC5FC /* MMFloatPopUp.swift in Sources */,
-				2BCFF4F524D14D490003E102 /* RigidBody3DContacts.swift in Sources */,
 				2B7A3C0C23B46546002EC5FC /* MMRegion.swift in Sources */,
 				2B8CC6CB23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
+				DDE024FA2A65570900BB6AF8 /* CodeBuilder.swift in Sources */,
 				2B7A3C1C23B46546002EC5FC /* MMTreeWidget.swift in Sources */,
 				DDE024F42A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */,
 				2B7A3BF623B4583A002EC5FC /* ViewController.swift in Sources */,
 				2B7A3C2023B46546002EC5FC /* MMFile.swift in Sources */,
 				2B7A3C3723B46838002EC5FC /* EditorRegion.swift in Sources */,
 				2B7A3C1F23B46546002EC5FC /* MMTimeline.swift in Sources */,
-				2BFC2A1924C2EBD80036C047 /* Physics3D.swift in Sources */,
 				2B8E2FDF23C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B7A3C1E23B46546002EC5FC /* MMAnimate.swift in Sources */,
 				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
@@ -1566,7 +1535,6 @@
 				2B8444DC24945B890082EE1D /* BackShader.swift in Sources */,
 				2B716BEE24A039D0002DA1FD /* ThumbnailShader.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
-				2BCFF4F824D2A1D70003E102 /* RigidBody3DWorld.swift in Sources */,
 				2BF1ABE62499E3E000466979 /* UtilityShader.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
@@ -1580,38 +1548,28 @@
 				2BE5A4DC240CE5E700890281 /* Camera2D.swift in Sources */,
 				2B7A3C1123B46546002EC5FC /* MMFloatWidget.swift in Sources */,
 				2B7A3C2223B46546002EC5FC /* MMInfoArea.swift in Sources */,
-				2BB625F224E6128B00FEA04C /* XRayShader.swift in Sources */,
 				2B7A3C3F23B469AD002EC5FC /* Mad4Metal.metal in Sources */,
-				2BCFF4EF24D0F9BD0003E102 /* PhysicsMath.swift in Sources */,
 				2BCD67572493486700E066C0 /* BaseShader.swift in Sources */,
 				2B7A3BF423B4583A002EC5FC /* AppDelegate.swift in Sources */,
 				2B7A3C1223B46546002EC5FC /* MMSliderWidget.swift in Sources */,
 				2B40D80723FCCED600D46B2F /* Combo3D.swift in Sources */,
 				2B7A3C1423B46546002EC5FC /* MMColorWidget.swift in Sources */,
 				2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */,
-				2BCFF4E924CE58440003E102 /* Particle3DContacts.swift in Sources */,
 				2B4600ED2442EAC6004DAF5E /* AppShaders.metal in Sources */,
 				2B65083623D6F182003DE093 /* Thumbnail.swift in Sources */,
-				2BCFF4E624CBD0F90003E102 /* Particle3D.swift in Sources */,
 				2B9B299C23BAD15700C2F387 /* Node.swift in Sources */,
 				2B7A3C5323B4768D002EC5FC /* ArtistEditor.swift in Sources */,
 				2B8E2FEE23C9691A005619E4 /* Pipeline.swift in Sources */,
 				2B7A3C1B23B46546002EC5FC /* MMListWidget.swift in Sources */,
-				2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */,
-				2BCFF4F224D111590003E102 /* RigidBody3D.swift in Sources */,
 				2B7A3C3923B46838002EC5FC /* LeftRegion.swift in Sources */,
-				2B52E5AC2495C1FE009CFE1F /* GroundShader.swift in Sources */,
 				2B7A3C0A23B46546002EC5FC /* MMRenderer.swift in Sources */,
-				2B8C51A824B432A70070E8D8 /* TerrainShader.swift in Sources */,
 				2B7A3C0923B4653F002EC5FC /* MMBaseView_mac.swift in Sources */,
-				2BB4CC4D249C6AC100123017 /* ObjectShader.swift in Sources */,
 				2B8E2FEB23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
 				2BE5A4D9240CBB1B00890281 /* Camera3D.swift in Sources */,
 				2B7A3C0D23B46546002EC5FC /* MMDrawable.swift in Sources */,
 				2B4600EF244530CE004DAF5E /* PropertiesWidget.swift in Sources */,
 				2B7A3C1D23B46546002EC5FC /* MMSkin.swift in Sources */,
 				2B2B60072426027F00B9CCF1 /* ExportDialog.swift in Sources */,
-				2B169BE0246B67D000366E19 /* TerrainEditor.swift in Sources */,
 				2B7A3C1023B46546002EC5FC /* MMLabel.swift in Sources */,
 				2B9B299F23BAD2DC00C2F387 /* NodeUI.swift in Sources */,
 			);
@@ -1623,10 +1581,8 @@
 			files = (
 				2B9B29C323BB453400C2F387 /* MMRegion.swift in Sources */,
 				2B9B29E323BB45C000C2F387 /* TopRegion.swift in Sources */,
-				2BCFF4F624D14D490003E102 /* RigidBody3DContacts.swift in Sources */,
 				2B9B29AB23BB44BF00C2F387 /* ViewController.swift in Sources */,
 				2B2B60082426028000B9CCF1 /* ExportDialog.swift in Sources */,
-				2BCFF4E724CBD0F90003E102 /* Particle3D.swift in Sources */,
 				2B9B29C823BB453400C2F387 /* MMFloatWidget.swift in Sources */,
 				2B9B29D223BB453400C2F387 /* MMListWidget.swift in Sources */,
 				2B9B29C223BB453400C2F387 /* MMWidget.swift in Sources */,
@@ -1634,21 +1590,17 @@
 				2B9B29BD23BB453400C2F387 /* MMView.swift in Sources */,
 				2B9B29D423BB453400C2F387 /* MMSkin.swift in Sources */,
 				2B9B29EA23BB45CA00C2F387 /* CodeEditor.swift in Sources */,
-				2B9B29EC23BB45CA00C2F387 /* CodeBuilder.swift in Sources */,
 				DDE024F52A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */,
 				2B8E2FE923C7FE25005619E4 /* DesignProperties.swift in Sources */,
 				2BCD67512491B18B00E066C0 /* PointCloudBuilder.swift in Sources */,
 				2B9B29E823BB45C000C2F387 /* Mad4Metal.metal in Sources */,
 				2B9B29F723BF1DDC00C2F387 /* Dialogs.swift in Sources */,
-				2B169BE1246B67D000366E19 /* TerrainEditor.swift in Sources */,
 				2B9B29EE23BB45CA00C2F387 /* CodeFragList.swift in Sources */,
 				2B9B29CE23BB453400C2F387 /* MMCompute.swift in Sources */,
 				2B40D80B23FE0D8300D46B2F /* Combo3D.metal in Sources */,
 				2B716BEF24A039D0002DA1FD /* ThumbnailShader.swift in Sources */,
 				2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
-				2BCFF4F924D2A1D70003E102 /* RigidBody3DWorld.swift in Sources */,
 				2B9B29A723BB44BF00C2F387 /* AppDelegate.swift in Sources */,
-				2BCFF4F324D111590003E102 /* RigidBody3D.swift in Sources */,
 				2B8444DD24945B8A0082EE1D /* BackShader.swift in Sources */,
 				2B9B29C723BB453400C2F387 /* MMLabel.swift in Sources */,
 				2BE5A4DD240CE5E700890281 /* Camera2D.swift in Sources */,
@@ -1663,43 +1615,36 @@
 				2B9B29E923BB45CA00C2F387 /* ArtistEditor.swift in Sources */,
 				2B50635823CEC98600124517 /* LibraryDialog.swift in Sources */,
 				2B8C51C224B941CF0070E8D8 /* PostShader.swift in Sources */,
-				2BCFF4EA24CE58440003E102 /* Particle3DContacts.swift in Sources */,
+				DDE024FB2A65570A00BB6AF8 /* CodeBuilder.swift in Sources */,
 				2B9B29E623BB45C000C2F387 /* EditorRegion.swift in Sources */,
 				2B8CC6CC23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
 				2B9B29C923BB453400C2F387 /* MMSliderWidget.swift in Sources */,
 				2B9B29CF23BB453400C2F387 /* MMFragment.swift in Sources */,
-				2B8C51A924B432A70070E8D8 /* TerrainShader.swift in Sources */,
 				2B9B29C623BB453400C2F387 /* MMFont.swift in Sources */,
 				2B8E2FE023C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B9B29D723BB453400C2F387 /* MMFile.swift in Sources */,
 				2B9B29D623BB453400C2F387 /* MMTimeline.swift in Sources */,
-				2BFC2A1A24C2EBD80036C047 /* Physics3D.swift in Sources */,
 				2B9B29D123BB453400C2F387 /* MMScrollButton.swift in Sources */,
 				2B9B29EB23BB45CA00C2F387 /* CodeProperties.swift in Sources */,
 				2B9B29C423BB453400C2F387 /* MMDrawable.swift in Sources */,
-				2B65083D23E50133003DE093 /* SceneGraph.swift in Sources */,
 				2B40D80623FCCED500D46B2F /* Combo3D.swift in Sources */,
 				2B8CC6CF23C55DAD00CFCB93 /* CodeAccess.swift in Sources */,
 				2B9B29CB23BB453400C2F387 /* MMColorWidget.swift in Sources */,
 				2B9B29A923BB44BF00C2F387 /* SceneDelegate.swift in Sources */,
 				2B59875923D15BD0007E335F /* Combo2D.swift in Sources */,
-				2BCFF4F024D0F9BD0003E102 /* PhysicsMath.swift in Sources */,
 				2B9B29E123BB45B900C2F387 /* App.swift in Sources */,
 				2B9B29C523BB453400C2F387 /* MMUtils.swift in Sources */,
-				2B52E5AD2495C1FF009CFE1F /* GroundShader.swift in Sources */,
 				2B9B29D323BB453400C2F387 /* MMTreeWidget.swift in Sources */,
 				2B169BE4246E19DF00366E19 /* UploadDialogs.swift in Sources */,
 				2BE5A4DA240CBB1B00890281 /* Camera3D.swift in Sources */,
 				2B9B29D523BB453400C2F387 /* MMAnimate.swift in Sources */,
 				2BD291BB23D43AB2006F66BC /* Base.swift in Sources */,
 				2B9B29E523BB45C000C2F387 /* BottomRegion.swift in Sources */,
-				2BB625F324E6128B00FEA04C /* XRayShader.swift in Sources */,
 				2BCFF4DB24C67B510003E102 /* PrimitivesShader.swift in Sources */,
 				2B65083723D6F182003DE093 /* Thumbnail.swift in Sources */,
 				2BD291B823D435B6006F66BC /* Combo2D.metal in Sources */,
 				2B9B29B823BB452800C2F387 /* NodeUI.swift in Sources */,
 				2BE847BA2453C75D00409AAE /* NewDialog.swift in Sources */,
-				2BB4CC4C249C6AC000123017 /* ObjectShader.swift in Sources */,
 				2BCD67542491B3EB00E066C0 /* PointCloud.metal in Sources */,
 				2B9B29ED23BB45CA00C2F387 /* CodeSemantics.swift in Sources */,
 				2BE5A4D42405EF8000890281 /* CamHelper3D.swift in Sources */,
@@ -1709,7 +1654,6 @@
 				2B9B29E223BB45C000C2F387 /* LeftRegion.swift in Sources */,
 				2BBFA82E24346027008981B7 /* CodeClipboard.swift in Sources */,
 				2B9B29BF23BB453400C2F387 /* MMBaseView__ios.swift in Sources */,
-				2BCFF4ED24CE691E0003E102 /* Particle3DWorld.swift in Sources */,
 				2B52E5B224972847009CFE1F /* MathLibrary.swift in Sources */,
 				2B9B29CD23BB453400C2F387 /* MMTabButtonWidget.swift in Sources */,
 				DDE024F92A63EB1A00BB6AF8 /* PipelineFX.swift in Sources */,

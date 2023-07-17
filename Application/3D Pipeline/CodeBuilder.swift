@@ -22,7 +22,7 @@ class CodeBuilderInstance
     var computeOutBuffer    : MTLBuffer!
     var computeResult       : SIMD4<Float> = SIMD4<Float>(0,0,0,0)
             
-    var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent, [StageItem])] = []
+    var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent)] = []
     
     // Texture path, token, type (0 == Image, 1 == Texture)
     var textures            : [(String, String, Int)] = []
@@ -31,11 +31,11 @@ class CodeBuilderInstance
     var textureRep          : [(String, Int)] = []
     
     // Ids for objects inside the instance
-    var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
+    var ids                 : [Int:(CodeComponent?)] = [:]
     
     // Ids for materials inside the instance
-    var materialIds         : [Int:StageItem] = [:]
-    var materialIdHierarchy : [Int] = []
+//    var materialIds         : [Int:StageItem] = [:]
+//    var materialIdHierarchy : [Int] = []
     
     var idStart             : Int = 0
     
@@ -43,11 +43,10 @@ class CodeBuilderInstance
     
     var lineNumber          : Float = 0
     
-    var rootObject          : StageItem? = nil
-
     /// Adds a global variable manually, used when we need to know the index of a global variable
     func addGlobalVariable(name: String) -> Int?
     {
+        /*
         let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getGlobalVariable()
         if let variableComp = globalVars[name] {
             
@@ -61,12 +60,12 @@ class CodeBuilderInstance
                 }
             }
         }
-        
+        */
         return nil
     }
     
     /// Collect all the properties of the component and create a data entry for it
-    func collectProperties(_ component: CodeComponent,_ hierarchy: [StageItem] = [])
+    func collectProperties(_ component: CodeComponent)
     {
         // Collect properties and globalVariables
         for (index,uuid) in component.inputDataList.enumerated() {
@@ -75,14 +74,14 @@ class CodeBuilderInstance
                 // Normal property
                 let rc = propComponent.getPropertyOfUUID(uuid)
                 if rc.0 != nil && rc.1 != nil {
-                    properties.append((rc.0, rc.1, nil, data.count, propComponent, hierarchy))
+                    properties.append((rc.0, rc.1, nil, data.count, propComponent))
                     data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
                 }
             } else
             if let tool = propComponent.toolPropertyIndex[uuid] {
                 // Tool property, tool.0 is the name of fragment value
                 for t in tool {
-                    properties.append((t.1, t.1, t.0, data.count, propComponent, hierarchy))
+                    properties.append((t.1, t.1, t.0, data.count, propComponent))
                     data.append(SIMD4<Float>(t.1.values[t.0]!,0,0,0))
                 }
             } else
@@ -91,7 +90,7 @@ class CodeBuilderInstance
                 for uuid in variableComp.properties {
                     let rc = variableComp.getPropertyOfUUID(uuid)
                     if rc.0!.values["variable"] == 1 {
-                        properties.append((rc.0, rc.1, nil, data.count, variableComp, []))
+                        properties.append((rc.0, rc.1, nil, data.count, variableComp))
                         data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
                     }
                 }
@@ -100,50 +99,50 @@ class CodeBuilderInstance
         
         // Collect transforms, stored in the values map of the component
         if component.componentType == .SDF2D || component.componentType == .Transform2D {
-            properties.append((nil, nil, "_posX", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posX", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_posY", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posY", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
             
             if component.values["2DIn3D"] == 1 {
-                properties.append((nil, nil, "_posZ", data.count, component, hierarchy))
+                properties.append((nil, nil, "_posZ", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_rotateX", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rotateX", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_rotateY", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rotateY", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_rotateZ", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rotateZ", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_extrusion", data.count, component, hierarchy))
+                properties.append((nil, nil, "_extrusion", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_revolution", data.count, component, hierarchy))
+                properties.append((nil, nil, "_revolution", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_rounding", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rounding", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
             } else {
-                properties.append((nil, nil, "_rotate", data.count, component, hierarchy))
+                properties.append((nil, nil, "_rotate", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
             }
         } else
         if component.componentType == .SDF3D || component.componentType == .Transform3D {
-            properties.append((nil, nil, "_posX", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posX", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_posY", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posY", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_posZ", data.count, component, hierarchy))
+            properties.append((nil, nil, "_posZ", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_rotateX", data.count, component, hierarchy))
+            properties.append((nil, nil, "_rotateX", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_rotateY", data.count, component, hierarchy))
+            properties.append((nil, nil, "_rotateY", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_rotateZ", data.count, component, hierarchy))
+            properties.append((nil, nil, "_rotateZ", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
             if component.values["_bb_x"] != nil {
-                properties.append((nil, nil, "_bb_x", data.count, component, hierarchy))
+                properties.append((nil, nil, "_bb_x", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_bb_y", data.count, component, hierarchy))
+                properties.append((nil, nil, "_bb_y", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
-                properties.append((nil, nil, "_bb_z", data.count, component, hierarchy))
+                properties.append((nil, nil, "_bb_z", data.count, component))
                 data.append(SIMD4<Float>(0,0,0,0))
             }
         }
@@ -151,7 +150,7 @@ class CodeBuilderInstance
         // Scaling on the transforms
         if component.componentType == .Transform2D || component.componentType == .Transform3D {
             if component.values["_scale"] == nil { component.values["_scale"] = 1 }
-            properties.append((nil, nil, "_scale", data.count, component, hierarchy))
+            properties.append((nil, nil, "_scale", data.count, component))
             data.append(SIMD4<Float>(0,0,0,0))
         }
         
@@ -1087,7 +1086,7 @@ class CodeBuilder
                 // Recursively add the parent values for this transform
                 var parentValue : Float = 0
                 
-                
+                /*
                 for stageItem in property.5.reversed() {
                     if let transComponent = stageItem.components[stageItem.defaultName] {
                         // Transform
@@ -1101,7 +1100,7 @@ class CodeBuilder
                             parentValue += transformed[name]!
                         }
                     }
-                }
+                }*/
                 
                 var properties : [String:Float] = [:]
                 if let value = component.values[name] {

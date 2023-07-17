@@ -52,7 +52,7 @@ class TopRegion: MMRegion
                 //    globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 //} else
                 if let component = globalApp!.developerEditor.codeEditor.codeComponent {
-                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
+                    //globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 }
             } else {
                 self.app.currentEditor = self.app.developerEditor
@@ -60,7 +60,7 @@ class TopRegion: MMRegion
                 //    globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 //} else
                 if let component = globalApp!.artistEditor.designEditor.designComponent {
-                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
+                    //globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 }
             }
             self.app.currentEditor.activate()
@@ -179,6 +179,7 @@ class TopRegion: MMRegion
             if app.currentEditor === app.developerEditor {
                 globalApp!.libraryDialog.show(ids: ["FuncNoise", "FuncHash", "FuncMisc"])
             } else {
+                /*
                 globalApp!.libraryDialog.showObjects(cb: { (object) in                    
                     let stageItem = decodeStageItemFromJSON(object)
                     
@@ -190,7 +191,7 @@ class TopRegion: MMRegion
                     shapeStage.children3D.append(stageItem!)
                     
                     globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                })
+                })*/
             }
             
             self.libraryButton.removeState(.Checked)
@@ -240,7 +241,7 @@ class TopRegion: MMRegion
         graphButton.rect.width += 16
         graphButton.rect.height -= 2
         graphButton.clicked = { (event) -> Void in
-            globalApp!.sceneGraph.switchState()
+            //globalApp!.sceneGraph.switchState()
         }
 
         layoutH(startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)

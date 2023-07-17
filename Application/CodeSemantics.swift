@@ -610,6 +610,7 @@ class CodeFragment          : Codable, Equatable
                 }
             } else {
                 // Check for global variable
+                /*
                 let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getGlobalVariable()
                 if let variableComp = globalVars[self.name] {
                     // Global!
@@ -642,7 +643,7 @@ class CodeFragment          : Codable, Equatable
                 } else {
                     name = "NOT FOUND"
                     invalid = true
-                }
+                }*/
             }
                 
                 /*
@@ -1647,6 +1648,8 @@ class CodeComponent         : Codable, Equatable
     
     // Label for the scene graph
     var label               : MMTextLabel? = nil
+    
+    var shader              : BaseShader? = nil
 
     private enum CodingKeys: String, CodingKey {
         case componentType

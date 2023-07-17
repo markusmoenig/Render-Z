@@ -141,12 +141,13 @@ class CodeProperties    : MMWidget
                     } else {
                         comp.libraryName = newValue
                         
+                        /*
                         if let stageItem = globalApp!.project.selected!.getStageItem(comp) {
                             if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D {
                                 stageItem.name = newValue
                                 stageItem.label = nil
                             }
-                        }
+                        }*/
                     }
                 } else
                 if variable == "libraryComment" {
@@ -188,7 +189,7 @@ class CodeProperties    : MMWidget
                     if let index = comp.functions.firstIndex(of: function) {
                         comp.functions.remove(at: index)
                         let undo = globalApp!.developerEditor.codeEditor.undoStart("Delete Function")
-                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                        globalApp!.developerEditor.codeEditor.markComponentInvalid(comp)
                         globalApp!.developerEditor.codeEditor.undoEnd(undo)
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
                         globalApp!.developerEditor.codeEditor.clearSelection()
@@ -719,7 +720,7 @@ class CodeProperties    : MMWidget
                         let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Image Changed") : nil
                         fragment.values[variable] = newValue
                         //if variable == "image" {
-                            self.editor.codeEditor.markStageItemOfComponentInvalid(comp)
+                            self.editor.codeEditor.markComponentInvalid(comp)
                             self.editor.updateOnNextDraw(compile: true)
                         //} else {
                         //    self.editor.updateOnNextDraw(compile: false)
@@ -740,7 +741,7 @@ class CodeProperties    : MMWidget
                         let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Noise Changed") : nil
                         fragment.values[variable] = newValue
                         //if variable == "noise3D" {
-                            self.editor.codeEditor.markStageItemOfComponentInvalid(comp)
+                            self.editor.codeEditor.markComponentInvalid(comp)
                             self.editor.updateOnNextDraw(compile: true)
                         //} else {
                         //    self.editor.updateOnNextDraw(compile: false)
@@ -761,7 +762,7 @@ class CodeProperties    : MMWidget
                         let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Noise Changed") : nil
                         fragment.values[variable] = newValue
                         //if variable == "noise3D" {
-                            self.editor.codeEditor.markStageItemOfComponentInvalid(comp)
+                            self.editor.codeEditor.markComponentInvalid(comp)
                             self.editor.updateOnNextDraw(compile: true)
                         //} else {
                         //    self.editor.updateOnNextDraw(compile: false)

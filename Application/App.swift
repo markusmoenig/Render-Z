@@ -28,7 +28,7 @@ class App
     var bottomRegion    : BottomRegion?
     var editorRegion    : EditorRegion?
     
-    var codeBuilder     : CodeBuilder
+    //var codeBuilder     : CodeBuilder
     var pipelineFX      : PipelineFX
     var currentPipeline : Pipeline?
     var thumbnail       : Thumbnail
@@ -49,7 +49,6 @@ class App
     let libraryDialog   : LibraryDialog
 
     var project         : Project
-    var currentSceneMode: Scene.SceneMode = .ThreeD
     
     var images          : [(String,MTLTexture)] = []
         
@@ -106,14 +105,14 @@ class App
 
         artistEditor = ArtistEditor(mmView)
         developerEditor = DeveloperEditor(mmView)
-        codeBuilder = CodeBuilder(mmView)
+        //codeBuilder = CodeBuilder(mmView)
         pipelineFX = PipelineFX(mmView)
         thumbnail = Thumbnail(mmView)
 
         currentPipeline = pipelineFX
 
         currentEditor = artistEditor
-        project = Project(currentSceneMode)
+        project = Project()
         
         privateDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").privateCloudDatabase
         publicDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase
@@ -249,20 +248,12 @@ class App
                             c.componentLists["variables"] = newList
                         }
                     }*/
-                        
-                    if project.selected!.stages[4].children2D.count == 0 {
-                        project.selected!.stages[4] = Stage(.PostStage, "Post FX")
-                    }
 
                     //globalApp!.sceneGraph.clearSelection()
                     globalApp!.sceneGraph.clearSelection()
                     project.selected!.addDefaultImages()
                     
                     globalApp!.currentPipeline?.resetIds()
-                    
-                    // ?
-                    //globalApp!.currentEditor.setComponent(project.selected!.items[0])
-
                     
                     self.hasValidScene = true
                     self.currentEditor.updateOnNextDraw(compile: true)
@@ -287,56 +278,7 @@ class App
             }*/
             
             if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
-                project.selected!.updateComponent(component)
-                
-                project.selected!.getStageItem(component, selectIt: true)
-                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(component)
-            }
-        }
-    }
-    
-    func loadStageFrom(_ json: String)
-    {
-        if let jsonData = json.data(using: .utf8)
-        {
-            /*
-            do {
-                if (try JSONDecoder().decode(CodeComponent.self, from: jsonData)) != nil {
-                    print( "yes" )
-                }
-            }
-            catch {
-                print("Error is : \(error)")
-            }*/
-            
-            if let stage =  try? JSONDecoder().decode(Stage.self, from: jsonData) {
-                project.selected!.updateStage(stage)
-                
-                project.selected!.invalidateCompilerInfos()
-                currentEditor.updateOnNextDraw()
-            }
-        }
-    }
-    
-    func loadStageItemFrom(_ json: String)
-    {
-        if let jsonData = json.data(using: .utf8)
-        {
-            /*
-            do {
-                if (try JSONDecoder().decode(CodeComponent.self, from: jsonData)) != nil {
-                    print( "yes" )
-                }
-            }
-            catch {
-                print("Error is : \(error)")
-            }*/
-            
-            if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
-                project.selected!.updateStageItem(stageItem)
-                
-                globalApp!.developerEditor.codeEditor.markStageItemInvalid(stageItem)
-                currentEditor.updateOnNextDraw()
+                //globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(component)
             }
         }
     }
@@ -443,103 +385,6 @@ class Editor
         }
         
         componentChanged(undoComponent.originalData, undoComponent.processedData)
-    }
-    
-    // Undo / Redo for the current StageItem
-    func undoStageItemStart(_ name: String) -> SceneGraphItemUndo
-    {
-        let undo = SceneGraphItemUndo(name)
-        if let current = globalApp!.sceneGraph.currentStageItem {
-            let encodedData = try? JSONEncoder().encode(current)
-            if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
-                undo.originalData = encodedObjectJsonString
-            }
-        } else {
-            print("undoStageItemStart: Stage Item is 0")
-        }
-        
-        return undo
-    }
-    
-    // Undo / Redo for a StageItem
-    func undoStageItemStart(_ stageItem: StageItem, _ name: String) -> SceneGraphItemUndo
-    {
-        let undo = SceneGraphItemUndo(name)
-        let encodedData = try? JSONEncoder().encode(stageItem)
-        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
-            undo.originalData = encodedObjectJsonString
-        }
-        return undo
-    }
-    
-    func undoStageItemEnd(_ undoComponent: SceneGraphItemUndo)
-    {
-        if let current = globalApp!.sceneGraph.currentStageItem {
-            let encodedData = try? JSONEncoder().encode(current)
-            if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
-                undoComponent.processedData = encodedObjectJsonString
-            }
-        }
-
-        func stageItemChanged(_ oldState: String, _ newState: String)
-        {
-            globalApp!.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                globalApp!.loadStageItemFrom(oldState)
-                stageItemChanged(newState, oldState)
-            }
-            globalApp!.mmView.undoManager!.setActionName(undoComponent.name)
-        }
-        
-        stageItemChanged(undoComponent.originalData, undoComponent.processedData)
-    }
-    
-    func undoStageItemEnd(_ stageItem: StageItem, _ undoComponent: SceneGraphItemUndo)
-    {
-        let encodedData = try? JSONEncoder().encode(stageItem)
-        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
-            undoComponent.processedData = encodedObjectJsonString
-        }
-
-        func stageItemChanged(_ oldState: String, _ newState: String)
-        {
-            globalApp!.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                globalApp!.loadStageItemFrom(oldState)
-                stageItemChanged(newState, oldState)
-            }
-            globalApp!.mmView.undoManager!.setActionName(undoComponent.name)
-        }
-        
-        stageItemChanged(undoComponent.originalData, undoComponent.processedData)
-    }
-    
-    // Undo / Redo for a Stage
-    func undoStageStart(_ stage: Stage,_ name: String) -> SceneGraphItemUndo
-    {
-        let undo = SceneGraphItemUndo(name)
-        let encodedData = try? JSONEncoder().encode(stage)
-        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
-            undo.originalData = encodedObjectJsonString
-        }
-        return undo
-    }
-    
-    func undoStageEnd(_ stage: Stage,_ undoComponent: SceneGraphItemUndo)
-    {
-        let encodedData = try? JSONEncoder().encode(stage)
-        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
-            undoComponent.processedData = encodedObjectJsonString
-        }
-
-        func stageChanged(_ oldState: String, _ newState: String)
-        {
-            globalApp!.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                globalApp!.loadStageFrom(oldState)
-                stageChanged(newState, oldState)
-            }
-            globalApp!.mmView.undoManager!.setActionName(undoComponent.name)
-        }
-        
-        stageChanged(undoComponent.originalData, undoComponent.processedData)
     }
 }
 

@@ -292,6 +292,7 @@ class GizmoCamera3D         : GizmoBase
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
+        /*
         globalApp!.sceneGraph.xrayUpdateLocked = true
 
         if event.deltaX == 0 && event.deltaY == 0 {
@@ -317,7 +318,7 @@ class GizmoCamera3D         : GizmoBase
             }
         
             camera3D.initFromCamera(aspect: rect.width/rect.height, originFrag: originFrag, lookAtFrag: lookAtFrag, fovFrag: fovFrag)
-        }
+        }*/
         
         #if os(iOS)
         if event.clickCount == 2 {
@@ -356,6 +357,7 @@ class GizmoCamera3D         : GizmoBase
     
     override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
+        /*
         let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
 
         var originFrag  : CodeFragment? = nil
@@ -389,7 +391,7 @@ class GizmoCamera3D         : GizmoBase
                 globalApp!.currentEditor.render()
                 mmView.update()
             }
-        }
+        }*/
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

@@ -22,6 +22,7 @@ class PostShader      : BaseShader
                     
         super.init(instance: instance)
         
+        /*
         let postStage = scene.getStage(.PostStage)
         if let item = postStage.children2D.first {
             if let list = item.componentLists["PostFX"] {
@@ -30,7 +31,7 @@ class PostShader      : BaseShader
                 }
                 item.shader = self
             }
-        }
+        }*/
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: sh)
     }
@@ -39,12 +40,13 @@ class PostShader      : BaseShader
     {
         var compile = true
         
+        /*
         let postStage = scene.getStage(.PostStage)
         if let item = postStage.children2D.first {
             if item.shader != nil {
                 compile = false
             }
-        }
+        }*/
 
         return compile
     }

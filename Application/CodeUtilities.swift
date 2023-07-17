@@ -332,6 +332,7 @@ func decodeComponentFromJSON(_ json: String) -> CodeComponent?
     return nil
 }
 
+/*
 /// Decode StageItem from JSON
 func decodeStageItemFromJSON(_ json: String) -> StageItem?
 {
@@ -434,7 +435,7 @@ func decodeStageItemAndProcess(_ json: String) -> StageItem?
         }
     }
     return nil
-}
+}*/
 
 /// Decode component and adjust uuids
 func decodeComponentAndProcess(_ json: String, replaced: [UUID:UUID] = [:]) -> CodeComponent?
@@ -595,6 +596,7 @@ func defaultConstantForType(_ typeName: String) -> CodeFragment
 
 func setDefaultComponentValues(_ comp: CodeComponent)
 {
+    /*
     if comp.componentType == .SDF2D || comp.componentType == .Transform2D {
         if globalApp!.currentSceneMode == .ThreeD {
             comp.values["_posX"] = 0
@@ -635,14 +637,16 @@ func setDefaultComponentValues(_ comp: CodeComponent)
         comp.values["_rotateY"] = 0
         comp.values["_rotateZ"] = 0
     }
+    */
 }
 
+/*
 func getCurrentModeId() -> String
 {
     let modeId : String = globalApp!.currentSceneMode == .TwoD ? "2D" : "3D"
     return modeId
-}
-
+}*/
+/*
 func getFirstComponentOfType(_ list: [StageItem],_ type: CodeComponent.ComponentType) -> CodeComponent?
 {
     for item in list {
@@ -677,7 +681,7 @@ func getFirstItemOfType(_ list: [StageItem],_ type: CodeComponent.ComponentType)
         }
     }
     return (nil,nil)
-}
+}*/
 
 /// Returns a random token of the given length
 func generateToken(length: Int = 6) -> String
@@ -687,6 +691,7 @@ func generateToken(length: Int = 6) -> String
     return String(randomCharacters)
 }
 
+/*
 /// Places a child in a circle around the parent
 func placeChild(modeId: String, parent: Stage, child: StageItem, stepSize: Float, radius: Float, defaultStart: Float = 90)
 {
@@ -757,7 +762,7 @@ func getGlobalVariableValue(withName: String) -> SIMD4<Float>?
         }
     }
     return result
-}
+}*/
 
 // Get the variable from a variable component
 func getVariable(from: CodeComponent) -> CodeFragment?
@@ -794,6 +799,7 @@ func setPropertyValue1(component: CodeComponent, name: String, value: Float)
 /// Returns a "special" component in the scene graph
 func getComponent(name: String) -> CodeComponent?
 {
+    /*
     if name == "Renderer"
     {
         let scene = globalApp!.project.selected!
@@ -817,7 +823,7 @@ func getComponent(name: String) -> CodeComponent?
                 return o.components[o.defaultName]!
             }
         }
-    }
+    }*/
     
     return nil
 }

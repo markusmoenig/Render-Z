@@ -222,7 +222,7 @@ class UtilityShader         : BaseShader
         
         var lightUniforms = LightUniforms()
         lightUniforms.numberOfLights = 1
-        
+        /*
         let sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
         let sunStrength : Float = getGlobalVariableValue(withName: "Sun.sunStrength")!.x
         var sunColor : SIMD4<Float>? = getGlobalVariableValue(withName: "Sun.sunColor")
@@ -262,7 +262,7 @@ class UtilityShader         : BaseShader
             }
             
             lightUniforms.numberOfLights += 1
-        }
+        }*/
         
         return lightUniforms
     }
@@ -271,6 +271,7 @@ class UtilityShader         : BaseShader
     {
         // --- Create Light Sampling Material Code
         var lightSamplingCode = ""
+        /*
         let stage = globalApp!.project.selected!.getStage(.LightStage)
         let lights = stage.getChildren()
         
@@ -306,7 +307,7 @@ class UtilityShader         : BaseShader
                 }
             
             """
-        }
+        }*/
         return lightSamplingCode
     }
 }

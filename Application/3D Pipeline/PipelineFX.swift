@@ -48,7 +48,7 @@ class PFXInstance {
     """
     
     // Component Ids
-    var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
+    var ids                 : [Int:(CodeComponent?)] = [:]
 
     // Camera
     var cameraOrigin        : float3 = float3(0,0,0)
@@ -172,9 +172,11 @@ class PipelineFX            : Pipeline
     override func build(scene: Scene)
     {
         self.scene = scene
-        let preStage = scene.getStage(.PreStage)
-        let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
-        cameraComponent = result.1!
+        //let preStage = scene.getStage(.PreStage)
+        //let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
+        //cameraComponent = result.1!
+        
+        cameraComponent = CodeComponent(.Camera3D)
         
         shaders = []
         validShaders = []
@@ -204,7 +206,7 @@ class PipelineFX            : Pipeline
         
         validShaders.append(pFXInstance.utilityShader!)
         validShaders.append(backgroundShader!)
-        //validShaders.append(postShader!)
+//        validShaders.append(postShader!)
 
         /*
         let shapeStage = scene.getStage(.ShapeStage)
@@ -265,7 +267,7 @@ class PipelineFX            : Pipeline
             item.shader!.ids.forEach { (key, value) in pFXInstance!.ids[key] = value }
         }*/
         
-        ids = pFXInstance.ids
+        //ids = pFXInstance.ids
         validShaders += shaders
     }
         
@@ -273,13 +275,6 @@ class PipelineFX            : Pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
         width = round(widthIn); height = round(heightIn)
-        
-        // Update xray if no over time animation is running
-        if globalApp!.sceneGraph.maximizedObject != nil {
-            if mmView.maxHardLocks == 0 {
-                globalApp!.sceneGraph.xrayNeedsUpdate = true
-            }
-        }
         
         //let startTime = Double(Date().timeIntervalSince1970)
         
@@ -309,8 +304,8 @@ class PipelineFX            : Pipeline
         //camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
         //camHelper.updateProjection()
                 
-        let origin = getTransformedComponentProperty(cameraComponent, "origin")
-        let lookAt = getTransformedComponentProperty(cameraComponent, "lookAt")
+        let origin = float3(0, 0, 0)//getTransformedComponentProperty(cameraComponent, "origin")
+        let lookAt = float3(0, 0, 0)//getTransformedComponentProperty(cameraComponent, "lookAt")
         
         pFXInstance.cameraOrigin = SIMD3<Float>(origin.x, origin.y, origin.z)
         pFXInstance.cameraLookAt = SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z)
@@ -354,11 +349,6 @@ class PipelineFX            : Pipeline
         func isDisabled(shader: BaseShader) -> Bool
         {
             var disabled = false
-            if let root = shader.rootItem {
-                if root.values["disabled"] == 1 {
-                    disabled = true
-                }
-            }
             return disabled
         }
         
@@ -371,12 +361,13 @@ class PipelineFX            : Pipeline
         }
         
         // Get the depth
+        /*
         for shader in shaders {
             if isDisabled(shader: shader) == false {
                 shader.render(texture: finalTexture!)
                 swapShapeTextures()
             }
-        }
+        }*/
         
         /*
         // Free the other shape texture
@@ -389,12 +380,12 @@ class PipelineFX            : Pipeline
         }*/
         
         // The ao / shadow textures which get ping ponged
-        pFXInstance.shadowTexture1 = checkTextureSize(width, height, pFXInstance.shadowTexture1, .rg16Float)
-        pFXInstance.shadowTexture2 = checkTextureSize(width, height, pFXInstance.shadowTexture2, .rg16Float)
+        //pFXInstance.shadowTexture1 = checkTextureSize(width, height, pFXInstance.shadowTexture1, .rg16Float)
+        //pFXInstance.shadowTexture2 = checkTextureSize(width, height, pFXInstance.shadowTexture2, .rg16Float)
         
         // The pointers to the current and the other ao / shadow texture
-        pFXInstance.currentShadowTexture = pFXInstance.shadowTexture1
-        pFXInstance.otherShadowTexture = pFXInstance.shadowTexture2
+        //pFXInstance.currentShadowTexture = pFXInstance.shadowTexture1
+        //pFXInstance.otherShadowTexture = pFXInstance.shadowTexture2
         
         func swapShadowTextures()
         {
@@ -407,9 +398,10 @@ class PipelineFX            : Pipeline
             }
         }
         
-        pFXInstance.utilityShader!.clearShadow(shadowTexture: pFXInstance.shadowTexture1!)
+        //pFXInstance.utilityShader!.clearShadow(shadowTexture: pFXInstance.shadowTexture1!)
         
         // Calculate the shadows
+        /*
         for shader in shaders {
             if let object = shader as? ObjectShader {
                 if isDisabled(shader: shader) == false {
@@ -417,7 +409,7 @@ class PipelineFX            : Pipeline
                     swapShadowTextures()
                 }
             }
-        }
+        }*/
         
         // Calculate the materials
         
@@ -476,13 +468,14 @@ class PipelineFX            : Pipeline
         //pFXInstance.utilityShader!.clear(texture: pFXInstance.maskTexture1!, data: SIMD4<Float>(1,1,1,1))
 
         // Calculate the materials
+        /*
         for shader in shaders {
             if isDisabled(shader: shader) == false {
                 shader.materialPass(texture: finalTexture!)
                 swapReflectionDirTextures()
                 swapMaskTextures()
             }
-        }
+        }*/
         
         /*
         // Free the other reflection dir texture
@@ -500,6 +493,7 @@ class PipelineFX            : Pipeline
         pFXInstance.otherShadowTexture = nil
         */
         
+        /*
         // Calculate the reflection hits
         for shader in shaders {
             if isDisabled(shader: shader) == false {
@@ -533,7 +527,7 @@ class PipelineFX            : Pipeline
         
         if let post = postShader {
             post.render(texture: finalTexture!, otherTexture: pFXInstance.currentReflDirTexture!)
-        }
+        }*/
 
         // RUN IT
         

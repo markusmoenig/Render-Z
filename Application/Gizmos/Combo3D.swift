@@ -186,7 +186,7 @@ class GizmoCombo3D          : GizmoBase
                 
                 if variable.hasSuffix("Random") {
                     comp.values[variable] = newValue
-                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                    globalApp!.developerEditor.codeEditor.markComponentInvalid(comp)
                     globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     return
                 }
@@ -207,7 +207,7 @@ class GizmoCombo3D          : GizmoBase
                     comp.values[variable + "X"] = newValue.x
                     comp.values[variable + "Y"] = newValue.y
                     comp.values[variable + "Z"] = newValue.z
-                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                    globalApp!.developerEditor.codeEditor.markComponentInvalid(comp)
                     globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     return
                 }
@@ -630,6 +630,7 @@ class GizmoCombo3D          : GizmoBase
     
     func computeGizmoData() -> GIZMO3D
     {
+        /*
         let origin = getCameraPropertyValue3("origin")
         let lookAt = getCameraPropertyValue3("lookAt")
         let fov = getCameraPropertyValue("fov")
@@ -689,8 +690,9 @@ class GizmoCombo3D          : GizmoBase
             rotateX, rotateY, rotateZ, 0,
             hierarchyX, hierarchyY, hierarchyZ, 0
         ]*/
-        
+        */
         var data = GIZMO3D()
+        /*
         data.size = float2(rect.width, rect.height)
         data.hoverState = hoverState.rawValue
         data.lockedScaleAxes = 0
@@ -734,7 +736,7 @@ class GizmoCombo3D          : GizmoBase
         
         data.L = SIMD3<Float>(length(X03), length(X13), length(X23))
         data.F = float3x3( X03 / dot(X03, X03), X13 / dot(X13, X13), X23 / dot(X23, X23) )
-        
+        */
         return data
     }
     
@@ -832,6 +834,7 @@ class GizmoCombo3D          : GizmoBase
         return SIMD3<Float>(0,0,0)
     }
     
+    /*
     func getScreenCameraDir(_ event: MMMouseEvent) -> (SIMD3<Float>, SIMD3<Float>)
     {
         let origin = getCameraPropertyValue3("origin")
@@ -852,7 +855,7 @@ class GizmoCombo3D          : GizmoBase
 
         compute.runBuffer(cameraState, outBuffer: outBuffer, inBuffer: buffer, wait: true)
         let result = outBuffer.contents().bindMemory(to: Float.self, capacity: 4)
-
+         
         return (origin, SIMD3<Float>(result[0], result[1], result[2]))
-    }
+    }*/
 }

@@ -42,10 +42,10 @@ class ArtistEditor          : Editor
     
     var componentId         : Int? = nil
     
-    var terrainEditor       : TerrainEditor
+    //var terrainEditor       : TerrainEditor
     var terrainIsActive     : Bool = false
     
-    var physics3D           : Physics3D? = nil
+    //var physics3D           : Physics3D? = nil
     
     required init(_ view: MMView)
     {
@@ -92,10 +92,11 @@ class ArtistEditor          : Editor
         
         samplesLabel = MMShadowTextLabel(view, font: view.openSans, text: "0", scale: 0.3)
         
-        terrainEditor = TerrainEditor(view)
+        //terrainEditor = TerrainEditor(view)
         
         super.init()
         
+        /*
         playButton.clicked = { (event) -> Void in
             if self.physics3D == nil {
                 self.physics3D = Physics3D(scene: globalApp!.project.selected!)
@@ -121,8 +122,9 @@ class ArtistEditor          : Editor
                     }
                 }
             }
-        }
+        }*/
         
+        /*
         cameraButton.clicked = { (event) -> Void in
             let preStage = globalApp!.project.selected!.getStage(.PreStage)
             let preStageChildren = preStage.getChildren()
@@ -166,7 +168,7 @@ class ArtistEditor          : Editor
                     }
                 })
             }
-        }
+        }*/
         
         /*
         renderButton.clicked = { (event) -> Void in
@@ -195,7 +197,7 @@ class ArtistEditor          : Editor
             mmView.registerWidget(timeline)
         }
         terrainIsActive = false
-        terrainEditor.deactivate()
+        //terrainEditor.deactivate()
     }
     
     override func deactivate()
@@ -206,7 +208,7 @@ class ArtistEditor          : Editor
             timeline.deactivate()
         }
         terrainIsActive = false
-        terrainEditor.deactivate()
+        //terrainEditor.deactivate()
     }
     
     override func render()
@@ -216,12 +218,14 @@ class ArtistEditor          : Editor
     
     func getTerrain() -> Terrain?
     {
-        let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
-        return shapeStage.terrain
+        //let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+        //return shapeStage.terrain
+        nil
     }
     
     func activateTerrain()
     {
+        /*
         if let terrain = self.getTerrain() {
             self.terrainEditor.rect.copy(designEditor.rect)
             self.terrainEditor.activate()
@@ -232,7 +236,7 @@ class ArtistEditor          : Editor
             self.terrainIsActive = false
             self.terrainEditor.deactivate()
             self.groundButton.removeState(.Checked)
-        }
+        }*/
     }
     
     override func setComponent(_ component: CodeComponent)
@@ -269,7 +273,7 @@ class ArtistEditor          : Editor
         } else {
             terrainIsActive = false
             groundButton.removeState(.Checked)
-            terrainEditor.deactivate()
+            //terrainEditor.deactivate()
         }
 
         designEditor.designComponent = component
@@ -343,6 +347,7 @@ class ArtistEditor          : Editor
                 }
             }
             
+            /*
             if let physics = physics3D {
                 physics.step()
                 designEditor.rect.copy(region.rect)
@@ -350,15 +355,15 @@ class ArtistEditor          : Editor
                 drawPreview(mmView: mmView, region.rect)
                 physics.drawDebug(texture: globalApp!.currentPipeline!.finalTexture!)
                 return
-            }
+            }*/
             
-            if terrainIsActive {
-                terrainEditor.rect.copy(region.rect)
-                terrainEditor.draw()
-                
-                doDrawSamples()                
-                return
-            }
+//            if terrainIsActive {
+//                terrainEditor.rect.copy(region.rect)
+//                terrainEditor.draw()
+//                
+//                doDrawSamples()                
+//                return
+//            }
             
             designEditor.rect.copy(region.rect)
             designEditor.draw()

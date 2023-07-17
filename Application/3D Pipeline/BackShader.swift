@@ -23,21 +23,22 @@ class BackgroundShader      : BaseShader
                     
         super.init(instance: instance)
         
-        //let preStage = scene.getStage(.PreStage)
-        //for item in preStage.getChildren() {
         if scene.items.isEmpty == false {
-            let comp = scene.items[0];
+            let comp = scene.items[0]
             if comp.componentType == .SkyDome || comp.componentType == .Pattern {
                 createFragmentSource(backComponent: comp, camera: camera)
-                //item.shader = self
+                comp.shader = self
             }
         }
-        //}
     }
     
     static func needsToCompile(scene: Scene) -> Bool
     {
         var compile = false
+
+        if scene.items.isEmpty == false && scene.items[0].shader == nil {
+            compile = true;
+        }
         /*
         let preStage = scene.getStage(.PreStage)
         for item in preStage.getChildren() {
@@ -212,6 +213,7 @@ class BackgroundShader      : BaseShader
     
     func createCloudCode()
     {
+        /*
         // Insert fog / cloud if they dont exist
         let preStage = scene.getStage(.PreStage)
         for c in preStage.children3D {
@@ -233,6 +235,6 @@ class BackgroundShader      : BaseShader
                     cloudCode += cloudComp.code!
                 }
             }
-        }
+        }*/
     }
 }

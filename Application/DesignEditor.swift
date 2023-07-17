@@ -178,6 +178,7 @@ class DesignEditor          : MMWidget
                     print(value.x, value.y, value.z, value.w)
                     
                     var valid : Bool = true
+                    /*
                     if globalApp!.currentSceneMode == .TwoD && value.x > 0 {
                         valid = false
                     }
@@ -223,7 +224,7 @@ class DesignEditor          : MMWidget
                         //globalApp!.sceneGraph.setCurrent(stage: globalApp!.sceneGraph.currentStage!, stageItem: globalApp!.sceneGraph.currentStageItem)
                         // Select World
                         //globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.PreStage))
-                    }
+                    }*/
                     convertTo.setPurgeableState(.empty)
                 }
             }            
@@ -258,6 +259,7 @@ class DesignEditor          : MMWidget
         }
         #endif
         
+        /*
         if globalApp!.currentSceneMode == .TwoD {
             gizmoCamera3D.rect.copy(rect)
             gizmoCombo2D.mouseScrolled(event)
@@ -269,11 +271,12 @@ class DesignEditor          : MMWidget
                     editor.designProperties.setSelected(comp)
                 }
             }
-        }
+        }*/
     }
     
     override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
+        /*
         if globalApp!.currentSceneMode == .TwoD {
             gizmoCombo2D.pinchGesture(scale, firstTouch)
         } else {
@@ -283,7 +286,7 @@ class DesignEditor          : MMWidget
                     editor.designProperties.setSelected(comp)
                 }
             }
-        }
+        }*/
     }
     
     override func update()

@@ -71,6 +71,7 @@ class GizmoCombo2D          : GizmoBase
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        /*
         #if os(iOS)
             mouseMoved(event)
         #endif
@@ -106,7 +107,7 @@ class GizmoCombo2D          : GizmoBase
                     }
                 }
             }
-        }
+        }*/
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
@@ -118,6 +119,7 @@ class GizmoCombo2D          : GizmoBase
                 mmView.update()
             }
         } else {
+            /*
             let pos = convertToSceneSpace(x: event.x, y: event.y)
             let scale : Float = getCameraPropertyValue("scale", defaultValue: 1)
 
@@ -164,7 +166,7 @@ class GizmoCombo2D          : GizmoBase
             
             if undoComponent == nil {
                 undoComponent = globalApp!.currentEditor.undoComponentStart("Gizmo Action")
-            }
+            }*/
             
             updateUIProperties()
         }
@@ -185,6 +187,7 @@ class GizmoCombo2D          : GizmoBase
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
+        /*
         let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
 
         var xFrag : CodeFragment? = nil
@@ -246,11 +249,12 @@ class GizmoCombo2D          : GizmoBase
         
         if mmView.maxFramerateLocks == 0 {
             mmView.lockFramerate()
-        }
+        }*/
     }
     
     override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
+        /*
         let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
 
         var scaleFrag : CodeFragment? = nil
@@ -278,7 +282,7 @@ class GizmoCombo2D          : GizmoBase
             } else {
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
             }
-        }
+        }*/
     }
     
     /// Updates the UI properties
@@ -344,7 +348,7 @@ class GizmoCombo2D          : GizmoBase
      func updateHoverState(_ event: MMMouseEvent)
      {
          hoverState = .Inactive
-         
+        /*
         let scale : Float = getCameraPropertyValue("scale", defaultValue: 1)
 
         var properties : [String:Float] = [:]
@@ -463,13 +467,13 @@ class GizmoCombo2D          : GizmoBase
                 hoverState = .Rotate
                 return
             }
-        }
+        }*/
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         // --- Render Gizmo
-        
+        /*
         let data: [Float] = [
             width, height,
             hoverState.rawValue, 0
@@ -501,8 +505,9 @@ class GizmoCombo2D          : GizmoBase
         renderEncoder.setRenderPipelineState(state!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         mmView.renderer.setClipRect()
+        */
     }
-    
+    /*
     /// Converts the coordinate from scene space to screen space
     func convertToScreenSpace(x: Float, y: Float) -> SIMD2<Float>
     {
@@ -558,5 +563,5 @@ class GizmoCombo2D          : GizmoBase
             a = a*180/Float.pi; //convert to deg
         }
         return a;
-    }
+    }*/
 }
