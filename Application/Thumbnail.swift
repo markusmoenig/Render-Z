@@ -68,7 +68,7 @@ class Thumbnail
             //if componentMap["camera3D"] == nil {
             //    return result
             //}
-            
+            /* TODO
             let instance = PRTInstance()
             instance.commandQueue = mmView.device!.makeCommandQueue()
             instance.commandBuffer = instance.commandQueue!.makeCommandBuffer()!
@@ -79,6 +79,7 @@ class Thumbnail
             instance.screenSize.y = height
             let th = ThumbnailShader(instance: instance, shape: comp, camera: componentMap["camera3D"]!)
             th.render(texture: result!)
+             */
             /*
 
             depthTexture = checkTextureSize(width, height, depthTexture)

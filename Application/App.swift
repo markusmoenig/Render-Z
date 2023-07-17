@@ -29,14 +29,14 @@ class App
     var editorRegion    : EditorRegion?
     
     var codeBuilder     : CodeBuilder
-    var pipeline3DRT    : Pipeline3DRT
+    var pipelineFX      : PipelineFX
     var currentPipeline : Pipeline?
     var thumbnail       : Thumbnail
 
     var artistEditor    : ArtistEditor
     var developerEditor : DeveloperEditor
-    var sceneGraph      : SceneGraph
-    
+    var sceneGraph      : SceneTimeline
+
     var currentEditor   : Editor
     
     var changed         : Bool = false
@@ -94,8 +94,8 @@ class App
         mmView.registerIcon("maximize")
         mmView.registerIcon("minimize")
         mmView.registerIcon("render-z")
-        sceneGraph = SceneGraph(mmView)
-        
+        sceneGraph = SceneTimeline(mmView)
+
         // Initialize images
         let imageNames = ["StoneWall", "GreyStone", "Soil"]
         for name in imageNames {
@@ -107,10 +107,10 @@ class App
         artistEditor = ArtistEditor(mmView)
         developerEditor = DeveloperEditor(mmView)
         codeBuilder = CodeBuilder(mmView)
-        pipeline3DRT = Pipeline3DRT(mmView)
+        pipelineFX = PipelineFX(mmView)
         thumbnail = Thumbnail(mmView)
 
-        currentPipeline = pipeline3DRT
+        currentPipeline = pipelineFX
 
         currentEditor = artistEditor
         project = Project(currentSceneMode)
@@ -254,10 +254,16 @@ class App
                         project.selected!.stages[4] = Stage(.PostStage, "Post FX")
                     }
 
+                    //globalApp!.sceneGraph.clearSelection()
                     globalApp!.sceneGraph.clearSelection()
                     project.selected!.addDefaultImages()
                     
                     globalApp!.currentPipeline?.resetIds()
+                    
+                    // ?
+                    //globalApp!.currentEditor.setComponent(project.selected!.items[0])
+
+                    
                     self.hasValidScene = true
                     self.currentEditor.updateOnNextDraw(compile: true)
                     self.mmView.update()

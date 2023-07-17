@@ -12,7 +12,7 @@ class ThumbnailShader       : BaseShader
 {
     let camera              : CodeComponent
     
-    init(instance: PRTInstance, shape: CodeComponent, camera: CodeComponent)
+    init(instance: PFXInstance, shape: CodeComponent, camera: CodeComponent)
     {
         self.camera = camera
         super.init(instance: instance)

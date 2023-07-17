@@ -635,7 +635,7 @@ class TerrainEditor         : PropertiesWidget
     /// Returns the origin and lookAt values of the camera
     func computeCameraTextures()
     {
-        if let pipeline = globalApp!.currentPipeline as? Pipeline3DRT {
+        if let pipeline = globalApp!.currentPipeline as? PipelineFX {
     
             if originTexture != nil {
                 originTexture!.setPurgeableState(.empty)

@@ -25,7 +25,7 @@ class XRayShader      : BaseShader
     
     var bbTriangles     : [Float] = []
     
-    var instance        : PRTInstance
+    var instance        : PFXInstance
     
     var id              : Int = -1
 
@@ -35,7 +35,7 @@ class XRayShader      : BaseShader
         self.object = object
         self.camera = camera
         
-        instance = PRTInstance()
+        instance = PFXInstance()
         
         super.init(instance: instance)
         self.rootItem = object

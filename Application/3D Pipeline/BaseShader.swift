@@ -80,7 +80,7 @@ class BaseShader
 
     var claimedIds          : [Int] = []
 
-    weak var prtInstance    : PRTInstance!
+    weak var prtInstance    : PFXInstance!
     
     var shaders             : [String:Shader] = [:]
     var allShaders          : [Shader] = []
@@ -92,7 +92,7 @@ class BaseShader
     var velocity            : _Vector3? = nil
     var elasticity          : Float = 0
 
-    init(instance: PRTInstance)
+    init(instance: PFXInstance)
     {
         self.prtInstance = instance
         device = globalApp!.mmView.device!

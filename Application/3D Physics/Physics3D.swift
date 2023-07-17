@@ -192,7 +192,7 @@ class Physics3D
             let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
             let cameraComponent = result.1!
             
-            primShader = PrimitivesShader(instance: PRTInstance(), camera: cameraComponent)
+            primShader = PrimitivesShader(instance: PFXInstance(), camera: cameraComponent)
         }
     }
     

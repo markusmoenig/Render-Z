@@ -20,7 +20,7 @@ class TerrainShader     : BaseShader
     var materialCode    = ""
     var materialBumpCode = ""
 
-    init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
+    init(instance: PFXInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
         self.scene = scene
         self.object = object

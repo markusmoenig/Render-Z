@@ -31,7 +31,7 @@ class ObjectShader      : BaseShader
 
     var spheres         : [SIMD4<Float>] = []
 
-    init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
+    init(instance: PFXInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
         self.scene = scene
         self.object = object

@@ -16,7 +16,7 @@ class PostShader      : BaseShader
     var fragmentCode    = ""
     var postCounter     : Int = 0
             
-    init(instance: PRTInstance, scene: Scene)
+    init(instance: PFXInstance, scene: Scene)
     {
         self.scene = scene
                     

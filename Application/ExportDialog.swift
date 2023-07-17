@@ -55,7 +55,7 @@ class ExportDialog: MMDialog {
     init(_ view: MMView) {
         
         //if globalApp!.currentSceneMode == .ThreeD {
-            pipeline = Pipeline3DRT(view)
+            pipeline = PipelineFX(view)
         //}
         //else {
         //pipeline = Pipeline2D(view)

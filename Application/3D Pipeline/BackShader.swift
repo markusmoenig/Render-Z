@@ -10,32 +10,35 @@ import MetalKit
 
 class BackgroundShader      : BaseShader
 {
-    var scene           : Scene
-    var camera          : CodeComponent
+    var scene               : Scene
+    var camera              : CodeComponent
     
     var cloudHeaderCode = ""
     var cloudCode       = ""
             
-    init(instance: PRTInstance, scene: Scene, camera: CodeComponent)
+    init(instance: PFXInstance, scene: Scene, camera: CodeComponent)
     {
         self.scene = scene
         self.camera = camera
                     
         super.init(instance: instance)
         
-        let preStage = scene.getStage(.PreStage)
-        for item in preStage.getChildren() {
-            if let comp = item.components[item.defaultName], comp.componentType == .SkyDome || comp.componentType == .Pattern {
+        //let preStage = scene.getStage(.PreStage)
+        //for item in preStage.getChildren() {
+        if scene.items.isEmpty == false {
+            let comp = scene.items[0];
+            if comp.componentType == .SkyDome || comp.componentType == .Pattern {
                 createFragmentSource(backComponent: comp, camera: camera)
-                item.shader = self
+                //item.shader = self
             }
         }
+        //}
     }
     
     static func needsToCompile(scene: Scene) -> Bool
     {
-        var compile = true
-        
+        var compile = false
+        /*
         let preStage = scene.getStage(.PreStage)
         for item in preStage.getChildren() {
             if let comp = item.components[item.defaultName], comp.componentType == .SkyDome || comp.componentType == .Pattern {
@@ -43,7 +46,7 @@ class BackgroundShader      : BaseShader
                     compile = false
                 }
             }
-        }
+        }*/
 
         return compile
     }

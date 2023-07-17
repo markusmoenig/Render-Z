@@ -11,9 +11,9 @@ import MetalKit
 class PrimitivesShader      : BaseShader
 {
     var camera              : CodeComponent!
-    var instance            : PRTInstance!
+    var instance            : PFXInstance!
     
-    init(instance: PRTInstance, camera: CodeComponent)
+    init(instance: PFXInstance, camera: CodeComponent)
     {
         self.instance = instance
         

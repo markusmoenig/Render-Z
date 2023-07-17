@@ -13,7 +13,7 @@ class UtilityShader         : BaseShader
     let scene               : Scene
     var camera              : CodeComponent!
     
-    init(instance: PRTInstance, scene: Scene, camera: CodeComponent)
+    init(instance: PFXInstance, scene: Scene, camera: CodeComponent)
     {
         self.scene = scene
         self.camera = camera

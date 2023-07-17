@@ -456,7 +456,8 @@ class StageItem             : Codable, Equatable
 class Stage                 : Codable, Equatable
 {
     enum StageType          : Int, Codable {
-        case PreStage, ShapeStage, LightStage, RenderStage, PostStage, VariablePool
+        case PreStage, ShapeStage, LightStage, RenderStage, PostStage, VariablePool,
+        FX, Dist3D, Dist2D, Render
     }
     
     var stageType           : StageType = .PreStage
@@ -485,6 +486,7 @@ class Stage                 : Codable, Equatable
         case children3D
         case values
         case terrain
+        case items
     }
     
     required init(from decoder: Decoder) throws
@@ -914,16 +916,21 @@ class Scene                 : Codable, Equatable
 
     var selectedUUID2D      : UUID? = nil
     var selectedUUID3D      : UUID? = nil
+    var selectedUUID        : UUID? = nil
 
     var stages              : [Stage] = []
-       
+
+    var items               : [CodeComponent] = []
+
     private enum CodingKeys: String, CodingKey {
         case name
         case uuid
         case selectedUUID2D
         case selectedUUID3D
+        case selectedUUID
         case stages
         case sceneMode
+        case items
     }
    
     required init(from decoder: Decoder) throws
@@ -936,12 +943,30 @@ class Scene                 : Codable, Equatable
         stages = try container.decode([Stage].self, forKey: .stages)
         sceneMode = try container.decode(SceneMode.self, forKey: .sceneMode)
 
+        if let selected = try container.decodeIfPresent(UUID?.self, forKey: .selectedUUID) {
+            selectedUUID = selected
+        } else {
+            selectedUUID = nil
+        }
+        
+        if let i = try container.decodeIfPresent([CodeComponent].self, forKey: .items) {
+            items = i
+        } else {
+            var items : [CodeComponent] = []
+            
+            let codeComponent = CodeComponent(.SkyDome, "Dummy")
+            codeComponent.createDefaultFunction(.SkyDome)
+            
+            items.append(codeComponent)
+            self.items = items
+        }
+        
         if sceneMode != globalApp!.currentSceneMode {
             globalApp!.currentSceneMode = sceneMode
             if sceneMode == .TwoD {
                 //globalApp!.currentPipeline = globalApp!.pipeline2D
             } else {
-                globalApp!.currentPipeline = globalApp!.pipeline3DRT
+                globalApp!.currentPipeline = globalApp!.pipelineFX
             }
         }
         
@@ -1039,21 +1064,13 @@ class Scene                 : Codable, Equatable
     /// Returns the selected UUID
     func getSelectedUUID() -> UUID?
     {
-        if sceneMode == .TwoD {
-            return selectedUUID2D
-        } else {
-            return selectedUUID3D
-        }
+        return selectedUUID
     }
     
     /// Sets the selected UUID
     func setSelectedUUID(_ uuid: UUID)
     {
-        if sceneMode == .TwoD {
-            selectedUUID2D = uuid
-        } else {
-            selectedUUID3D = uuid
-        }
+        selectedUUID = uuid
     }
     
     /// Recursively update the component
@@ -1085,6 +1102,17 @@ class Scene                 : Codable, Equatable
         return nil
     }
     
+    /// Find the item of the given uuid
+    func componentOfUUID(_ uuid: UUID) -> CodeComponent?
+    {
+        for item in self.items {
+            if item.uuid == uuid {
+                return item
+            }
+        }
+        return nil
+    }
+    
     /// Returns the currently selected item
     func getSelected() -> StageItem?
     {
@@ -1098,6 +1126,8 @@ class Scene                 : Codable, Equatable
     func setSelected(_ item: StageItem)
     {
         setSelectedUUID(item.uuid)
+        globalApp!.currentEditor.setComponent(self.items[0])
+
         /*
         if let defaultComponent = item.components[item.defaultName] {
             globalApp!.currentEditor.setComponent(defaultComponent)
@@ -1110,6 +1140,7 @@ class Scene                 : Codable, Equatable
     /// Get the stage item for the given component and optionally select it
     @discardableResult func getStageItem(_ component: CodeComponent, selectIt: Bool = false) -> StageItem?
     {
+        
         class SearchInfo {
             var stageItem   : StageItem? = nil
             var component   : CodeComponent? = nil
