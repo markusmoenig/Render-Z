@@ -588,8 +588,10 @@ class CodeEditor        : MMWidget
     /// Invalidate the BuilderInstance of the current component
     func markComponentInvalid(_ component: CodeComponent)
     {
-        component.builderInstance = nil
-        component.shader = nil
+        //component.builderInstance = nil
+        if let _ = component.shader {
+            component.shader = nil
+        }
     }
     
     /// Runs the component to generate code without any drawing

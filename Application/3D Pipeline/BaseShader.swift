@@ -191,7 +191,7 @@ class BaseShader
                 }
                 
                 
-                if /*self as? ObjectShader != nil || self as? GroundShader != nil || self as? TerrainShader != nil ||*/ self as? BackgroundShader != nil {
+                if /*self as? ObjectShader != nil || self as? GroundShader != nil || self as? TerrainShader != nil ||*/ self as? FXShader != nil {
                     DispatchQueue.main.async {
                         globalApp!.currentEditor.render()
                         globalApp!.mmView.update()
@@ -370,7 +370,7 @@ class BaseShader
         //inst.data[0].w = 1
 
         for property in properties {
-            
+
             let dataIndex = property.3
             let component = property.4
 
@@ -426,8 +426,8 @@ class BaseShader
                             value = max(0.01, value)
                         }
                     }
-                    self.data[dataIndex].x = value
                      */
+                    self.data[dataIndex].x = value
                 } else
                 if components == 2 {
                     properties[name + "_x"] = data.x

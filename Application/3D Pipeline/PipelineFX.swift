@@ -131,6 +131,8 @@ class PipelineFX            : Pipeline
         case None, Compiling, Compiled, HitAndNormals, AO, ShadowsAndMaterials, Reflection
     }
 
+    var ids                 : [Int:(CodeComponent?)] = [:]
+
     var currentStage        : Stage = .None
     var maxStage            : Stage = .Reflection
         
@@ -140,9 +142,6 @@ class PipelineFX            : Pipeline
     var scene               : Scene!
         
     var cameraComponent     : CodeComponent!
-    
-    var backgroundShader    : BackgroundShader? = nil
-    var postShader          : PostShader? = nil
     
     var shaders             : [BaseShader] = []
     var validShaders        : [BaseShader] = []
@@ -159,12 +158,6 @@ class PipelineFX            : Pipeline
     
     override func setMinimalPreview(_ mode: Bool = false)
     {
-        /*
-        if mode == true {
-            maxStage = .HitAndNormals
-        } else {
-            maxStage = .Reflection
-        }*/
         globalApp!.currentEditor.render()
     }
     
@@ -172,9 +165,6 @@ class PipelineFX            : Pipeline
     override func build(scene: Scene)
     {
         self.scene = scene
-        //let preStage = scene.getStage(.PreStage)
-        //let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
-        //cameraComponent = result.1!
         
         cameraComponent = CodeComponent(.Camera3D)
         
@@ -183,6 +173,21 @@ class PipelineFX            : Pipeline
         
         pFXInstance.clean()
         
+        if pFXInstance.utilityShader == nil {
+            pFXInstance.utilityShader = UtilityShader(instance: pFXInstance, scene: scene, camera: cameraComponent)
+        }
+
+        validShaders.append(pFXInstance.utilityShader!)
+
+        for item in scene.items {
+            if item.shader == nil {
+                let shader = FXShader(instance: pFXInstance, scene: scene, uuid: item.uuid, camera: cameraComponent)
+                item.shader = shader
+            }
+            validShaders.append(item.shader!)
+        }
+        
+        /*
         if backgroundShader == nil || BackgroundShader.needsToCompile(scene: scene) == true {
             backgroundShader = nil
             backgroundShader = BackgroundShader(instance: pFXInstance, scene: scene, camera: cameraComponent)
@@ -194,7 +199,7 @@ class PipelineFX            : Pipeline
             print("reusing background")
             #endif
         }
-        /*
+        
         if postShader == nil || PostShader.needsToCompile(scene: scene) == true {
             postShader = nil
             postShader = PostShader(instance: pFXInstance, scene: scene)
@@ -204,8 +209,8 @@ class PipelineFX            : Pipeline
             #endif
         }*/
         
-        validShaders.append(pFXInstance.utilityShader!)
-        validShaders.append(backgroundShader!)
+        //validShaders.append(pFXInstance.utilityShader!)
+        //validShaders.append(backgroundShader!)
 //        validShaders.append(postShader!)
 
         /*
@@ -267,7 +272,7 @@ class PipelineFX            : Pipeline
             item.shader!.ids.forEach { (key, value) in pFXInstance!.ids[key] = value }
         }*/
         
-        //ids = pFXInstance.ids
+        ids = pFXInstance.ids
         validShaders += shaders
     }
         
@@ -335,6 +340,13 @@ class PipelineFX            : Pipeline
         
         pFXInstance.utilityShader!.cameraTextures()
         
+        for item in globalApp!.project.selected!.items {
+            if let shader = item.shader {
+                shader.render(texture: finalTexture!)
+            }
+        }
+        
+        /*
         func swapShapeTextures()
         {
             if pFXInstance.currentShapeTexture === pFXInstance.shapeTexture1 {
@@ -356,10 +368,10 @@ class PipelineFX            : Pipeline
         
         globalApp!.executionTime = 0
         
-        if let background = backgroundShader {
-            background.render(texture: finalTexture!)
-        }
-        
+//        if let background = backgroundShader {
+//            background.render(texture: finalTexture!)
+//        }
+//
         // Get the depth
         /*
         for shader in shaders {
@@ -493,7 +505,7 @@ class PipelineFX            : Pipeline
         pFXInstance.otherShadowTexture = nil
         */
         
-        /*
+        
         // Calculate the reflection hits
         for shader in shaders {
             if isDisabled(shader: shader) == false {
@@ -527,7 +539,9 @@ class PipelineFX            : Pipeline
         
         if let post = postShader {
             post.render(texture: finalTexture!, otherTexture: pFXInstance.currentReflDirTexture!)
-        }*/
+        }
+         
+        */
 
         // RUN IT
         

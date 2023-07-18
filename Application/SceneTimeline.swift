@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class SceneGraphSkin {
+class SceneTimelineSkin {
     
     //let normalInteriorColor     = SIMD4<Float>(0,0,0,0)
     let normalInteriorColor     = SIMD4<Float>(0.227, 0.231, 0.235, 1.000)
@@ -52,6 +52,19 @@ class SceneGraphSkin {
     }
 }
 
+class SceneTimelineButton {
+    
+    let index                   : Int
+
+    var rect                    : MMRect? = nil
+    var cb                      : (() -> ())? = nil
+    
+    init(index: Int)
+    {
+        self.index = index
+    }
+}
+
 class SceneTimelineItem {
         
     enum SceneTimelineItemType {
@@ -78,19 +91,19 @@ class SceneTimelineItem {
 
 class SceneTimeline            : MMWidget
 {
-    enum SceneGraphState {
+    enum SceneTimelineState {
         case Closed, Open
     }
     
-    enum InfoState {
-        case Boolean, Modifier, UV, Material
-    }
-    
-    var sceneGraphState         : SceneGraphState = .Closed
+    var sceneGraphState         : SceneTimelineState = .Closed
     var animating               : Bool = false
     
-    var infoState               : InfoState = .Boolean
+    var buttons                 : [SceneTimelineButton] = []
+    var hoverButton             : SceneTimelineButton? = nil
+    var pressedButton           : SceneTimelineButton? = nil
     
+    var menus                   : [MMMenuWidget] = []
+
     var needsUpdate             : Bool = true
     
     var componentMap            : [UUID:MMRect] = [:]
@@ -110,7 +123,7 @@ class SceneTimeline            : MMWidget
     var mouseDownItemPos        : SIMD2<Float> = SIMD2<Float>(0,0)
     
     var currentWidth            : Float = 0
-    var openWidth               : Float = 300
+    var openWidth               : Float = 200
     
     //var toolBarWidgets          : [MMWidget] = []
     //let toolBarHeight           : Float = 30
@@ -312,8 +325,12 @@ class SceneTimeline            : MMWidget
         //for w in toolBarWidgets {
         //    mmView.widgets.insert(w, at: 0)
         //}
-        mmView.widgets.insert(menuWidget, at: 0)
-        mmView.widgets.insert(itemMenu, at: 0)
+        //mmView.widgets.insert(menuWidget, at: 0)
+        //mmView.widgets.insert(itemMenu, at: 0)
+        
+        for menu in menus {
+            mmView.widgets.insert(menu, at: 0)
+        }
     }
     
     func deactivate()
@@ -321,8 +338,11 @@ class SceneTimeline            : MMWidget
         //for w in toolBarWidgets {
         //    mmView.deregisterWidget(w)
         //}
-        mmView.deregisterWidget(menuWidget)
-        mmView.deregisterWidget(itemMenu)
+        //mmView.deregisterWidget(menuWidget)
+        //mmView.deregisterWidget(itemMenu)
+        for menu in menus {
+            mmView.deregisterWidget(menu)
+        }
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -547,6 +567,13 @@ class SceneTimeline            : MMWidget
     {
         mousePos.x = event.x
         mousePos.y = event.y
+        
+        for b in buttons {
+            if b.rect!.contains(event.x, event.y) {
+                hoverButton = b
+                break
+            }
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -592,18 +619,81 @@ class SceneTimeline            : MMWidget
         
         let items = globalApp!.project.selected!.items;
         
-        let skin : SceneGraphSkin = SceneGraphSkin(mmView.openSans, fontScale: 0.4 * graphZoom, graphZoom: graphZoom)
+        let skin : SceneTimelineSkin = SceneTimelineSkin(mmView.openSans, fontScale: 0.4 * graphZoom, graphZoom: graphZoom)
         
-        var r = MMRect(self.rect);
-        r.height = 20;
+        buttons = []
         
-        for item in items {
+        let r = MMRect(self.rect);
+        r.height = 30;
+        
+        let tracks = globalApp!.project.selected!.items.count
+        
+        // Draw the component tracks
+        for index in 0..<tracks + 1 {
             
-            mmView.drawBox.draw( x: r.x, y: r.y, width: r.width, height: r.height, round: 0, borderSize: 1.0, fillColor : skin.renderColor, borderColor: item.uuid == currentUUID ? skin.selectedBorderColor : skin.normalBorderColor);
+            // Create menu widget if necessary
+            if menus.count <= index {
+                let menu = MMMenuWidget(mmView, type: .LabelMenu)
+                menu.textLabel = MMTextLabel(mmView, font: mmView.openSans, text: "\(index+1)", scale: skin.fontScale + 0.2, color: skin.normalTextColor)
+                menus.append(menu)
+                mmView.widgets.insert(menu, at: 0)
+            }
             
-            componentMap[item.uuid] = MMRect(r)
+            if menus.count <= index {
+                let menu = MMMenuWidget(mmView, type: .LabelMenu)
+                menu.textLabel = MMTextLabel(mmView, font: mmView.openSans, text: "\(index+1)", scale: skin.fontScale + 0.2, color: skin.normalTextColor)
+                menus.append(menu)
+                mmView.widgets.insert(menu, at: 0)
+            }
             
-            r.y += 20;
+            if index < globalApp!.project.selected!.items.count {
+                let uuid = globalApp!.project.selected!.items[index].uuid
+                
+                mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 1.0, fillColor : skin.postFXColor, borderColor: uuid == currentUUID ? skin.selectedBorderColor : skin.normalBorderColor)
+                
+                mmView.drawText.drawTextCentered(mmView.openSans, text: globalApp!.project.selected!.items[index].libraryName, x: r.x, y: r.y, width: r.width - 31, height: r.height, scale: 0.4, color: uuid == currentUUID ? skin.selectedTextColor : skin.normalTextColor)
+                
+                componentMap[uuid] = MMRect(r)
+                
+                let items = [
+                    MMMenuItem(text: "Remove", cb: { () in
+                        globalApp!.project.selected!.items.remove(at: index)
+                        self.needsUpdate = true
+                        self.mmView.update()
+                    })
+                ]
+                menus[index].setItems(items)
+            } else {
+                let items = [
+                    MMMenuItem(text: "Add Track", cb: { () in
+                        let codeComponent = CodeComponent(.Shader, "Shader")
+                        codeComponent.createDefaultFunction(.Shader)
+                        globalApp!.project.selected!.items.append(codeComponent)
+                        self.needsUpdate = true
+                        self.mmView.update()
+                    })
+                ]
+                menus[index].setItems(items)
+            }
+            
+            menus[index].rect.x = rect.x + rect.width - 30
+            menus[index].rect.y = r.y
+            menus[index].rect.y = r.y
+            menus[index].rect.width = 30
+            menus[index].rect.height = 30
+
+            r.y += 31;
+            
+            if menus[index].states.contains(.Opened) == false {
+                menus[index].draw()
+            }
+        }
+        
+        // Draw opened menus
+        for index in 0..<tracks + 1 {
+            if menus[index].states.contains(.Opened) {
+                menus[index].draw()
+            }
         }
         
         /*
@@ -1631,28 +1721,27 @@ class SceneTimeline            : MMWidget
         }
     }
     
-    /*
     /// Creates a button with a "+" text and draws it
-    func drawPlusButton(item: SceneGraphItem, rect: MMRect, cb: @escaping ()->(), skin: SceneGraphSkin)
+    func drawPlusButton(index: Int, rect: MMRect, cb: @escaping ()->(), skin: SceneTimelineSkin)
     {
-        let button = SceneGraphButton(item: item)
+        let button = SceneTimelineButton(index: index)
         button.rect = rect
         button.cb = cb
         
-        if plusLabel == nil || plusLabel!.scale != skin.fontScale + 0.1 {
-            plusLabel = MMTextLabel(mmView, font: mmView.openSans, text: "+", scale: skin.fontScale + 0.1, color: skin.normalTextColor)
+        if plusLabel == nil || plusLabel!.scale != skin.fontScale + 0.2 {
+            plusLabel = MMTextLabel(mmView, font: mmView.openSans, text: "+", scale: skin.fontScale + 0.2, color: skin.normalTextColor)
         }
         plusLabel!.rect.x = rect.x
         plusLabel!.rect.y = rect.y
-        plusLabel!.draw()
+        //plusLabel!.draw()
         
-        //plusLabel!.drawCentered(x: rect.x, y: rect.y, width: rect.width, height: rect.height)
+        plusLabel!.drawCentered(x: rect.x, y: rect.y, width: rect.width, height: rect.height)
         
         buttons.append(button)
-    }*/
+    }
     
     // Returns a label for the given UUID
-    func getLabel(_ uuid: UUID,_ text: String, skin: SceneGraphSkin) -> MMTextLabel
+    func getLabel(_ uuid: UUID,_ text: String, skin: SceneTimelineSkin) -> MMTextLabel
     {
         var label = labels[uuid]
         if label == nil || label!.scale != skin.fontScale {
@@ -1663,7 +1752,7 @@ class SceneTimeline            : MMWidget
     }
     
     // Returns a label for the given string
-    func getLabel(_ text: String, skin: SceneGraphSkin) -> MMTextLabel
+    func getLabel(_ text: String, skin: SceneTimelineSkin) -> MMTextLabel
     {
         var label = textLabels[text]
         if label == nil || label!.scale != skin.fontScale {
@@ -1671,5 +1760,41 @@ class SceneTimeline            : MMWidget
             textLabels[text] = label
         }
         return label!
+    }
+    
+    /// Switches between open and close states
+    func switchState() {
+        if animating { return }
+        let rightRegion = globalApp!.rightRegion!
+        openWidth = globalApp!.editorRegion!.rect.width * 0.3
+        
+        if sceneGraphState == .Open {
+            globalApp!.currentPipeline!.cancel()
+            globalApp!.mmView.startAnimate( startValue: rightRegion.rect.width, endValue: 0, duration: 500, cb: { (value,finished) in
+                self.currentWidth = value
+                if finished {
+                    self.animating = false
+                    self.sceneGraphState = .Closed
+                    
+                    self.mmView.deregisterWidget(self)
+                    self.deactivate()
+                    globalApp!.topRegion?.graphButton.removeState(.Checked)
+                }
+            } )
+            animating = true
+        } else if rightRegion.rect.height != openWidth {
+            globalApp!.currentPipeline!.cancel()
+            globalApp!.mmView.startAnimate( startValue: rightRegion.rect.width, endValue: openWidth, duration: 500, cb: { (value,finished) in
+                if finished {
+                    self.animating = false
+                    self.sceneGraphState = .Open
+                    self.activate()
+                    self.mmView.registerWidget(self)
+                    globalApp!.topRegion?.graphButton.addState(.Checked)
+                }
+                self.currentWidth = value
+            } )
+            animating = true
+        }
     }
 }

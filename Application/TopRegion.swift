@@ -52,6 +52,7 @@ class TopRegion: MMRegion
                 //    globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 //} else
                 if let component = globalApp!.developerEditor.codeEditor.codeComponent {
+                    self.app.currentEditor.setComponent(component)
                     //globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 }
             } else {
@@ -61,6 +62,7 @@ class TopRegion: MMRegion
                 //} else
                 if let component = globalApp!.artistEditor.designEditor.designComponent {
                     //globalApp!.project.selected!.getStageItem(component, selectIt: true)
+                    self.app.currentEditor.setComponent(component)
                 }
             }
             self.app.currentEditor.activate()
@@ -241,7 +243,7 @@ class TopRegion: MMRegion
         graphButton.rect.width += 16
         graphButton.rect.height -= 2
         graphButton.clicked = { (event) -> Void in
-            //globalApp!.sceneGraph.switchState()
+            globalApp!.sceneGraph.switchState()
         }
 
         layoutH(startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)

@@ -76,6 +76,8 @@ class DesignProperties      : MMWidget
     {
         selected = comp
         
+        print(comp)
+        
         clear()
         
         c1Node = Node()
@@ -140,7 +142,7 @@ class DesignProperties      : MMWidget
                 c1Node!.uiItems.append(elasticityVar)
             }
         }
-                
+
         for uuid in comp.properties {
             let rc = comp.getPropertyOfUUID(uuid)
             if let frag = rc.0 {
@@ -159,7 +161,7 @@ class DesignProperties      : MMWidget
                     }
                 }
                 
-                let supportsRandom : Bool = comp.componentType == .SDF3D || comp.componentType == .Material3D || comp.componentType == .Pattern
+                let supportsRandom : Bool = true
                 
                 var random : Float? = nil
                 if supportsRandom {

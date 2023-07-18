@@ -190,8 +190,6 @@
 		2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */; };
 		2B8129A324EA6640001EBDE1 /* Minimal.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B8129A224EA6640001EBDE1 /* Minimal.shape-z */; };
 		2B8129A424EA6640001EBDE1 /* Minimal.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B8129A224EA6640001EBDE1 /* Minimal.shape-z */; };
-		2B8444DC24945B890082EE1D /* BackShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackShader.swift */; };
-		2B8444DD24945B8A0082EE1D /* BackShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackShader.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
@@ -454,6 +452,8 @@
 		DDE024F92A63EB1A00BB6AF8 /* PipelineFX.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */; };
 		DDE024FA2A65570900BB6AF8 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
 		DDE024FB2A65570A00BB6AF8 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
+		DDE024FD2A665EC700BB6AF8 /* FXShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024FC2A665E9500BB6AF8 /* FXShader.swift */; };
+		DDE024FE2A665EC700BB6AF8 /* FXShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024FC2A665E9500BB6AF8 /* FXShader.swift */; };
 		DDE0AB562A636CCD006084A9 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB552A636CCD006084A9 /* fileicon.tiff */; };
 		DDE0AB572A636CCD006084A9 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB552A636CCD006084A9 /* fileicon.tiff */; };
 		DDE0AB592A636DCF006084A9 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DDE0AB582A636DCF006084A9 /* timeline.tiff */; };
@@ -710,6 +710,7 @@
 		2BFC2A1824C2EBD80036C047 /* Physics3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics3D.swift; sourceTree = "<group>"; };
 		DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneTimeline.swift; sourceTree = "<group>"; };
 		DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineFX.swift; sourceTree = "<group>"; };
+		DDE024FC2A665E9500BB6AF8 /* FXShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXShader.swift; sourceTree = "<group>"; };
 		DDE0AB552A636CCD006084A9 /* fileicon.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = fileicon.tiff; sourceTree = "<group>"; };
 		DDE0AB582A636DCF006084A9 /* timeline.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline.tiff; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -881,6 +882,7 @@
 			children = (
 				2BCD67562493486600E066C0 /* BaseShader.swift */,
 				2BCD675A2494514600E066C0 /* BackShader.swift */,
+				DDE024FC2A665E9500BB6AF8 /* FXShader.swift */,
 				2B8C51C024B941CC0070E8D8 /* PostShader.swift */,
 				2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */,
 				2B8C51A724B432A50070E8D8 /* TerrainShader.swift */,
@@ -1507,6 +1509,7 @@
 				2B7A3C1523B46546002EC5FC /* MMTabWidget.swift in Sources */,
 				2B7A3C0823B4653F002EC5FC /* MMView.swift in Sources */,
 				2B169BE3246E19DE00366E19 /* UploadDialogs.swift in Sources */,
+				DDE024FD2A665EC700BB6AF8 /* FXShader.swift in Sources */,
 				2BE847B92453C75C00409AAE /* NewDialog.swift in Sources */,
 				2B7A3C2423B46560002EC5FC /* App.swift in Sources */,
 				2B8C51C124B941CE0070E8D8 /* PostShader.swift in Sources */,
@@ -1532,7 +1535,6 @@
 				2B7A3C1E23B46546002EC5FC /* MMAnimate.swift in Sources */,
 				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
-				2B8444DC24945B890082EE1D /* BackShader.swift in Sources */,
 				2B716BEE24A039D0002DA1FD /* ThumbnailShader.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
 				2BF1ABE62499E3E000466979 /* UtilityShader.swift in Sources */,
@@ -1593,6 +1595,7 @@
 				DDE024F52A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */,
 				2B8E2FE923C7FE25005619E4 /* DesignProperties.swift in Sources */,
 				2BCD67512491B18B00E066C0 /* PointCloudBuilder.swift in Sources */,
+				DDE024FE2A665EC700BB6AF8 /* FXShader.swift in Sources */,
 				2B9B29E823BB45C000C2F387 /* Mad4Metal.metal in Sources */,
 				2B9B29F723BF1DDC00C2F387 /* Dialogs.swift in Sources */,
 				2B9B29EE23BB45CA00C2F387 /* CodeFragList.swift in Sources */,
@@ -1601,7 +1604,6 @@
 				2B716BEF24A039D0002DA1FD /* ThumbnailShader.swift in Sources */,
 				2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
 				2B9B29A723BB44BF00C2F387 /* AppDelegate.swift in Sources */,
-				2B8444DD24945B8A0082EE1D /* BackShader.swift in Sources */,
 				2B9B29C723BB453400C2F387 /* MMLabel.swift in Sources */,
 				2BE5A4DD240CE5E700890281 /* Camera2D.swift in Sources */,
 				2B9B29E023BB45A700C2F387 /* Node.swift in Sources */,

@@ -1225,7 +1225,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern, Light3D, PostFX, Fog3D, Clouds3D
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern, Light3D, PostFX, Fog3D, Clouds3D, Shader
     }
     
     let functionType        : FunctionType
@@ -1578,7 +1578,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, Light3D, Image, Texture, PostFX, Fog3D, Clouds3D
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, Light3D, Image, Texture, PostFX, Fog3D, Clouds3D, Shader
     }
     
     let componentType       : ComponentType
@@ -1855,6 +1855,23 @@ class CodeComponent         : Codable, Equatable
     
     func createDefaultFunction(_ type: CodeFunction.FunctionType)
     {
+        if type == .Shader {
+            let f = CodeFunction(type, "shader_entry")
+            f.comment = "Main shader entry point"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float4", "outColor"))
+//            f.body.append(f.createVariableDefinitionBlock("float4", "outColor"))
+            functions.append(f)
+        } else
         if type == .Colorize {
             let f = CodeFunction(type, "colorize")
             f.comment = "Returns a color for the given uv position [0..1]"

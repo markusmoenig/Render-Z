@@ -30,7 +30,7 @@ class ArtistEditor          : Editor
 
     var bottomHeight        : Float = 0
 
-    var playButton          : MMButtonWidget
+//    var playButton          : MMButtonWidget
 
     var groundButton        : MMButtonWidget
     var materialButton      : MMButtonWidget
@@ -67,7 +67,7 @@ class ArtistEditor          : Editor
         liveSkin.hoverColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
         liveSkin.activeColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
 
-        playButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "PLAY" )
+//        playButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "PLAY" )
         
         groundButton = MMButtonWidget( mmView, iconName: "ground" )
         groundButton.iconZoom = 2
@@ -191,7 +191,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, playButton, groundButton, cameraButton, materialButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, materialButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -202,7 +202,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, playButton, timelineButton, groundButton, cameraButton, materialButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, materialButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -304,7 +304,7 @@ class ArtistEditor          : Editor
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
             
-            groundButton.rect.x = (globalApp!.topRegion!.rect.width - (groundButton.rect.width + materialButton.rect.width - playButton.rect.width - 40 + cameraButton.rect.width)) / 2
+            groundButton.rect.x = (globalApp!.topRegion!.rect.width - (groundButton.rect.width + materialButton.rect.width - 40 + cameraButton.rect.width)) / 2
             groundButton.rect.y = 4 + 44
             groundButton.draw()
             
@@ -316,9 +316,9 @@ class ArtistEditor          : Editor
             cameraButton.rect.y = 4 + 44
             cameraButton.draw()
             
-            playButton.rect.x = groundButton.rect.x - playButton.rect.width - 40
-            playButton.rect.y = 4 + 44
-            playButton.draw()
+//            playButton.rect.x = groundButton.rect.x - playButton.rect.width - 40
+//            playButton.rect.y = 4 + 44
+//            playButton.draw()
         } else
         if region.type == .Left {
             region.rect.width = 0

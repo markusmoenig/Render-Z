@@ -194,7 +194,7 @@ class NewDialog: MMDialog {
     {
         if sceneGraphButton.states.contains(.Checked) {
             globalApp!.topRegion!.graphButton.addState(.Checked)
-            globalApp!.sceneGraph.openWidth = globalApp!.mmView.renderer.cWidth * 0.4
+            globalApp!.sceneGraph.openWidth = globalApp!.mmView.renderer.cWidth * 0.3
             globalApp!.sceneGraph.currentWidth = globalApp!.sceneGraph.openWidth
             globalApp!.sceneGraph.sceneGraphState = .Open
             globalApp!.sceneGraph.activate()
@@ -220,6 +220,10 @@ class NewDialog: MMDialog {
         
         cancelButton!.removeState(.Checked)
         handleSceneGraph()
+        
+        if globalApp!.project.selected!.items.isEmpty == false {
+            globalApp!.sceneGraph.setCurrent(component: globalApp!.project.selected!.items[0])
+        }
     }
     
     override func ok() {

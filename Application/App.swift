@@ -249,9 +249,12 @@ class App
                         }
                     }*/
 
-                    //globalApp!.sceneGraph.clearSelection()
                     globalApp!.sceneGraph.clearSelection()
                     project.selected!.addDefaultImages()
+
+                    if globalApp!.project.selected!.items.isEmpty == false {
+                        globalApp!.sceneGraph.setCurrent(component: globalApp!.project.selected!.items[0])
+                    }
                     
                     globalApp!.currentPipeline?.resetIds()
                     
@@ -270,7 +273,6 @@ class App
             /*
             do {
                 if (try JSONDecoder().decode(CodeComponent.self, from: jsonData)) != nil {
-                    print( "yes" )
                 }
             }
             catch {
@@ -278,7 +280,11 @@ class App
             }*/
             
             if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
-                //globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(component)
+                globalApp!.currentEditor.setComponent(component)
+                globalApp!.developerEditor.codeEditor.markComponentInvalid(component)
+                if let index = globalApp!.project.selected!.indexOfUUID(component.uuid) {
+                    globalApp!.project.selected!.items[index] = component
+                }
             }
         }
     }

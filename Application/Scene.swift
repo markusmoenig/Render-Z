@@ -265,8 +265,8 @@ class Scene                 : Codable, Equatable
         } else {
             var items : [CodeComponent] = []
             
-            let codeComponent = CodeComponent(.SkyDome, "Dummy")
-            codeComponent.createDefaultFunction(.SkyDome)
+            let codeComponent = CodeComponent(.Shader, "Shader")
+            codeComponent.createDefaultFunction(.Shader)
             
             items.append(codeComponent)
             self.items = items
@@ -280,7 +280,7 @@ class Scene                 : Codable, Equatable
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
         try container.encode(uuid, forKey: .uuid)
-        try container.encode(uuid, forKey: .uuid)
+        try container.encode(items, forKey: .items)
         try container.encode(selectedUUID, forKey: .selectedUUID)
     }
    
@@ -322,6 +322,17 @@ class Scene                 : Codable, Equatable
         for item in self.items {
             if item.uuid == uuid {
                 return item
+            }
+        }
+        return nil
+    }
+    
+    /// Find the index of the given uuid
+    func indexOfUUID(_ uuid: UUID) -> Int?
+    {
+        for (index, item) in self.items.enumerated() {
+            if item.uuid == uuid {
+                return index
             }
         }
         return nil
