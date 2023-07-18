@@ -196,14 +196,6 @@
 		2B8BBA8922A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
 		2B8BBA8A22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
 		2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
-		2B8C51AB24B6A2A80070E8D8 /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51AA24B6A2A70070E8D8 /* camera.tiff */; };
-		2B8C51AC24B6A2A80070E8D8 /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51AA24B6A2A70070E8D8 /* camera.tiff */; };
-		2B8C51AE24B6A3010070E8D8 /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51AD24B6A2FF0070E8D8 /* ground.tiff */; };
-		2B8C51AF24B6A3010070E8D8 /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51AD24B6A2FF0070E8D8 /* ground.tiff */; };
-		2B8C51B124B6A35F0070E8D8 /* material.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B024B6A35E0070E8D8 /* material.tiff */; };
-		2B8C51B224B6A35F0070E8D8 /* material.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B024B6A35E0070E8D8 /* material.tiff */; };
-		2B8C51B424B6A4330070E8D8 /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B324B6A4330070E8D8 /* scenegraph.tiff */; };
-		2B8C51B524B6A4330070E8D8 /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B324B6A4330070E8D8 /* scenegraph.tiff */; };
 		2B8C51BA24B6A55D0070E8D8 /* render.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B924B6A55C0070E8D8 /* render.tiff */; };
 		2B8C51BB24B6A55D0070E8D8 /* render.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B924B6A55C0070E8D8 /* render.tiff */; };
 		2B8C51C124B941CE0070E8D8 /* PostShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C51C024B941CC0070E8D8 /* PostShader.swift */; };
@@ -446,6 +438,14 @@
 		2BF632EE2361579C00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
 		2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 		2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
+		DD5409662A66D33100004ADA /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409652A66D33100004ADA /* scenegraph.tiff */; };
+		DD5409672A66D33100004ADA /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409652A66D33100004ADA /* scenegraph.tiff */; };
+		DD5409692A66D39F00004ADA /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409682A66D39F00004ADA /* camera.tiff */; };
+		DD54096A2A66D39F00004ADA /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409682A66D39F00004ADA /* camera.tiff */; };
+		DD54096C2A66D3BF00004ADA /* material.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD54096B2A66D3BF00004ADA /* material.tiff */; };
+		DD54096D2A66D3BF00004ADA /* material.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD54096B2A66D3BF00004ADA /* material.tiff */; };
+		DD54096F2A66D3E700004ADA /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD54096E2A66D3E700004ADA /* ground.tiff */; };
+		DD5409702A66D3E700004ADA /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD54096E2A66D3E700004ADA /* ground.tiff */; };
 		DDE024F42A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F52A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F82A63EB1A00BB6AF8 /* PipelineFX.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */; };
@@ -569,10 +569,6 @@
 		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
 		2B8C51A724B432A50070E8D8 /* TerrainShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainShader.swift; sourceTree = "<group>"; };
-		2B8C51AA24B6A2A70070E8D8 /* camera.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = camera.tiff; sourceTree = "<group>"; };
-		2B8C51AD24B6A2FF0070E8D8 /* ground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = ground.tiff; sourceTree = "<group>"; };
-		2B8C51B024B6A35E0070E8D8 /* material.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = material.tiff; sourceTree = "<group>"; };
-		2B8C51B324B6A4330070E8D8 /* scenegraph.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scenegraph.tiff; sourceTree = "<group>"; };
 		2B8C51B924B6A55C0070E8D8 /* render.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = render.tiff; sourceTree = "<group>"; };
 		2B8C51C024B941CC0070E8D8 /* PostShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostShader.swift; sourceTree = "<group>"; };
 		2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperEditor.swift; sourceTree = "<group>"; };
@@ -708,6 +704,10 @@
 		2BF632EC2361570600750990 /* MMTabButtonWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabButtonWidget.swift; sourceTree = "<group>"; };
 		2BFBC58622D2C51300A27FAD /* ReferenceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceList.swift; sourceTree = "<group>"; };
 		2BFC2A1824C2EBD80036C047 /* Physics3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics3D.swift; sourceTree = "<group>"; };
+		DD5409652A66D33100004ADA /* scenegraph.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scenegraph.tiff; sourceTree = "<group>"; };
+		DD5409682A66D39F00004ADA /* camera.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = camera.tiff; sourceTree = "<group>"; };
+		DD54096B2A66D3BF00004ADA /* material.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = material.tiff; sourceTree = "<group>"; };
+		DD54096E2A66D3E700004ADA /* ground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = ground.tiff; sourceTree = "<group>"; };
 		DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneTimeline.swift; sourceTree = "<group>"; };
 		DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineFX.swift; sourceTree = "<group>"; };
 		DDE024FC2A665E9500BB6AF8 /* FXShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXShader.swift; sourceTree = "<group>"; };
@@ -856,10 +856,10 @@
 				2B2B5FF924259D8600B9CCF1 /* Z.tiff */,
 				2B9CB6F22485CC9900CFFA51 /* Z_green.tiff */,
 				2B666FAD2464D4AB00BE3E4F /* Z_green_ring.tiff */,
-				2B8C51AA24B6A2A70070E8D8 /* camera.tiff */,
-				2B8C51AD24B6A2FF0070E8D8 /* ground.tiff */,
-				2B8C51B024B6A35E0070E8D8 /* material.tiff */,
-				2B8C51B324B6A4330070E8D8 /* scenegraph.tiff */,
+				DD5409682A66D39F00004ADA /* camera.tiff */,
+				DD54096E2A66D3E700004ADA /* ground.tiff */,
+				DD54096B2A66D3BF00004ADA /* material.tiff */,
+				DD5409652A66D33100004ADA /* scenegraph.tiff */,
 				DDE0AB582A636DCF006084A9 /* timeline.tiff */,
 				2B8C51B924B6A55C0070E8D8 /* render.tiff */,
 				2B2B5FE7242442AC00B9CCF1 /* dev_off.tiff */,
@@ -1331,7 +1331,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
-				2B8C51AB24B6A2A80070E8D8 /* camera.tiff in Resources */,
 				2B666FA82464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */,
 				DDE0AB562A636CCD006084A9 /* fileicon.tiff in Resources */,
 				2B666FAB2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
@@ -1340,9 +1339,8 @@
 				2B7A3C0423B4652E002EC5FC /* GameCuben.json in Resources */,
 				2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */,
 				2B666FB42464D58F00BE3E4F /* rotate.tiff in Resources */,
-				2B8C51B424B6A4330070E8D8 /* scenegraph.tiff in Resources */,
 				2B7A3C0623B4652E002EC5FC /* OpenSans.json in Resources */,
-				2B8C51AE24B6A3010070E8D8 /* ground.tiff in Resources */,
+				DD5409692A66D39F00004ADA /* camera.tiff in Resources */,
 				2B9CB6F62485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B2B5FEC242442AD00B9CCF1 /* dev_off.tiff in Resources */,
 				2B8129A324EA6640001EBDE1 /* Minimal.shape-z in Resources */,
@@ -1357,6 +1355,7 @@
 				2B8E2FE523C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B2B5FE0242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B7A3BF823B4583E002EC5FC /* Assets.xcassets in Resources */,
+				DD54096C2A66D3BF00004ADA /* material.tiff in Resources */,
 				2B2B5FEA242442AD00B9CCF1 /* dev_on.tiff in Resources */,
 				2B666FB12464D4F500BE3E4F /* move.tiff in Resources */,
 				2B7A3BFB23B4583E002EC5FC /* Main.storyboard in Resources */,
@@ -1365,12 +1364,13 @@
 				2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */,
 				2B95201D24EF67A500E48841 /* Happy.shape-z in Resources */,
 				DDE0AB592A636DCF006084A9 /* timeline.tiff in Resources */,
+				DD54096F2A66D3E700004ADA /* ground.tiff in Resources */,
 				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
+				DD5409662A66D33100004ADA /* scenegraph.tiff in Resources */,
 				2B8DB3842489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B666FAE2464D4AC00BE3E4F /* Z_green_ring.tiff in Resources */,
 				2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */,
 				2B9CB6F32485CC9900CFFA51 /* Z_green.tiff in Resources */,
-				2B8C51B124B6A35F0070E8D8 /* material.tiff in Resources */,
 				2B8C51BA24B6A55D0070E8D8 /* render.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1396,32 +1396,32 @@
 				2B9B29DE23BB453B00C2F387 /* OpenSans.json in Resources */,
 				2B9B29BC23BB452B00C2F387 /* sz_ui_blue.tiff in Resources */,
 				2B9B29DA23BB453B00C2F387 /* Square.json in Resources */,
+				DD5409672A66D33100004ADA /* scenegraph.tiff in Resources */,
 				2B9B29DC23BB453B00C2F387 /* GameCuben.json in Resources */,
 				2B9B29B023BB44C000C2F387 /* Assets.xcassets in Resources */,
 				2B95201E24EF67A500E48841 /* Happy.shape-z in Resources */,
 				2B8E2FE623C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B8DB3852489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
-				2B8C51B224B6A35F0070E8D8 /* material.tiff in Resources */,
 				2B9B29DF23BB453B00C2F387 /* OpenSans.tiff in Resources */,
-				2B8C51AF24B6A3010070E8D8 /* ground.tiff in Resources */,
 				2B666FA92464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */,
 				2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */,
 				2B9B29AE23BB44BF00C2F387 /* Main.storyboard in Resources */,
 				2B8E2FE423C71F36005619E4 /* SourceCodePro.json in Resources */,
 				2B666FAC2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
+				DD54096A2A66D39F00004ADA /* camera.tiff in Resources */,
 				2B9CB6F72485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B8DB37C2489CEB700D57DC4 /* Soil.tiff in Resources */,
-				2B8C51B524B6A4330070E8D8 /* scenegraph.tiff in Resources */,
 				2B9CB6F42485CC9900CFFA51 /* Z_green.tiff in Resources */,
 				2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */,
 				2B8DB3882489D20B00D57DC4 /* StoneWall.tiff in Resources */,
+				DD5409702A66D3E700004ADA /* ground.tiff in Resources */,
 				DDE0AB5A2A636DCF006084A9 /* timeline.tiff in Resources */,
 				2B2B5FED242442AD00B9CCF1 /* dev_off.tiff in Resources */,
+				DD54096D2A66D3BF00004ADA /* material.tiff in Resources */,
 				2B2B5FDF242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B9B29BA23BB452B00C2F387 /* sz_toolbar.tiff in Resources */,
 				2B9B29DB23BB453B00C2F387 /* Square.tiff in Resources */,
 				DDE0AB572A636CCD006084A9 /* fileicon.tiff in Resources */,
-				2B8C51AC24B6A2A80070E8D8 /* camera.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -606,9 +606,9 @@ class CodeEditor        : MMWidget
     func getPreviewRect() -> MMRect
     {
         let previewRect = MMRect(rect)
-        previewRect.x -= globalApp!.leftRegion!.rect.width
-        previewRect.width += globalApp!.leftRegion!.rect.width
-        previewRect.height += globalApp!.bottomRegion!.rect.height
+//        previewRect.x -= globalApp!.leftRegion!.rect.width
+//        previewRect.width += globalApp!.leftRegion!.rect.width
+//        previewRect.height += globalApp!.bottomRegion!.rect.height
         return previewRect
     }
     

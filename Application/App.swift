@@ -252,9 +252,20 @@ class App
                     globalApp!.sceneGraph.clearSelection()
                     project.selected!.addDefaultImages()
 
-                    if globalApp!.project.selected!.items.isEmpty == false {
-                        globalApp!.sceneGraph.setCurrent(component: globalApp!.project.selected!.items[0])
+                    // --- Set the current shader
+                    
+                    var index = 0;
+                    if let uuid = project.selected!.getSelectedUUID() {
+                        if let i = project.selected!.indexOfUUID(uuid) {
+                            index = i
+                        }
                     }
+                    
+                    if globalApp!.project.selected!.items.isEmpty == false {
+                        globalApp!.sceneGraph.setCurrent(component: globalApp!.project.selected!.items[index])
+                    }
+                    
+                    // ---
                     
                     globalApp!.currentPipeline?.resetIds()
                     

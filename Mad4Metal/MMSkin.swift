@@ -20,7 +20,7 @@ struct MMSkinToolBar
 struct MMSkinWidget
 {
     var color           : SIMD4<Float> = SIMD4<Float>(0.145, 0.145, 0.145, 1.0)
-    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.354, 0.358, 0.362, 1.000)//SIMD4<Float>(0.224, 0.275, 0.361, 1.000)
+    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.224, 0.275, 0.361, 1.000)
     var textColor       : SIMD4<Float> = SIMD4<Float>(0.957, 0.957, 0.957, 1.0)
     var borderColor     : SIMD4<Float> = SIMD4<Float>(0.4, 0.4, 0.4, 1.0)
 }
@@ -34,8 +34,8 @@ struct MMSkinDialog
 struct MMSkinItem
 {
     var color           : SIMD4<Float> = SIMD4<Float>(0.282, 0.286, 0.290, 1.000)
-    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.278, 0.545, 0.714, 1.000)
-    //var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.88, 0.39, 0.18, 1.000)
+//    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.278, 0.545, 0.714, 1.000)
+    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.88, 0.39, 0.18, 1.000)
     var textColor       : SIMD4<Float> = SIMD4<Float>(0.773, 0.776, 0.780, 1.000)
     var borderColor     : SIMD4<Float> = SIMD4<Float>(0.286, 0.286, 0.286, 1.000)
 }

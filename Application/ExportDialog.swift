@@ -54,12 +54,7 @@ class ExportDialog: MMDialog {
 
     init(_ view: MMView) {
         
-        //if globalApp!.currentSceneMode == .ThreeD {
-            pipeline = PipelineFX(view)
-        //}
-        //else {
-        //pipeline = Pipeline2D(view)
-        //}
+        pipeline = PipelineFX(view)
         timeline = globalApp!.artistEditor.timeline
         super.init(view, title: "Export", cancelText: "Cancel", okText: "Export")
         instantClose = false

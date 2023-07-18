@@ -63,9 +63,9 @@ class ArtistEditor          : Editor
         timeline = MMTimeline(view)
         
         var liveSkin = MMSkinButton()
-        liveSkin.borderColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
-        liveSkin.hoverColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
-        liveSkin.activeColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.borderColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
 
 //        playButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "PLAY" )
         
