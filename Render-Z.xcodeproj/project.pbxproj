@@ -446,6 +446,10 @@
 		DD5409702A66D3E700004ADA /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD54096E2A66D3E700004ADA /* ground.tiff */; };
 		DD5409752A675B2200004ADA /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409742A675B2200004ADA /* scenegraph.tiff */; };
 		DD5409762A675B2200004ADA /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409742A675B2200004ADA /* scenegraph.tiff */; };
+		DD5409792A677CDB00004ADA /* License.txt in Resources */ = {isa = PBXBuildFile; fileRef = DD5409772A677CDB00004ADA /* License.txt */; };
+		DD54097A2A677CDB00004ADA /* License.txt in Resources */ = {isa = PBXBuildFile; fileRef = DD5409772A677CDB00004ADA /* License.txt */; };
+		DD54097B2A677CDB00004ADA /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = DD5409782A677CDB00004ADA /* Readme.md */; };
+		DD54097C2A677CDB00004ADA /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = DD5409782A677CDB00004ADA /* Readme.md */; };
 		DDE024F42A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F52A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F82A63EB1A00BB6AF8 /* PipelineFX.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */; };
@@ -708,6 +712,8 @@
 		DD54096B2A66D3BF00004ADA /* material.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = material.tiff; sourceTree = "<group>"; };
 		DD54096E2A66D3E700004ADA /* ground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = ground.tiff; sourceTree = "<group>"; };
 		DD5409742A675B2200004ADA /* scenegraph.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scenegraph.tiff; sourceTree = "<group>"; };
+		DD5409772A677CDB00004ADA /* License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
+		DD5409782A677CDB00004ADA /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 		DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneTimeline.swift; sourceTree = "<group>"; };
 		DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineFX.swift; sourceTree = "<group>"; };
 		DDE024FC2A665E9500BB6AF8 /* FXShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXShader.swift; sourceTree = "<group>"; };
@@ -959,6 +965,8 @@
 		2BBF10ED21EAD2AF001C94E9 = {
 			isa = PBXGroup;
 			children = (
+				DD5409772A677CDB00004ADA /* License.txt */,
+				DD5409782A677CDB00004ADA /* Readme.md */,
 				2B7A3C0123B46422002EC5FC /* Application */,
 				2B7A3BF223B4583A002EC5FC /* Render-Z */,
 				2B9B29A523BB44BF00C2F387 /* Render-Z iOS */,
@@ -1333,6 +1341,7 @@
 			files = (
 				2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B666FA82464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */,
+				DD54097B2A677CDB00004ADA /* Readme.md in Resources */,
 				DDE0AB562A636CCD006084A9 /* fileicon.tiff in Resources */,
 				2B666FAB2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
 				2B2DAAFE245C183F00067839 /* render-z.tiff in Resources */,
@@ -1348,6 +1357,7 @@
 				2B8129A324EA6640001EBDE1 /* Minimal.shape-z in Resources */,
 				2B7A3C0723B4652E002EC5FC /* OpenSans.tiff in Resources */,
 				2B666FB72464D5CF00BE3E4F /* scale.tiff in Resources */,
+				DD5409792A677CDB00004ADA /* License.txt in Resources */,
 				2B8E2FE323C71F36005619E4 /* SourceCodePro.json in Resources */,
 				2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */,
 				2B8DB37B2489CEB700D57DC4 /* Soil.tiff in Resources */,
@@ -1388,6 +1398,7 @@
 				2B9CB6FA2485CD1000CFFA51 /* X_blue.tiff in Resources */,
 				2B8129A424EA6640001EBDE1 /* Minimal.shape-z in Resources */,
 				2B9B29B923BB452B00C2F387 /* rz_toolbar.tiff in Resources */,
+				DD54097A2A677CDB00004ADA /* License.txt in Resources */,
 				2B8C51BB24B6A55D0070E8D8 /* render.tiff in Resources */,
 				2BD0E1DA245A5F6100A61586 /* minimize.tiff in Resources */,
 				2B9B29DD23BB453B00C2F387 /* GameCuben.tiff in Resources */,
@@ -1414,6 +1425,7 @@
 				2B8DB37C2489CEB700D57DC4 /* Soil.tiff in Resources */,
 				2B9CB6F42485CC9900CFFA51 /* Z_green.tiff in Resources */,
 				2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */,
+				DD54097C2A677CDB00004ADA /* Readme.md in Resources */,
 				2B8DB3882489D20B00D57DC4 /* StoneWall.tiff in Resources */,
 				DD5409702A66D3E700004ADA /* ground.tiff in Resources */,
 				DDE0AB5A2A636DCF006084A9 /* timeline.tiff in Resources */,
