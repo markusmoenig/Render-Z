@@ -646,7 +646,8 @@ class MMMenuWidget : MMWidget
             
             if menuType != .Hidden {
                 x += -rect.width + menuRect.width
-                y += Int(-rect.height)
+//                y += Int(-rect.height)
+                y += Int(menuRect.height)
             }
             
             if  y >= 0 && Float(y) <= menuRect.height - skin.margin.height() && x >= 0 && x <= menuRect.width {
@@ -715,7 +716,8 @@ class MMMenuWidget : MMWidget
             
             if menuType != .Hidden {
                 x += rect.width - menuRect.width
-                y += rect.height
+//                y += rect.height
+                y -= menuRect.height + 2
             }
 
             mmView.drawBox.draw( x: x, y: y, width: menuRect.width, height: menuRect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )

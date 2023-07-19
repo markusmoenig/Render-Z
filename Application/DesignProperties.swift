@@ -75,9 +75,7 @@ class DesignProperties      : MMWidget
     func setSelected(_ comp: CodeComponent)
     {
         selected = comp
-        
-        print(comp)
-        
+                
         clear()
         
         c1Node = Node()

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 53;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -438,14 +438,14 @@
 		2BF632EE2361579C00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
 		2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 		2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
-		DD5409662A66D33100004ADA /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409652A66D33100004ADA /* scenegraph.tiff */; };
-		DD5409672A66D33100004ADA /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409652A66D33100004ADA /* scenegraph.tiff */; };
 		DD5409692A66D39F00004ADA /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409682A66D39F00004ADA /* camera.tiff */; };
 		DD54096A2A66D39F00004ADA /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409682A66D39F00004ADA /* camera.tiff */; };
 		DD54096C2A66D3BF00004ADA /* material.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD54096B2A66D3BF00004ADA /* material.tiff */; };
 		DD54096D2A66D3BF00004ADA /* material.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD54096B2A66D3BF00004ADA /* material.tiff */; };
 		DD54096F2A66D3E700004ADA /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD54096E2A66D3E700004ADA /* ground.tiff */; };
 		DD5409702A66D3E700004ADA /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD54096E2A66D3E700004ADA /* ground.tiff */; };
+		DD5409752A675B2200004ADA /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409742A675B2200004ADA /* scenegraph.tiff */; };
+		DD5409762A675B2200004ADA /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DD5409742A675B2200004ADA /* scenegraph.tiff */; };
 		DDE024F42A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F52A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F82A63EB1A00BB6AF8 /* PipelineFX.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */; };
@@ -704,10 +704,10 @@
 		2BF632EC2361570600750990 /* MMTabButtonWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabButtonWidget.swift; sourceTree = "<group>"; };
 		2BFBC58622D2C51300A27FAD /* ReferenceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceList.swift; sourceTree = "<group>"; };
 		2BFC2A1824C2EBD80036C047 /* Physics3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics3D.swift; sourceTree = "<group>"; };
-		DD5409652A66D33100004ADA /* scenegraph.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scenegraph.tiff; sourceTree = "<group>"; };
 		DD5409682A66D39F00004ADA /* camera.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = camera.tiff; sourceTree = "<group>"; };
 		DD54096B2A66D3BF00004ADA /* material.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = material.tiff; sourceTree = "<group>"; };
 		DD54096E2A66D3E700004ADA /* ground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = ground.tiff; sourceTree = "<group>"; };
+		DD5409742A675B2200004ADA /* scenegraph.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scenegraph.tiff; sourceTree = "<group>"; };
 		DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneTimeline.swift; sourceTree = "<group>"; };
 		DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineFX.swift; sourceTree = "<group>"; };
 		DDE024FC2A665E9500BB6AF8 /* FXShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXShader.swift; sourceTree = "<group>"; };
@@ -856,10 +856,10 @@
 				2B2B5FF924259D8600B9CCF1 /* Z.tiff */,
 				2B9CB6F22485CC9900CFFA51 /* Z_green.tiff */,
 				2B666FAD2464D4AB00BE3E4F /* Z_green_ring.tiff */,
+				DD5409742A675B2200004ADA /* scenegraph.tiff */,
 				DD5409682A66D39F00004ADA /* camera.tiff */,
 				DD54096E2A66D3E700004ADA /* ground.tiff */,
 				DD54096B2A66D3BF00004ADA /* material.tiff */,
-				DD5409652A66D33100004ADA /* scenegraph.tiff */,
 				DDE0AB582A636DCF006084A9 /* timeline.tiff */,
 				2B8C51B924B6A55C0070E8D8 /* render.tiff */,
 				2B2B5FE7242442AC00B9CCF1 /* dev_off.tiff */,
@@ -1262,8 +1262,9 @@
 		2BBF10EE21EAD2AF001C94E9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1130;
-				LastUpgradeCheck = 1130;
+				LastUpgradeCheck = 1430;
 				ORGANIZATIONNAME = "Markus Moenig";
 				TargetAttributes = {
 					2B7A3BF023B4583A002EC5FC = {
@@ -1341,6 +1342,7 @@
 				2B666FB42464D58F00BE3E4F /* rotate.tiff in Resources */,
 				2B7A3C0623B4652E002EC5FC /* OpenSans.json in Resources */,
 				DD5409692A66D39F00004ADA /* camera.tiff in Resources */,
+				DD5409752A675B2200004ADA /* scenegraph.tiff in Resources */,
 				2B9CB6F62485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B2B5FEC242442AD00B9CCF1 /* dev_off.tiff in Resources */,
 				2B8129A324EA6640001EBDE1 /* Minimal.shape-z in Resources */,
@@ -1366,7 +1368,6 @@
 				DDE0AB592A636DCF006084A9 /* timeline.tiff in Resources */,
 				DD54096F2A66D3E700004ADA /* ground.tiff in Resources */,
 				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
-				DD5409662A66D33100004ADA /* scenegraph.tiff in Resources */,
 				2B8DB3842489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B666FAE2464D4AC00BE3E4F /* Z_green_ring.tiff in Resources */,
 				2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */,
@@ -1395,8 +1396,8 @@
 				2B9B29B323BB44C000C2F387 /* LaunchScreen.storyboard in Resources */,
 				2B9B29DE23BB453B00C2F387 /* OpenSans.json in Resources */,
 				2B9B29BC23BB452B00C2F387 /* sz_ui_blue.tiff in Resources */,
+				DD5409762A675B2200004ADA /* scenegraph.tiff in Resources */,
 				2B9B29DA23BB453B00C2F387 /* Square.json in Resources */,
-				DD5409672A66D33100004ADA /* scenegraph.tiff in Resources */,
 				2B9B29DC23BB453B00C2F387 /* GameCuben.json in Resources */,
 				2B9B29B023BB44C000C2F387 /* Assets.xcassets in Resources */,
 				2B95201E24EF67A500E48841 /* Happy.shape-z in Resources */,
@@ -1895,6 +1896,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 0;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Render-Z/Info.plist";
@@ -1921,6 +1923,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 0;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Render-Z/Info.plist";
@@ -1952,6 +1955,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 0.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderzios;
 				PRODUCT_NAME = "Render-Z";
@@ -1977,6 +1981,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 0.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderzios;
 				PRODUCT_NAME = "Render-Z";
@@ -2015,6 +2020,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -2023,6 +2029,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -2078,6 +2085,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -2086,6 +2094,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -2117,6 +2126,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Shape-Z/Info.plist";
@@ -2124,6 +2134,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2143,6 +2154,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Shape-Z/Info.plist";
@@ -2150,6 +2162,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2175,6 +2188,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
 				PRODUCT_NAME = "Render-Z";
@@ -2203,6 +2217,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
 				PRODUCT_NAME = "Render-Z";

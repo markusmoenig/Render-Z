@@ -32,8 +32,8 @@ class DeveloperEditor   : Editor
         liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
         liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
 
-        navButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "NAV" )
-        showButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "SHOW" )
+        navButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "MAP" )
+        showButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "CODE" )
         liveButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "LIVE" )
         
         liveButton.rect.width += 16

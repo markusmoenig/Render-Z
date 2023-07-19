@@ -98,10 +98,6 @@ class SceneTimeline            : MMWidget
     var sceneGraphState         : SceneTimelineState = .Closed
     var animating               : Bool = false
     
-    var buttons                 : [SceneTimelineButton] = []
-    var hoverButton             : SceneTimelineButton? = nil
-    var pressedButton           : SceneTimelineButton? = nil
-    
     var menus                   : [MMMenuWidget] = []
 
     var needsUpdate             : Bool = true
@@ -566,13 +562,6 @@ class SceneTimeline            : MMWidget
     {
         mousePos.x = event.x
         mousePos.y = event.y
-        
-        for b in buttons {
-            if b.rect!.contains(event.x, event.y) {
-                hoverButton = b
-                break
-            }
-        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -616,11 +605,12 @@ class SceneTimeline            : MMWidget
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
                 
         let skin : SceneTimelineSkin = SceneTimelineSkin(mmView.openSans, fontScale: 0.4 * graphZoom, graphZoom: graphZoom)
-        
-        buttons = []
-        
+                
         let r = MMRect(self.rect);
+        r.y = r.y + r.height;
         r.height = 30;
+        
+        r.y -= 31;
         
         let tracks = globalApp!.project.selected!.items.count
         
@@ -645,7 +635,7 @@ class SceneTimeline            : MMWidget
             if index < globalApp!.project.selected!.items.count {
                 let uuid = globalApp!.project.selected!.items[index].uuid
                 
-                mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 1.0, fillColor : skin.postFXColor, borderColor: uuid == currentUUID ? skin.selectedBorderColor : skin.normalBorderColor)
+                mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 1.0, fillColor : uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor, borderColor: uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor)
                 
                 mmView.drawText.drawTextCentered(mmView.openSans, text: globalApp!.project.selected!.items[index].libraryName, x: r.x, y: r.y, width: r.width - 31, height: r.height, scale: 0.4, color: uuid == currentUUID ? skin.selectedTextColor : skin.normalTextColor)
                 
@@ -688,7 +678,7 @@ class SceneTimeline            : MMWidget
             menus[index].rect.width = 30
             menus[index].rect.height = 30
 
-            r.y += 31;
+            r.y -= 31;
             
             if menus[index].states.contains(.Opened) == false {
                 menus[index].draw()
@@ -701,7 +691,7 @@ class SceneTimeline            : MMWidget
                 menus[index].draw()
             }
         }
-        
+
         /*
          if globalApp!.hasValidScene == false {
          mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
@@ -891,25 +881,6 @@ class SceneTimeline            : MMWidget
          mmView.drawBox.draw( x: visNavRect.x, y: visNavRect.y, width: visNavRect.width, height: visNavRect.height, round: 6, fillColor : SIMD4<Float>(1, 1, 1, 0.1) )
          mmView.renderer.setClipRect()
          */
-    }
-    
-    /// Creates a button with a "+" text and draws it
-    func drawPlusButton(index: Int, rect: MMRect, cb: @escaping ()->(), skin: SceneTimelineSkin)
-    {
-        let button = SceneTimelineButton(index: index)
-        button.rect = rect
-        button.cb = cb
-        
-        if plusLabel == nil || plusLabel!.scale != skin.fontScale + 0.2 {
-            plusLabel = MMTextLabel(mmView, font: mmView.openSans, text: "+", scale: skin.fontScale + 0.2, color: skin.normalTextColor)
-        }
-        plusLabel!.rect.x = rect.x
-        plusLabel!.rect.y = rect.y
-        //plusLabel!.draw()
-        
-        plusLabel!.drawCentered(x: rect.x, y: rect.y, width: rect.width, height: rect.height)
-        
-        buttons.append(button)
     }
     
     // Returns a label for the given UUID
