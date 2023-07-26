@@ -85,7 +85,7 @@ class UtilityShader         : BaseShader
         }
 
         """
-        
+                
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
             Shader(id: "MERGE", textureOffset: 0, pixelFormat: .rgba16Float, blending: false),
             Shader(id: "CLEARSHADOW", fragmentName: "clearShadowFragment", textureOffset: 0, pixelFormat: .rg16Float, blending: false),
@@ -208,9 +208,8 @@ class UtilityShader         : BaseShader
             fragmentUniforms.screenSize = prtInstance.screenSize
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture, index: 1)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 1)
             // ---
-            
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
         }

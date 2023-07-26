@@ -112,7 +112,6 @@ class DeveloperEditor   : Editor
             codeProperties.needsUpdate = true
         }
         updateOnNextDraw(compile: false)
-        
         mmView.deregisterPopups()
     }
     

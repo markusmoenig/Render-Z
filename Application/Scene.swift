@@ -407,7 +407,7 @@ class Project               : Codable, Equatable
     var selected            : Scene? = nil
     
     var graphIsActive       : Bool = false
-   
+       
     private enum CodingKeys: String, CodingKey {
         case name
         case uuid

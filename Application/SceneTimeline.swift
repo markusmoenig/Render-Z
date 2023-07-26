@@ -635,7 +635,12 @@ class SceneTimeline            : MMWidget
             if index < globalApp!.project.selected!.items.count {
                 let uuid = globalApp!.project.selected!.items[index].uuid
                 
-                mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 1.0, fillColor : uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor, borderColor: uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor)
+                if globalApp!.project.selected!.items[index].componentType == .Shader {
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 1.0, fillColor : uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor, borderColor: uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor)
+                } else
+                if globalApp!.project.selected!.items[index].componentType == .Camera3D {
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 1.0, fillColor : uuid == currentUUID ? skin.renderColor : skin.normalInteriorColor, borderColor: uuid == currentUUID ? skin.renderColor : skin.normalInteriorColor)
+                }
                 
                 mmView.drawText.drawTextCentered(mmView.openSans, text: globalApp!.project.selected!.items[index].libraryName, x: r.x, y: r.y, width: r.width - 31, height: r.height, scale: 0.4, color: uuid == currentUUID ? skin.selectedTextColor : skin.normalTextColor)
                 
@@ -667,6 +672,18 @@ class SceneTimeline            : MMWidget
                         globalApp!.project.selected!.items.append(codeComponent)
                         self.needsUpdate = true
                         self.mmView.update()
+                    }),
+                    MMMenuItem(text: "Add Camera", cb: { () in
+                        self.clearSelection()
+                        globalApp!.libraryDialog.show(ids: ["Camera3D"], cb: { (json) in
+                            if let comp = decodeComponentFromJSON(json) {
+                                comp.uuid = UUID()
+                                globalApp!.project.selected!.items.insert(comp, at: 0)
+                                self.setCurrent(component: comp)
+                                self.needsUpdate = true
+                                self.mmView.update()
+                            }
+                        })
                     })
                 ]
                 menus[index].setItems(items)

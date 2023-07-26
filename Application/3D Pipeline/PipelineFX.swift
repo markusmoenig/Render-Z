@@ -165,8 +165,19 @@ class PipelineFX            : Pipeline
     override func build(scene: Scene)
     {
         self.scene = scene
+
+        cameraComponent = nil
         
-        cameraComponent = CodeComponent(.Camera3D)
+        if scene.items.isEmpty == false {
+            if scene.items[0].componentType == .Camera3D {
+                pFXInstance.utilityShader = nil
+                cameraComponent = scene.items[0]
+            }
+        }
+        
+        if cameraComponent == nil {
+            cameraComponent = CodeComponent(.Camera3D)
+        }
         
         shaders = []
         validShaders = []
@@ -179,12 +190,13 @@ class PipelineFX            : Pipeline
 
         validShaders.append(pFXInstance.utilityShader!)
 
+        // Compile all shaders
         for item in scene.items {
-            if item.shader == nil {
+            if item.shader == nil && item.componentType == .Shader {
                 let shader = FXShader(instance: pFXInstance, scene: scene, uuid: item.uuid, camera: cameraComponent)
                 item.shader = shader
+                validShaders.append(item.shader!)
             }
-            validShaders.append(item.shader!)
         }
         
         /*
@@ -309,13 +321,13 @@ class PipelineFX            : Pipeline
         //camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
         //camHelper.updateProjection()
                 
-        let origin = float3(0, 0, 0)//getTransformedComponentProperty(cameraComponent, "origin")
-        let lookAt = float3(0, 0, 0)//getTransformedComponentProperty(cameraComponent, "lookAt")
-        
+        let origin = getTransformedComponentProperty(cameraComponent, "origin")
+        let lookAt = getTransformedComponentProperty(cameraComponent, "lookAt")
+                
         pFXInstance.cameraOrigin = SIMD3<Float>(origin.x, origin.y, origin.z)
         pFXInstance.cameraLookAt = SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z)
         pFXInstance.screenSize = float2(width, height)
-
+        
         //pFXInstance.projectionMatrix = camHelper.projMatrix
         //pFXInstance.projectionMatrix = float4x4(projectionFov: camHelper.fov, near: 1, far: 100, aspect: width / height, lhs: false)// camHelper.projMatrix
         //pFXInstance.viewMatrix = float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)//camHelper.getTransform().inverse//float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)
@@ -341,8 +353,10 @@ class PipelineFX            : Pipeline
         pFXInstance.utilityShader!.cameraTextures()
         
         for item in globalApp!.project.selected!.items {
-            if let shader = item.shader {
-                shader.render(texture: finalTexture!)
+            if item.componentType == .Shader {
+                if let shader = item.shader {
+                    shader.render(texture: finalTexture!)
+                }
             }
         }
         
@@ -546,7 +560,7 @@ class PipelineFX            : Pipeline
         // RUN IT
         
         pFXInstance.commandBuffer!.addCompletedHandler { cb in
-            //print("Rendering Time:", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
+//            print("Rendering Time:", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
         }
         pFXInstance.commandBuffer!.commit()
         
@@ -554,7 +568,7 @@ class PipelineFX            : Pipeline
         textureMap["shape"] = pFXInstance.currentShapeTexture!
 
         #if DEBUG
-        //print("Setup Time: ", (Double(Date().timeIntervalSince1970) - startTime) * 1000)
+//        print("Setup Time: ", (Double(Date().timeIntervalSince1970) - startTime) * 1000)
         #endif
     }
     

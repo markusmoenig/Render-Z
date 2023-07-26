@@ -8,7 +8,7 @@ Create shaders via drag and drop, stack and blend shaders for special effects, d
 
 Render high-quality 2D and 3D graphics by utilizing the integrated rendering pipelines (under development).
 
-Render-Z is under active development with a release planned in 2023.
+Render-Z is under active development with a release planned in 2023 and is my spiritual successor to [ShaderMania](https://github.com/markusmoenig/ShaderMania).
 
 ## General Features
 

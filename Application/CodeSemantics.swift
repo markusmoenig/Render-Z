@@ -1082,6 +1082,8 @@ class CodeBlock             : Codable, Equatable
                 ctx.addCode("{\n")
                 ctx.addCode("float GlobalTime = __funcData->GlobalTime;")
                 ctx.addCode("float GlobalSeed = __funcData->GlobalSeed;")
+                ctx.addCode("float3 CamOrigin = __funcData->cameraOrigin;")
+                ctx.addCode("float3 CamDir = __funcData->cameraDirection;")
                 ctx.addCode("__CREATE_TEXTURE_DEFINITIONS__")
                 ctx.addCode(fragment.typeName + " out" + " = " + fragment.typeName + "(0);\n")
             }
@@ -2710,6 +2712,8 @@ class CodeComponent         : Codable, Equatable
                     float GlobalTime = __funcData->GlobalTime;
                     float GlobalSeed = __funcData->GlobalSeed;
                     float distance2D = __funcData->distance2D;
+                    float3 CamOrigin = __funcData->cameraOrigin;
+                    float3 CamDir = __funcData->cameraDirection;
                     __CREATE_TEXTURE_DEFINITIONS__
 
                 """

@@ -59,14 +59,20 @@ class FXShader              : BaseShader
                                      constant float4 *__data [[ buffer(0) ]],
                                      constant FragmentUniforms &uniforms [[ buffer(1) ]],
                                      texture2d<half, access::read> camDirectionTexture [[texture(2)]],
-                                     texture2d<half, access::write> shapeTexture [[texture(3)]])
+                                     texture2d<half, access::read_write> shapeTexture [[texture(3)]])
         {
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
-
+        
             __MAIN_INITIALIZE_FUNC_DATA__
 
+            __funcData->cameraOrigin = uniforms.cameraOrigin;
+            __funcData->cameraDirection = float4(camDirectionTexture.read(textureUV)).xyz;
+
+            float3 CamOrigin = __funcData->cameraOrigin;
+            float3 CamDir = __funcData->cameraDirection;
+        
             float4 outColor = float4(0,0,0,1);
         
             \(component.code!)
@@ -106,7 +112,7 @@ class FXShader              : BaseShader
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 2)
-            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 3)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

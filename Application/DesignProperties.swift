@@ -236,6 +236,7 @@ class DesignProperties      : MMWidget
         
         c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
             
+            /*
             if variable == "physics" {
                 comp.values[variable] = oldValue
                 let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
@@ -243,7 +244,7 @@ class DesignProperties      : MMWidget
                 self.setSelected(comp)
                 globalApp!.artistEditor.designEditor.updateGizmo()
                 if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
-            }
+            }*/
             
             if variable == "restitution" || variable == "friction" || variable == "mass" || variable == "elasticity" {
                 comp.values[variable] = oldValue

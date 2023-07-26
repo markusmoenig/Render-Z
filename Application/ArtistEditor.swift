@@ -30,23 +30,13 @@ class ArtistEditor          : Editor
 
     var bottomHeight        : Float = 0
 
-//    var playButton          : MMButtonWidget
-
-    var groundButton        : MMButtonWidget
-    var materialButton      : MMButtonWidget
     var cameraButton        : MMButtonWidget
-    //var renderButton        : MMButtonWidget
     
     var currentSamples      : Int = 0
     var samplesLabel        : MMShadowTextLabel
     
     var componentId         : Int? = nil
-    
-    //var terrainEditor       : TerrainEditor
-    var terrainIsActive     : Bool = false
-    
-    //var physics3D           : Physics3D? = nil
-    
+            
     required init(_ view: MMView)
     {
         mmView = view
@@ -62,22 +52,22 @@ class ArtistEditor          : Editor
         timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
         
-        var liveSkin = MMSkinButton()
-        liveSkin.borderColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
-        liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
-        liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+//        var liveSkin = MMSkinButton()
+//        liveSkin.borderColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+//        liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+//        liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
 
 //        playButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "PLAY" )
         
-        groundButton = MMButtonWidget( mmView, iconName: "ground" )
-        groundButton.iconZoom = 2
-        groundButton.rect.width += 2
-        groundButton.rect.height -= 7
-        
-        materialButton = MMButtonWidget( mmView, iconName: "material" )
-        materialButton.iconZoom = 2
-        materialButton.rect.width += 14
-        materialButton.rect.height -= 17
+//        groundButton = MMButtonWidget( mmView, iconName: "ground" )
+//        groundButton.iconZoom = 2
+//        groundButton.rect.width += 2
+//        groundButton.rect.height -= 7
+//
+//        materialButton = MMButtonWidget( mmView, iconName: "material" )
+//        materialButton.iconZoom = 2
+//        materialButton.rect.width += 14
+//        materialButton.rect.height -= 17
         
         cameraButton = MMButtonWidget( mmView, iconName: "camera" )
         cameraButton.iconZoom = 2
@@ -124,20 +114,32 @@ class ArtistEditor          : Editor
             }
         }*/
         
-        /*
         cameraButton.clicked = { (event) -> Void in
-            let preStage = globalApp!.project.selected!.getStage(.PreStage)
-            let preStageChildren = preStage.getChildren()
-            for stageItem in preStageChildren {
-                if let c = stageItem.components[stageItem.defaultName] {
-                    if c.componentType == .Camera2D || c.componentType == .Camera3D {
-                        globalApp!.sceneGraph.setCurrent(stage: preStage, stageItem: stageItem, component: c)
-                        break
-                    }
+
+            if globalApp!.project.selected!.items.isEmpty == false {
+                if globalApp!.project.selected!.items[0].componentType == .Camera3D{
+                    globalApp!.sceneGraph.setCurrent(component: globalApp!.project.selected!.items[0])
                 }
             }
+            
+//            if self.designEditor.gizmoCamera3D.component == nil {
+//            } else {
+//                self.cameraButton.removeState(.Checked)
+//            }
+//            let preStage = globalApp!.project.selected!.getStage(.PreStage)
+//            let preStageChildren = preStage.getChildren()
+//            for stageItem in preStageChildren {
+//                if let c = stageItem.components[stageItem.defaultName] {
+//                    if c.componentType == .Camera2D || c.componentType == .Camera3D {
+//                        globalApp!.sceneGraph.setCurrent(stage: preStage, stageItem: stageItem, component: c)
+//                        break
+//                    }
+//                }
+//            }
+            
         }
         
+        /*
         groundButton.clicked = { (event) -> Void in
             if self.getTerrain() != nil {
                 if let component = getComponent(name: "Ground") {
@@ -191,24 +193,20 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, materialButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, cameraButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
         }
-        terrainIsActive = false
-        //terrainEditor.deactivate()
     }
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, materialButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, cameraButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
         }
-        terrainIsActive = false
-        //terrainEditor.deactivate()
     }
     
     override func render()
@@ -216,64 +214,14 @@ class ArtistEditor          : Editor
         globalApp!.currentPipeline!.render(designEditor.rect.width, designEditor.rect.height)
     }
     
-    func getTerrain() -> Terrain?
-    {
-        //let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
-        //return shapeStage.terrain
-        nil
-    }
-    
-    func activateTerrain()
-    {
-        /*
-        if let terrain = self.getTerrain() {
-            self.terrainEditor.rect.copy(designEditor.rect)
-            self.terrainEditor.activate()
-            self.terrainEditor.setTerrain(terrain)
-            self.terrainIsActive = true
-            self.groundButton.addState(.Checked)
-        } else {
-            self.terrainIsActive = false
-            self.terrainEditor.deactivate()
-            self.groundButton.removeState(.Checked)
-        }*/
-    }
-    
     override func setComponent(_ component: CodeComponent)
     {
         dryRunComponent(component)
-        
-        if component.componentType == .Transform3D || component.componentType == .SDF3D || component.componentType == .Ground3D || component.componentType == .Material3D {
-            materialButton.isDisabled = false
-            
-            if component.componentType == .Material3D {
-                materialButton.addState(.Checked)
-            } else {
-                materialButton.removeState(.Checked)
-            }
-        } else {
-            materialButton.isDisabled = true
-        }
         
         if component.componentType == .Camera3D {
             cameraButton.addState(.Checked)
         } else {
             cameraButton.removeState(.Checked)
-        }
-        
-        /*if component.componentType == .Render3D {
-            renderButton.addState(.Checked)
-        } else {
-            renderButton.removeState(.Checked)
-        }*/
-        
-        if component.componentType == .Ground3D && getTerrain() != nil {
-            groundButton.addState(.Checked)
-            activateTerrain()
-        } else {
-            terrainIsActive = false
-            groundButton.removeState(.Checked)
-            //terrainEditor.deactivate()
         }
 
         designEditor.designComponent = component
@@ -304,21 +252,9 @@ class ArtistEditor          : Editor
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
             
-            groundButton.rect.x = (globalApp!.topRegion!.rect.width - (groundButton.rect.width + materialButton.rect.width - 40 + cameraButton.rect.width)) / 2
-            groundButton.rect.y = 4 + 44
-            groundButton.draw()
-            
-            materialButton.rect.x = groundButton.rect.right() + 6
-            materialButton.rect.y = 4 + 44
-            materialButton.draw()
-            
-            cameraButton.rect.x = materialButton.rect.right() + 6
+            cameraButton.rect.x = (globalApp!.topRegion!.rect.width - cameraButton.rect.width) / 2
             cameraButton.rect.y = 4 + 44
             cameraButton.draw()
-            
-//            playButton.rect.x = groundButton.rect.x - playButton.rect.width - 40
-//            playButton.rect.y = 4 + 44
-//            playButton.draw()
         } else
         if region.type == .Left {
             region.rect.width = 0
@@ -346,24 +282,6 @@ class ArtistEditor          : Editor
                     samplesLabel.draw()
                 }
             }
-            
-            /*
-            if let physics = physics3D {
-                physics.step()
-                designEditor.rect.copy(region.rect)
-                render()
-                drawPreview(mmView: mmView, region.rect)
-                physics.drawDebug(texture: globalApp!.currentPipeline!.finalTexture!)
-                return
-            }*/
-            
-//            if terrainIsActive {
-//                terrainEditor.rect.copy(region.rect)
-//                terrainEditor.draw()
-//                
-//                doDrawSamples()                
-//                return
-//            }
             
             designEditor.rect.copy(region.rect)
             designEditor.draw()

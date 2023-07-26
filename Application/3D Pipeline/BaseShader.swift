@@ -890,6 +890,8 @@ class BaseShader
             float                            distance2D;
             float4                           inShape;
             float3                           inHitPoint;
+            float3                           cameraOrigin;
+            float3                           cameraDirection;
             thread texture2d<half, access::sample>   *texture1;
             thread texture2d<half, access::sample>   *texture2;
             thread texture2d<int, access::sample>    *terrainTexture;

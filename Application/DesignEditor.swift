@@ -61,7 +61,7 @@ class DesignEditor          : MMWidget
     {
         currentGizmo = nil
         gizmoState = .None
-        
+    
         if let comp = designComponent {
             if (comp.componentType == .SDF2D || comp.componentType == .Transform2D) && comp.values["_posZ"] == nil {
                 gizmoState = .Combo2D
@@ -241,10 +241,6 @@ class DesignEditor          : MMWidget
         }
     }
     
-    //override func mouseScrolled(_ event: MMMouseEvent) {
-    //}
-    
-    
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         #if os(iOS)
@@ -259,34 +255,23 @@ class DesignEditor          : MMWidget
         }
         #endif
         
-        /*
-        if globalApp!.currentSceneMode == .TwoD {
-            gizmoCamera3D.rect.copy(rect)
-            gizmoCombo2D.mouseScrolled(event)
-        } else {
-            gizmoCamera3D.rect.copy(rect)
-            gizmoCamera3D.mouseScrolled(event)
-            if let comp = designComponent {
-                if comp.componentType == .Camera3D {
-                    editor.designProperties.setSelected(comp)
-                }
+        gizmoCamera3D.rect.copy(rect)
+        gizmoCamera3D.mouseScrolled(event)
+        if let comp = designComponent {
+            if comp.componentType == .Camera3D {
+                editor.designProperties.setSelected(comp)
             }
-        }*/
+        }
     }
     
     override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
-        /*
-        if globalApp!.currentSceneMode == .TwoD {
-            gizmoCombo2D.pinchGesture(scale, firstTouch)
-        } else {
-            gizmoCamera3D.pinchGesture(scale, firstTouch)
-            if let comp = designComponent {
-                if comp.componentType == .Camera3D {
-                    editor.designProperties.setSelected(comp)
-                }
+        gizmoCamera3D.pinchGesture(scale, firstTouch)
+        if let comp = designComponent {
+            if comp.componentType == .Camera3D {
+                editor.designProperties.setSelected(comp)
             }
-        }*/
+        }
     }
     
     override func update()
