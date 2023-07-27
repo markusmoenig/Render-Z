@@ -19,6 +19,7 @@ class PFXInstance {
         simd_float2         screenSize;
 
         simd_float4         ambientColor;
+        int                 samples;
 
         // bbox
         simd_float3         P;
@@ -60,36 +61,9 @@ class PFXInstance {
     var viewMatrix          : matrix_float4x4 = matrix_identity_float4x4
 
     var camDirTexture       : MTLTexture? = nil
-    
-    var reflDirTexture1     : MTLTexture? = nil
-    var reflDirTexture2     : MTLTexture? = nil
-    var currentReflDirTexture: MTLTexture? = nil
-    var otherReflDirTexture : MTLTexture? = nil
-
     var depthTexture        : MTLTexture? = nil
-    
-    var localTexture        : MTLTexture? = nil
-    
-    var shapeTexture1       : MTLTexture? = nil
-    var shapeTexture2       : MTLTexture? = nil
-    var currentShapeTexture : MTLTexture? = nil
-    var otherShapeTexture   : MTLTexture? = nil
-    
-    var shadowTexture1      : MTLTexture? = nil
-    var shadowTexture2      : MTLTexture? = nil
-    var currentShadowTexture: MTLTexture? = nil
-    var otherShadowTexture  : MTLTexture? = nil
-    
-    var reflectionTexture1  : MTLTexture? = nil
-    var reflectionTexture2  : MTLTexture? = nil
-    var currentReflTexture  : MTLTexture? = nil
-    var otherReflTexture    : MTLTexture? = nil
-    
-    var maskTexture1        : MTLTexture? = nil
-    var maskTexture2        : MTLTexture? = nil
-    var currentMaskTexture  : MTLTexture? = nil
-    var otherMaskTexture    : MTLTexture? = nil
-    
+    var singlePassTexture   : MTLTexture? = nil
+
     var utilityShader       : UtilityShader? = nil
     
     var commandQueue        : MTLCommandQueue? = nil
@@ -99,7 +73,7 @@ class PFXInstance {
     var quadViewport        : MTLViewport? = nil
     
     var idSet               : [Int] = []
-    
+
     init()
     {
         for i in 1...200 {
@@ -148,6 +122,14 @@ class PipelineFX            : Pipeline
 
     var pFXInstance         : PFXInstance! = nil
 
+    var maxSamples          : Int = 100
+    
+    var startId             : UInt = 0
+    var renderId            : UInt = 0
+    
+    var renderIsRunning     : Bool = false
+    var startedRender       : Bool = false
+    
     override init(_ mmView: MMView)
     {
         super.init(mmView)
@@ -165,6 +147,8 @@ class PipelineFX            : Pipeline
     override func build(scene: Scene)
     {
         self.scene = scene
+        
+        renderId += 1
 
         cameraComponent = nil
         
@@ -199,377 +183,132 @@ class PipelineFX            : Pipeline
             }
         }
         
-        /*
-        if backgroundShader == nil || BackgroundShader.needsToCompile(scene: scene) == true {
-            backgroundShader = nil
-            backgroundShader = BackgroundShader(instance: pFXInstance, scene: scene, camera: cameraComponent)
-            
-            pFXInstance.utilityShader = nil
-            pFXInstance.utilityShader = UtilityShader(instance: pFXInstance, scene: scene, camera: cameraComponent)
-        } else {
-            #if DEBUG
-            print("reusing background")
-            #endif
-        }
-        
-        if postShader == nil || PostShader.needsToCompile(scene: scene) == true {
-            postShader = nil
-            postShader = PostShader(instance: pFXInstance, scene: scene)
-        } else {
-            #if DEBUG
-            print("reusing postfx")
-            #endif
-        }*/
-        
-        //validShaders.append(pFXInstance.utilityShader!)
-        //validShaders.append(backgroundShader!)
-//        validShaders.append(postShader!)
-
-        /*
-        let shapeStage = scene.getStage(.ShapeStage)
-        for item in shapeStage.getChildren() {
-            
-            if item.shader == nil {
-                if item.getComponentList("shapes") != nil {
-                    
-                    #if DEBUG
-                    print("compiling", item.name)
-                    #endif
-                    
-                    // Object
-                    if item.componentLists["nodes3D"] == nil || item.componentLists["nodes3D"]?.count == 0 {
-                        item.addNodes3D()
-                    }
-                    
-                    let shader = ObjectShader(instance: pFXInstance, scene: scene, object: item, camera: cameraComponent)
-                    shaders.append(shader)
-                    item.shader = shader
-                    
-                    // Check if we need to recompile the xray
-                    if globalApp!.sceneGraph.maximizedObject === item {
-                        globalApp!.sceneGraph.buildXray()
-                    }
-                } else {
-                    let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
-                    if shapeStage.terrain != nil {
-                        let shader = TerrainShader(instance: pFXInstance, scene: scene, object: item, camera: cameraComponent)
-                        shaders.append(shader)
-                        item.shader = shader
-                    } else
-                    if let ground = item.components[item.defaultName], ground.componentType == .Ground3D {
-                        // Ground Object
-
-                        let shader = GroundShader(instance: pFXInstance, scene: scene, object: item, camera: cameraComponent)
-                        shaders.append(shader)
-                        item.shader = shader
-                    }
-                }
-            } else {
-                shaders.append(item.shader!)
-                
-                #if DEBUG
-                print("reusing", item.name)
-                #endif
-
-                /*
-                instanceMap["shape_\(index)"] = item.builderInstance
-                
-                item.builderInstance!.ids.forEach { (key, value) in codeBuilder.sdfStream.ids[key] = value }
-
-                #if DEBUG
-                print("reusing", "shape_\(index)")
-                #endif*/
-            }
-            
-            item.shader!.ids.forEach { (key, value) in pFXInstance!.ids[key] = value }
-        }*/
-        
         ids = pFXInstance.ids
         validShaders += shaders
+        
+        samples = 0
     }
         
     // Render the pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
-        width = round(widthIn); height = round(heightIn)
-        
-        //let startTime = Double(Date().timeIntervalSince1970)
-        
-        for shader in validShaders {
+        renderId += 1
+
+        if self.startedRender == false {
+            
+            func startRender()
+            {
+                self.startId = self.renderId
+                self.width = round(widthIn); self.height = round(heightIn)
+
+                // Check Textures
+                
+                self.pFXInstance.camDirTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.camDirTexture, .rgba16Float)
+                self.pFXInstance.depthTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.depthTexture, .rgba16Float)
+                self.pFXInstance.singlePassTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.singlePassTexture, .rgba16Float)
+                self.finalTexture = self.checkTextureSize(self.width, self.height, self.finalTexture, .rgba16Float)
+                
+                self.samples = 0
+                self.renderIsRunning = true
+                self.startedRender = false
+                self.render_main()
+            }
+            
+            func tryToStartRender()
+            {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    if self.renderIsRunning {
+                        tryToStartRender()
+                    } else {
+                        startRender()
+                    }
+                }
+            }
+            
+            tryToStartRender()
+            startedRender = true
+        }
+    }
+    
+    func hasToFinish() -> Bool
+    {
+        if self.startId < self.renderId || self.samples >= self.maxSamples {
+            renderIsRunning = false
+            return true
+        } else { return false }
+    }
+    
+    // Render the pipeline
+    func render_main()
+    {
+        for shader in self.validShaders {
             for all in shader.allShaders {
                 if shader.shaders[all.id] == nil {
                     return
                 }
             }
         }
-                        
-        if pFXInstance.quadVertexBuffer != nil {
-            //pFXInstance.quadVertexBuffer!.setPurgeableState(.empty)
+        
+        self.pFXInstance.quadVertexBuffer = nil
+        self.pFXInstance.quadViewport = nil
+        self.pFXInstance.commandQueue = nil
+
+        self.pFXInstance.commandQueue = self.mmView.device!.makeCommandQueue()
+        self.pFXInstance.quadVertexBuffer = self.getQuadVertexBuffer(MMRect(0, 0, self.width, self.height ) )
+        self.pFXInstance.quadViewport = MTLViewport( originX: 0.0, originY: 0.0, width: Double(self.width), height: Double(self.height), znear: 0.0, zfar: 1.0 )
+
+        let origin = getTransformedComponentProperty(self.cameraComponent, "origin")
+        let lookAt = getTransformedComponentProperty(self.cameraComponent, "lookAt")
+        
+        self.pFXInstance.cameraOrigin = SIMD3<Float>(origin.x, origin.y, origin.z)
+        self.pFXInstance.cameraLookAt = SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z)
+        self.pFXInstance.screenSize = float2(self.width, self.height)
+                                        
+        //print(self.samples)
+
+        if self.hasToFinish() {
+            return
         }
         
-        pFXInstance.commandQueue = nil
-        pFXInstance.commandBuffer = nil
-        pFXInstance.quadVertexBuffer = nil
-        pFXInstance.quadViewport = nil
-        
-        pFXInstance.commandQueue = mmView.device!.makeCommandQueue()
-        pFXInstance.commandBuffer = pFXInstance.commandQueue!.makeCommandBuffer()
-        pFXInstance.quadVertexBuffer = getQuadVertexBuffer(MMRect(0, 0, width, height ) )
-        pFXInstance.quadViewport = MTLViewport( originX: 0.0, originY: 0.0, width: Double(width), height: Double(height), znear: 0.0, zfar: 1.0 )
+        self.pFXInstance.commandBuffer = nil
+        self.pFXInstance.commandBuffer = self.pFXInstance.commandQueue!.makeCommandBuffer()
                 
-        //let camHelper = CamHelper3D()
-        //camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
-        //camHelper.updateProjection()
-                
-        let origin = getTransformedComponentProperty(cameraComponent, "origin")
-        let lookAt = getTransformedComponentProperty(cameraComponent, "lookAt")
-                
-        pFXInstance.cameraOrigin = SIMD3<Float>(origin.x, origin.y, origin.z)
-        pFXInstance.cameraLookAt = SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z)
-        pFXInstance.screenSize = float2(width, height)
+        if self.samples == 0 {
+            self.pFXInstance.utilityShader!.clear(texture: self.finalTexture!, data: SIMD4<Float>(0, 0, 0, 0))
+        }
         
-        //pFXInstance.projectionMatrix = camHelper.projMatrix
-        //pFXInstance.projectionMatrix = float4x4(projectionFov: camHelper.fov, near: 1, far: 100, aspect: width / height, lhs: false)// camHelper.projMatrix
-        //pFXInstance.viewMatrix = float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)//camHelper.getTransform().inverse//float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)
-        //pFXInstance.viewMatrix = camHelper.getTransform().inverse
-
-        pFXInstance.camDirTexture = checkTextureSize(width, height, pFXInstance.camDirTexture, .rgba16Float)
-        pFXInstance.depthTexture = checkTextureSize(width, height, pFXInstance.depthTexture, .rgba16Float)
-        
-        // The texture objects use for their local distance estimations
-        //pFXInstance.localTexture = checkTextureSize(width, height, pFXInstance.localTexture, .rgba16Float)
-        
-        // The depth / shape textures which get ping ponged
-        pFXInstance.shapeTexture1 = checkTextureSize(width, height, pFXInstance.shapeTexture1, .rgba16Float)
-        pFXInstance.shapeTexture2 = checkTextureSize(width, height, pFXInstance.shapeTexture2, .rgba16Float)
-        
-        // The pointers to the current and the other depth / shape texture
-        pFXInstance.currentShapeTexture = pFXInstance.shapeTexture1
-        pFXInstance.otherShapeTexture = pFXInstance.shapeTexture2
-
-        finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
-        //pFXInstance.utilityShader.clear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 1, 1))
-        
-        pFXInstance.utilityShader!.cameraTextures()
+        self.pFXInstance.utilityShader!.cameraTextures()
         
         for item in globalApp!.project.selected!.items {
             if item.componentType == .Shader {
                 if let shader = item.shader {
-                    shader.render(texture: finalTexture!)
+                    shader.render(texture: self.pFXInstance.singlePassTexture!)
                 }
             }
         }
         
-        /*
-        func swapShapeTextures()
-        {
-            if pFXInstance.currentShapeTexture === pFXInstance.shapeTexture1 {
-                pFXInstance.currentShapeTexture = pFXInstance.shapeTexture2
-                pFXInstance.otherShapeTexture = pFXInstance.shapeTexture1
-            } else {
-                pFXInstance.currentShapeTexture = pFXInstance.shapeTexture1
-                pFXInstance.otherShapeTexture = pFXInstance.shapeTexture2
-            }
-        }
+        // Merge into final
         
-        func isDisabled(shader: BaseShader) -> Bool
-        {
-            var disabled = false
-            return disabled
-        }
+        self.pFXInstance.utilityShader!.accum(samples: Int32(self.samples), final: self.finalTexture!)
         
-        //print("Last Execution Time: ", globalApp!.executionTime * 1000)
-        
-        globalApp!.executionTime = 0
-        
-//        if let background = backgroundShader {
-//            background.render(texture: finalTexture!)
-//        }
-//
-        // Get the depth
-        /*
-        for shader in shaders {
-            if isDisabled(shader: shader) == false {
-                shader.render(texture: finalTexture!)
-                swapShapeTextures()
-            }
-        }*/
-        
-        /*
-        // Free the other shape texture
-        if pFXInstance.currentShapeTexture === pFXInstance.shapeTexture1 {
-            pFXInstance.shapeTexture2 = nil
-            pFXInstance.otherShapeTexture = nil
-        } else {
-            pFXInstance.shapeTexture1 = nil
-            pFXInstance.otherShapeTexture = nil
-        }*/
-        
-        // The ao / shadow textures which get ping ponged
-        //pFXInstance.shadowTexture1 = checkTextureSize(width, height, pFXInstance.shadowTexture1, .rg16Float)
-        //pFXInstance.shadowTexture2 = checkTextureSize(width, height, pFXInstance.shadowTexture2, .rg16Float)
-        
-        // The pointers to the current and the other ao / shadow texture
-        //pFXInstance.currentShadowTexture = pFXInstance.shadowTexture1
-        //pFXInstance.otherShadowTexture = pFXInstance.shadowTexture2
-        
-        func swapShadowTextures()
-        {
-            if pFXInstance.currentShadowTexture === pFXInstance.shadowTexture1 {
-                pFXInstance.currentShadowTexture = pFXInstance.shadowTexture2
-                pFXInstance.otherShadowTexture = pFXInstance.shadowTexture1
-            } else {
-                pFXInstance.currentShadowTexture = pFXInstance.shadowTexture1
-                pFXInstance.otherShadowTexture = pFXInstance.shadowTexture2
-            }
-        }
-        
-        //pFXInstance.utilityShader!.clearShadow(shadowTexture: pFXInstance.shadowTexture1!)
-        
-        // Calculate the shadows
-        /*
-        for shader in shaders {
-            if let object = shader as? ObjectShader {
-                if isDisabled(shader: shader) == false {
-                    object.shadowPass(texture: finalTexture!)
-                    swapShadowTextures()
-                }
-            }
-        }*/
-        
-        // Calculate the materials
-        
-        // The reflection textures which get ping ponged
-        pFXInstance.reflectionTexture1 = checkTextureSize(width, height, pFXInstance.reflectionTexture1, .rgba16Float)
-        pFXInstance.reflectionTexture2 = checkTextureSize(width, height, pFXInstance.reflectionTexture2, .rgba16Float)
-        pFXInstance.currentReflTexture = pFXInstance.reflectionTexture1
-        pFXInstance.otherReflTexture = pFXInstance.reflectionTexture2
-        
-        // Reflection direction textures
-        pFXInstance.reflDirTexture1 = checkTextureSize(width, height, pFXInstance.reflDirTexture1, .rgba16Float)
-        pFXInstance.reflDirTexture2 = checkTextureSize(width, height, pFXInstance.reflDirTexture2, .rgba16Float)
-        pFXInstance.currentReflDirTexture = pFXInstance.reflDirTexture1
-        pFXInstance.otherReflDirTexture = pFXInstance.reflDirTexture2
-        
-        func swapReflectionTextures()
-        {
-            if pFXInstance.currentReflTexture === pFXInstance.reflectionTexture1 {
-                pFXInstance.currentReflTexture = pFXInstance.reflectionTexture2
-                pFXInstance.otherReflTexture = pFXInstance.reflectionTexture1
-            } else {
-                pFXInstance.currentReflTexture = pFXInstance.reflectionTexture1
-                pFXInstance.otherReflTexture = pFXInstance.reflectionTexture2
-            }
-        }
-        
-        func swapReflectionDirTextures()
-        {
-            if pFXInstance.currentReflDirTexture === pFXInstance.reflDirTexture1 {
-                pFXInstance.currentReflDirTexture = pFXInstance.reflDirTexture2
-                pFXInstance.otherReflDirTexture = pFXInstance.reflDirTexture1
-            } else {
-                pFXInstance.currentReflDirTexture = pFXInstance.reflDirTexture1
-                pFXInstance.otherReflDirTexture = pFXInstance.reflDirTexture2
-            }
-        }
-        
-        // Setup the mask textures
-        
-        pFXInstance.maskTexture1 = pFXInstance.otherShapeTexture
-        pFXInstance.maskTexture2 = checkTextureSize(width, height, pFXInstance.maskTexture2, .rgba16Float)//pFXInstance.otherShadowTexture
-        pFXInstance.currentMaskTexture = pFXInstance.maskTexture1
-        pFXInstance.otherMaskTexture = pFXInstance.maskTexture2
-        
-        func swapMaskTextures()
-        {
-            if pFXInstance.currentMaskTexture === pFXInstance.maskTexture1 {
-                pFXInstance.currentMaskTexture = pFXInstance.maskTexture2
-                pFXInstance.otherMaskTexture = pFXInstance.maskTexture1
-            } else {
-                pFXInstance.currentMaskTexture = pFXInstance.maskTexture1
-                pFXInstance.otherMaskTexture = pFXInstance.maskTexture2
-            }
-        }
-        
-        //pFXInstance.utilityShader!.clear(texture: pFXInstance.maskTexture1!, data: SIMD4<Float>(1,1,1,1))
-
-        // Calculate the materials
-        /*
-        for shader in shaders {
-            if isDisabled(shader: shader) == false {
-                shader.materialPass(texture: finalTexture!)
-                swapReflectionDirTextures()
-                swapMaskTextures()
-            }
-        }*/
-        
-        /*
-        // Free the other reflection dir texture
-        if pFXInstance.currentReflDirTexture === pFXInstance.reflDirTexture1 {
-            pFXInstance.reflDirTexture2 = nil
-            pFXInstance.otherReflDirTexture = nil
-        } else {
-            pFXInstance.reflDirTexture1 = nil
-            pFXInstance.otherReflDirTexture = nil
-        }
-        
-        pFXInstance.shadowTexture1 = nil
-        pFXInstance.shadowTexture2 = nil
-        pFXInstance.currentShadowTexture = nil
-        pFXInstance.otherShadowTexture = nil
-        */
-        
-        
-        // Calculate the reflection hits
-        for shader in shaders {
-            if isDisabled(shader: shader) == false {
-                shader.reflectionPass(texture: finalTexture!)
-                swapReflectionTextures()
-            }
-        }
-        
-        // Calculate the reflection material colors and blend them in
-        for shader in shaders {
-            if isDisabled(shader: shader) == false {
-                shader.reflectionMaterialPass(texture: finalTexture!)
-            }
-        }
-        
-        // SKY REFLECTIONS
-        if let background = backgroundShader {
-            background.reflectionMaterialPass(texture: finalTexture!)
-        }
-        
-        // BBOX DEBUG
-        
-        #if false
-        for shader in shaders {
-            if let object = shader as? ObjectShader {
-                object.bbox(texture: finalTexture!)
-            }
-        }
-        #endif
-
-        
-        if let post = postShader {
-            post.render(texture: finalTexture!, otherTexture: pFXInstance.currentReflDirTexture!)
-        }
-         
-        */
-
         // RUN IT
         
-        pFXInstance.commandBuffer!.addCompletedHandler { cb in
-//            print("Rendering Time:", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
+        self.pFXInstance.commandBuffer!.addCompletedHandler { cb in
+            // print("Rendering Time:", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
         }
-        pFXInstance.commandBuffer!.commit()
+        self.pFXInstance.commandBuffer!.commit()
+                
+        self.samples += 1
         
-        // DONE
-        textureMap["shape"] = pFXInstance.currentShapeTexture!
-
-        #if DEBUG
-//        print("Setup Time: ", (Double(Date().timeIntervalSince1970) - startTime) * 1000)
-        #endif
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            if self.samples < self.maxSamples {
+                self.render_main()
+            } else {
+                self.renderIsRunning = false
+                globalApp!.mmView.update()
+            }
+        }
+        globalApp!.mmView.update()
     }
     
     /// Creates a vertex buffer for a quad shader

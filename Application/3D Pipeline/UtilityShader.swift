@@ -35,22 +35,22 @@ class UtilityShader         : BaseShader
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
                                      constant FragmentUniforms &uniforms [[ buffer(0) ]],
-                                     texture2d<half, access::read> localDepthTexture [[texture(1)]],
-                                     texture2d<half, access::read> shapeInTexture [[texture(2)]])
+                                     texture2d<half, access::read> singlePassTexture [[texture(1)]],
+                                     texture2d<half, access::read_write> finalTexture [[texture(2)]])
         {
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
         
-            float4 local = float4(localDepthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
-            float4 depth = float4(shapeInTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
+        
+            float4 single = float4(singlePassTexture.read(textureUV));
+            float4 final = float4(finalTexture.read(textureUV));
+        
+            float4 out = mix(final, single, 1.0 / (float(uniforms.samples) + 1.0));
+        
+            finalTexture.write(half4(out), textureUV);
 
-            float4 outShape = depth;
-            
-            if (local.y > 0.0 && local.y < depth.y) {
-                outShape = local;
-            }
-
-            return outShape;
+            return float4(0.0);
         }
         
         fragment float2 clearShadowsFragment(RasterizerData in [[stage_in]])
@@ -67,7 +67,7 @@ class UtilityShader         : BaseShader
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
         
-            float2 jitter = float2(0.5);
+            float2 jitter = float2(__data[0].z, __data[0].w);
             float3 outPosition = float3(0,0,0);
             float3 outDirection = float3(0,0,0);
             
@@ -94,12 +94,12 @@ class UtilityShader         : BaseShader
         ])
     }
     
-    func mergeShapes()
+    func accum(samples: Int32, final: MTLTexture)
     {
         if let mainShader = shaders["MERGE"] {
 
             let renderPassDescriptor = MTLRenderPassDescriptor()
-            renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShapeTexture!
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.depthTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
             let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
@@ -117,10 +117,11 @@ class UtilityShader         : BaseShader
             fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
             fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
             fragmentUniforms.screenSize = prtInstance.screenSize
+            fragmentUniforms.samples = samples
 
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 0)
-            renderEncoder.setFragmentTexture(prtInstance.localTexture!, index: 1)
-            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.singlePassTexture!, index: 1)
+            renderEncoder.setFragmentTexture(final, index: 2)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

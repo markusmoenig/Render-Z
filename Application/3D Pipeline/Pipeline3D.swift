@@ -45,6 +45,9 @@ class Pipeline3D            : Pipeline
     
     var lineNumber          : Float = 0
     var renderIsRunning     : Bool = false
+    
+    var renderIsRunning     : Bool = false
+    var startedRender       : Bool = false
 
     override init(_ mmView: MMView)
     {

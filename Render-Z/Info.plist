@@ -12,9 +12,11 @@
 				<string>.render-z</string>
 			</array>
 			<key>CFBundleTypeName</key>
-			<string>Shape-Z</string>
+			<string>Render-Z</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>com.moenig.renderz.document</string>
@@ -73,14 +75,16 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Shape-Z Document</string>
+			<string>Render-Z Document</string>
+			<key>UTTypeIcons</key>
+			<dict/>
 			<key>UTTypeIdentifier</key>
 			<string>com.moenig.renderz.document</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
 				<array>
-					<string>.shape-z</string>
+					<string>.render-z</string>
 				</array>
 			</dict>
 		</dict>

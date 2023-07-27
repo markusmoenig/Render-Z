@@ -136,8 +136,8 @@ class PostShader      : BaseShader
                 renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
                 renderEncoder.setFragmentTexture(texture, index: 1)
                 renderEncoder.setFragmentTexture(texture, index: 2)
-                renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
-                renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 4)
+//                renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
+//                renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 4)
                 // ---
                 
                 renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

@@ -150,6 +150,7 @@ class DesignEditor          : MMWidget
             editor.designProperties.mouseDown(event)
         }
         
+        /*
         //  Handle selection click
         if editor.designProperties.hoverMode == .None && editor.designProperties.hoverUITitle == nil && editor.designProperties.hoverUIRandom == nil && (currentGizmo == nil || (currentGizmo!.hoverState == .Inactive && currentGizmo!.clickWasConsumed == false)) {
             
@@ -228,7 +229,7 @@ class DesignEditor          : MMWidget
                     convertTo.setPurgeableState(.empty)
                 }
             }            
-        }
+        }*/
     }
     
     override func mouseUp(_ event: MMMouseEvent)

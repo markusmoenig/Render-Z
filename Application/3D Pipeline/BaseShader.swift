@@ -368,6 +368,9 @@ class BaseShader
                 
         //inst.data[0].z = 1
         //inst.data[0].w = 1
+        
+        data[0].z = Float.random(in: 0.0...1.0)
+        data[0].w = Float.random(in: 0.0...1.0)
 
         for property in properties {
 

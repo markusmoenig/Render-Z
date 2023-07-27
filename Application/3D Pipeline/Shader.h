@@ -25,6 +25,7 @@ typedef struct {
     simd_float2         screenSize;
     
     simd_float4         ambientColor;
+    int                 samples;
 
     // bbox
     simd_float3         P;
