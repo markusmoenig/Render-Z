@@ -104,10 +104,10 @@ class NewDialog: MMDialog {
         }
         
         // Template Items
-        let templates3D = Template(view, "3D Templates")
-        templates3D.items.append(TemplateItem(view, "Minimal", "Minimal"))
-        templates3D.items.append(TemplateItem(view, "Happy", "Happy"))
-        templates.append(templates3D)
+        let templatesFX = Template(view, "FX Templates")
+        templatesFX.items.append(TemplateItem(view, "SpaceGif", "SpaceGif"))
+        //templates3D.items.append(TemplateItem(view, "Happy", "Happy"))
+        templates.append(templatesFX)
         
         let materials3D = Template(view, "Material Examples")
         //materials3D.items.append(TemplateItem(view, "Bricks", "Material_Bricks"))
@@ -118,7 +118,7 @@ class NewDialog: MMDialog {
         //modeling.items.append(TemplateItem(view, "Willys WiP", "Willys"))
         templates.append(modeling)
         
-        selectedTempItem = templates3D.items[0]
+        selectedTempItem = templatesFX.items[0]
         
         // File Items
         let fc = NSFileCoordinator()
@@ -173,12 +173,13 @@ class NewDialog: MMDialog {
         if style == .Templates {
             if let selected = selectedTempItem {
                 if !selected.fileName.isEmpty {
-                    let path = Bundle.main.path(forResource: selected.fileName, ofType: globalApp!.mmFile.appExtension)!
-                    let data = NSData(contentsOfFile: path)! as Data
-                    let dataString = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
-
-                    globalApp!.loadFrom(dataString! as String)
-                    globalApp!.mmView.undoManager!.removeAllActions()
+                    if let path = Bundle.main.path(forResource: selected.fileName, ofType: globalApp!.mmFile.appExtension) {
+                        let data = NSData(contentsOfFile: path)! as Data
+                        let dataString = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
+                        
+                        globalApp!.loadFrom(dataString! as String)
+                        globalApp!.mmView.undoManager!.removeAllActions()
+                    }
                 }
             }
         } else {

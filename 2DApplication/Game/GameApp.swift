@@ -34,7 +34,7 @@ public class GameApp
     {
         self.embeddedCB = embeddedCB
         mmView = view
-        mmFile = MMFile( view, "shape-z" )
+        mmFile = MMFile( view, "render-z" )
             
         nodeGraph = NodeGraph()
         

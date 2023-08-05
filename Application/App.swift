@@ -67,7 +67,7 @@ class App
     init(_ view : MMView )
     {
         mmView = view
-        mmFile = MMFile( view, "shape-z" )
+        mmFile = MMFile( view, "render-z" )
                 
         mmView.registerIcon("rz_toolbar")
         mmView.registerIcon("scenegraph")

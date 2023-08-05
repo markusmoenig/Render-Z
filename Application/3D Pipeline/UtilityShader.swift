@@ -60,13 +60,15 @@ class UtilityShader         : BaseShader
         
         fragment half4 cameraFragment(RasterizerData in [[stage_in]],
                                      __CAMERA_TEXTURE_HEADER_CODE__
-                                     constant float4 *__data [[ buffer(0) ]])
+                                     constant float4 *__data [[ buffer(0) ]],
+                                     texture2d<half, access::read_write> camOriginTexture [[texture(1)]])
         {
             __CAMERA_INITIALIZE_FUNC_DATA__
         
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
-        
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
+
             float2 jitter = float2(__data[0].z, __data[0].w);
             float3 outPosition = float3(0,0,0);
             float3 outDirection = float3(0,0,0);
@@ -75,6 +77,7 @@ class UtilityShader         : BaseShader
 
             \(camera.code!)
 
+            camOriginTexture.write(half4(half3(outPosition), 1.), textureUV);
             return half4(half3(outDirection), 1.);
         }
         
@@ -99,7 +102,7 @@ class UtilityShader         : BaseShader
         if let mainShader = shaders["MERGE"] {
 
             let renderPassDescriptor = MTLRenderPassDescriptor()
-            renderPassDescriptor.colorAttachments[0].texture = prtInstance.depthTexture!
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.distanceNormalTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
             let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
@@ -209,7 +212,7 @@ class UtilityShader         : BaseShader
             fragmentUniforms.screenSize = prtInstance.screenSize
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 1)
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 1)
             // ---
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()

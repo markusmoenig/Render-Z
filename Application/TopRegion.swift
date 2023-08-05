@@ -179,7 +179,7 @@ class TopRegion: MMRegion
         libraryButton.clicked = { (event) -> Void in
             
             if app.currentEditor === app.developerEditor {
-                globalApp!.libraryDialog.show(ids: ["FuncNoise", "FuncHash", "FuncMisc"])
+                globalApp!.libraryDialog.show(ids: ["FuncSDF", "FuncAnalytical", "FuncMaterial", "FuncNoise", "FuncHash", "FuncMisc"])
             } else {
                 /*
                 globalApp!.libraryDialog.showObjects(cb: { (object) in                    

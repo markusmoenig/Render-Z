@@ -97,11 +97,18 @@
 	<array>
 		<dict>
 			<key>UTTypeDescription</key>
-			<string>Shape-Z Document</string>
+			<string>Render-Z Document</string>
 			<key>UTTypeIconFiles</key>
 			<array/>
 			<key>UTTypeIdentifier</key>
 			<string>com.moenig.renderz.document</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>render-z</string>
+				</array>
+			</dict>
 		</dict>
 	</array>
 </dict>

@@ -1227,7 +1227,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern, Light3D, PostFX, Fog3D, Clouds3D, Shader
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern, Light3D, PostFX, Fog3D, Clouds3D, Shader, Shape
     }
     
     let functionType        : FunctionType
@@ -1580,7 +1580,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, Light3D, Image, Texture, PostFX, Fog3D, Clouds3D, Shader
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, Light3D, Image, Texture, PostFX, Fog3D, Clouds3D, Shader, Shape
     }
     
     let componentType       : ComponentType
@@ -1872,6 +1872,28 @@ class CodeComponent         : Codable, Equatable
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
 //            f.body.append(f.createVariableDefinitionBlock("float4", "outColor"))
+            functions.append(f)
+        } else
+        if type == .Shape {
+            let f = CodeFunction(type, "shape_entry")
+            f.comment = "Compute shape distance, normal, and material settings"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float", "outDistance"))
+            f.body.append(f.createOutVariableBlock("float3", "outNormal"))
+            f.body.append(f.createOutVariableBlock("float3", "outMaterialAlbedo"))
+            f.body.append(f.createOutVariableBlock("float", "outMaterialMetallic"))
+            f.body.append(f.createOutVariableBlock("float", "outMaterialRoughness"))
+            f.body.append(f.createOutVariableBlock("float3", "outMaterialEmissive"))
+            f.body.append(f.createOutVariableBlock("float3", "outMaterialTransmissive"))
             functions.append(f)
         } else
         if type == .Colorize {

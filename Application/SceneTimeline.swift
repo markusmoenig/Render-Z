@@ -635,11 +635,14 @@ class SceneTimeline            : MMWidget
             if index < globalApp!.project.selected!.items.count {
                 let uuid = globalApp!.project.selected!.items[index].uuid
                 
+                if globalApp!.project.selected!.items[index].componentType == .Shape {
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 2.0, fillColor : skin.postFXColor, borderColor: uuid == currentUUID ? skin.selectedBorderColor : skin.postFXColor )
+                } else
                 if globalApp!.project.selected!.items[index].componentType == .Shader {
-                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 1.0, fillColor : uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor, borderColor: uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor)
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 2.0, fillColor : skin.renderColor, borderColor: uuid == currentUUID ? skin.selectedBorderColor : skin.renderColor )
                 } else
                 if globalApp!.project.selected!.items[index].componentType == .Camera3D {
-                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 1.0, fillColor : uuid == currentUUID ? skin.renderColor : skin.normalInteriorColor, borderColor: uuid == currentUUID ? skin.renderColor : skin.normalInteriorColor)
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 2.0, fillColor : skin.objectColor, borderColor: uuid == currentUUID ? skin.selectedBorderColor : skin.objectColor)
                 }
                 
                 mmView.drawText.drawTextCentered(mmView.openSans, text: globalApp!.project.selected!.items[index].libraryName, x: r.x, y: r.y, width: r.width - 31, height: r.height, scale: 0.4, color: uuid == currentUUID ? skin.selectedTextColor : skin.normalTextColor)
@@ -670,6 +673,15 @@ class SceneTimeline            : MMWidget
                         let codeComponent = CodeComponent(.Shader, "Shader")
                         codeComponent.createDefaultFunction(.Shader)
                         globalApp!.project.selected!.items.append(codeComponent)
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                        self.needsUpdate = true
+                        self.mmView.update()
+                    }),
+                    MMMenuItem(text: "Add Shape", cb: { () in
+                        let codeComponent = CodeComponent(.Shape, "Shape")
+                        codeComponent.createDefaultFunction(.Shape)
+                        globalApp!.project.selected!.items.append(codeComponent)
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
                         self.needsUpdate = true
                         self.mmView.update()
                     }),
@@ -680,6 +692,7 @@ class SceneTimeline            : MMWidget
                                 comp.uuid = UUID()
                                 globalApp!.project.selected!.items.insert(comp, at: 0)
                                 self.setCurrent(component: comp)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
                                 self.needsUpdate = true
                                 self.mmView.update()
                             }

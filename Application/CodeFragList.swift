@@ -114,7 +114,7 @@ class CodeFragList : MMWidget
         
         item.items.append( SourceListItem("CamOrigin", CodeFragment(.Primitive, "float3", "CamOrigin", [.Selectable, .Dragable, .Targetable], nil, "float3" ) ) )
         item.items.append( SourceListItem("CamDir", CodeFragment(.Primitive, "float3", "CamDir", [.Selectable, .Dragable, .Targetable], nil, "float3" ) ) )
-        
+
         item = FragItem("D")
         items.append(item)
         item.items.append( SourceListItem("degrees", CodeFragment(.Primitive, "float", "degrees", [.Selectable, .Dragable, .Targetable], ["float"], "float" ) ) )

@@ -113,7 +113,7 @@ class CodeProperties    : MMWidget
             var index: Float = -1
 
             if function.functionType == .FreeFlow {
-                items = ["Hash", "Noise", "Misc"]
+                items = ["Hash", "Noise", "Material", "SDF", "Analytical", "Misc"]
                 if let i = items.firstIndex(of: libraryCategory) {
                     index = Float(i)
                 }

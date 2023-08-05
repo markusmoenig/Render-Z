@@ -49,30 +49,31 @@ class PFXInstance {
     """
     
     // Component Ids
-    var ids                 : [Int:(CodeComponent?)] = [:]
+    var ids                         : [Int:(CodeComponent?)] = [:]
 
     // Camera
-    var cameraOrigin        : float3 = float3(0,0,0)
-    var cameraLookAt        : float3 = float3(0,0,0)
+    var cameraOrigin                : float3 = float3(0,0,0)
+    var cameraLookAt                : float3 = float3(0,0,0)
     
-    var screenSize          : float2 = float2(0,0)
+    var screenSize                  : float2 = float2(0,0)
     
-    var projectionMatrix    : matrix_float4x4 = matrix_identity_float4x4
-    var viewMatrix          : matrix_float4x4 = matrix_identity_float4x4
+    var projectionMatrix            : matrix_float4x4 = matrix_identity_float4x4
+    var viewMatrix                  : matrix_float4x4 = matrix_identity_float4x4
 
-    var camDirTexture       : MTLTexture? = nil
-    var depthTexture        : MTLTexture? = nil
-    var singlePassTexture   : MTLTexture? = nil
+    var camOriginTexture            : MTLTexture? = nil
+    var camDirTexture               : MTLTexture? = nil
+    var distanceNormalTexture       : MTLTexture? = nil
+    var singlePassTexture           : MTLTexture? = nil
 
-    var utilityShader       : UtilityShader? = nil
+    var utilityShader               : UtilityShader? = nil
     
-    var commandQueue        : MTLCommandQueue? = nil
-    var commandBuffer       : MTLCommandBuffer? = nil
+    var commandQueue                : MTLCommandQueue? = nil
+    var commandBuffer               : MTLCommandBuffer? = nil
     
-    var quadVertexBuffer    : MTLBuffer? = nil
-    var quadViewport        : MTLViewport? = nil
+    var quadVertexBuffer            : MTLBuffer? = nil
+    var quadViewport                : MTLViewport? = nil
     
-    var idSet               : [Int] = []
+    var idSet                       : [Int] = []
 
     init()
     {
@@ -130,6 +131,8 @@ class PipelineFX            : Pipeline
     var renderIsRunning     : Bool = false
     var startedRender       : Bool = false
     
+    var singlePass          : Bool = false
+    
     override init(_ mmView: MMView)
     {
         super.init(mmView)
@@ -151,18 +154,20 @@ class PipelineFX            : Pipeline
         renderId += 1
 
         cameraComponent = nil
-        
+
+        singlePass = true
         if scene.items.isEmpty == false {
             if scene.items[0].componentType == .Camera3D {
                 pFXInstance.utilityShader = nil
                 cameraComponent = scene.items[0]
+                singlePass = false
             }
         }
         
         if cameraComponent == nil {
             cameraComponent = CodeComponent(.Camera3D)
         }
-        
+                
         shaders = []
         validShaders = []
         
@@ -180,6 +185,11 @@ class PipelineFX            : Pipeline
                 let shader = FXShader(instance: pFXInstance, scene: scene, uuid: item.uuid, camera: cameraComponent)
                 item.shader = shader
                 validShaders.append(item.shader!)
+            } else
+            if item.shader == nil && item.componentType == .Shape {
+                let shader = FXShape(instance: pFXInstance, scene: scene, uuid: item.uuid, camera: cameraComponent)
+                item.shader = shader
+                validShaders.append(item.shader!)
             }
         }
         
@@ -192,21 +202,41 @@ class PipelineFX            : Pipeline
     // Render the pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
+//        for item in scene.items {
+//            if item.componentType == .Shader && item.shader == nil {
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+//                    self.render(widthIn, heightIn, settings: settings)
+//                }
+//                return
+//            }
+//        }
+
         renderId += 1
 
+        func checkTextures(_ widthIn: Float,_ heightIn: Float) {
+            self.width = round(widthIn); self.height = round(heightIn)
+            self.pFXInstance.camOriginTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.camOriginTexture, .rgba16Float)
+            self.pFXInstance.camDirTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.camDirTexture, .rgba16Float)
+            self.pFXInstance.distanceNormalTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.distanceNormalTexture, .rgba16Float)
+            self.pFXInstance.singlePassTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.singlePassTexture, .rgba16Float)
+            self.finalTexture = self.checkTextureSize(self.width, self.height, self.finalTexture, .rgba16Float)
+        }
+        
+        if singlePass == true {
+            self.startId = self.renderId
+            checkTextures(widthIn, heightIn)
+            
+            self.samples = 0
+            self.renderIsRunning = true
+            self.startedRender = false
+            self.render_main()
+        } else
         if self.startedRender == false {
             
             func startRender()
             {
                 self.startId = self.renderId
-                self.width = round(widthIn); self.height = round(heightIn)
-
-                // Check Textures
-                
-                self.pFXInstance.camDirTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.camDirTexture, .rgba16Float)
-                self.pFXInstance.depthTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.depthTexture, .rgba16Float)
-                self.pFXInstance.singlePassTexture = self.checkTextureSize(self.width, self.height, self.pFXInstance.singlePassTexture, .rgba16Float)
-                self.finalTexture = self.checkTextureSize(self.width, self.height, self.finalTexture, .rgba16Float)
+                checkTextures(widthIn, heightIn)
                 
                 self.samples = 0
                 self.renderIsRunning = true
@@ -279,7 +309,7 @@ class PipelineFX            : Pipeline
         
         self.pFXInstance.utilityShader!.cameraTextures()
         
-        for item in globalApp!.project.selected!.items {
+        for item in scene.items {
             if item.componentType == .Shader {
                 if let shader = item.shader {
                     shader.render(texture: self.pFXInstance.singlePassTexture!)
@@ -300,13 +330,17 @@ class PipelineFX            : Pipeline
                 
         self.samples += 1
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            if self.samples < self.maxSamples {
-                self.render_main()
-            } else {
-                self.renderIsRunning = false
-                globalApp!.mmView.update()
+        if self.singlePass == false {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.003) {
+                if self.samples < self.maxSamples {
+                    self.render_main()
+                } else {
+                    self.renderIsRunning = false
+                    globalApp!.mmView.update()
+                }
             }
+        } else {
+            self.renderIsRunning = false
         }
         globalApp!.mmView.update()
     }

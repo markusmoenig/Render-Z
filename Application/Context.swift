@@ -166,7 +166,7 @@ class ContextWidget         : MMWidget
 
             let tempRect = MMRect()
                                     
-            if libraryId.starts(with: "SDF") {
+            if libraryId.starts(with: "SDFFF") {
                 for (index, item) in currentList.enumerated() {
                                         
                     if let comp = item.component {
@@ -259,7 +259,7 @@ class ContextWidget         : MMWidget
         infoItems = []
 
         if let current = currentItem {
-            if libraryId.starts(with: "SDF") {
+            if libraryId.starts(with: "SDFFF") {
                 if currentOnSub == false {
                     // SDF
                     if let _ = current.component {
@@ -316,7 +316,7 @@ class ContextWidget         : MMWidget
                 globalApp!.libraryDialog.setType(libraryId, current)
                 mmView.showDialog(globalApp!.libraryDialog)
             } else
-            if libraryId.starts(with: "SDF") {
+            if libraryId.starts(with: "SDFFF") {
                 if currentOnSub == false {
                     // SDF
                     if current.component == nil {
