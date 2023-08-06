@@ -367,11 +367,11 @@ class SceneTimeline            : MMWidget
          }*/
         
 #if os(iOS)
-        if connectingTerminals {
-            return
-        }
-        graphX += event.deltaX! * 2
-        graphY += event.deltaY! * 2
+//        if connectingTerminals {
+//            return
+//        }
+//        graphX += event.deltaX! * 2
+//        graphY += event.deltaY! * 2
 #elseif os(OSX)
         //if mmView.commandIsDown && event.deltaY! != 0 {
         graphZoom += event.deltaY! * 0.003
@@ -543,12 +543,12 @@ class SceneTimeline            : MMWidget
         }*/
         
 #if os(iOS)
-        for b in buttons {
-            if b.rect!.contains(event.x, event.y) {
-                hoverButton = b
-                break
-            }
-        }
+//        for b in buttons {
+//            if b.rect!.contains(event.x, event.y) {
+//                hoverButton = b
+//                break
+//            }
+//        }
 #endif
         
         mouseDownPos.x = event.x

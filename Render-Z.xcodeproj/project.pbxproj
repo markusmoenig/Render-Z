@@ -95,7 +95,6 @@
 		2B5F506E2298FD4D00D3B6C5 /* GameRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; };
 		2B5F506F2298FD5D00D3B6C5 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
 		2B5F50702298FD5D00D3B6C5 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
-		2B5FE42322C0A96F0046A435 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110021EAD2B0001C94E9 /* Assets.xcassets */; };
 		2B5FE42722C213410046A435 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5FE42622C213410046A435 /* CloudKit.framework */; };
 		2B5FE42922C213690046A435 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5FE42822C213690046A435 /* CloudKit.framework */; };
 		2B639F17221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
@@ -312,16 +311,6 @@
 		2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
 		2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B05F231A069A0067B217 /* sz_ui_grey.tiff */; };
 		2BB6B063231A069A0067B217 /* sz_ui_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */; };
-		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
-		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
-		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
-		2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110221EAD2B0001C94E9 /* Main.storyboard */; };
-		2BBF112F21EAD38E001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */; };
-		2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF113021EAD38E001C94E9 /* ViewController.swift */; };
-		2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF113221EAD38E001C94E9 /* Main.storyboard */; };
-		2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF113521EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld */; };
-		2BBF113921EAD38E001C94E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF113821EAD38E001C94E9 /* Assets.xcassets */; };
-		2BBF113C21EAD38E001C94E9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF113A21EAD38E001C94E9 /* LaunchScreen.storyboard */; };
 		2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119721EAD46B001C94E9 /* TopRegion.swift */; };
 		2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119721EAD46B001C94E9 /* TopRegion.swift */; };
 		2BBF11A221EAD46B001C94E9 /* LeftRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119821EAD46B001C94E9 /* LeftRegion.swift */; };
@@ -521,7 +510,6 @@
 		2B5AE79A23836F6F00990ACB /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
-		2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Shape-Z iOS.entitlements"; sourceTree = "<group>"; };
 		2B5F50672298FC7900D3B6C5 /* GameApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameApp.swift; sourceTree = "<group>"; };
 		2B5F50682298FC8100D3B6C5 /* GameRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRegion.swift; sourceTree = "<group>"; };
 		2B5F50692298FC8500D3B6C5 /* GameWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWidget.swift; sourceTree = "<group>"; };
@@ -626,21 +614,7 @@
 		2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_blue.tiff; sourceTree = "<group>"; };
 		2BBF0F4B225C397A009950E3 /* Renderer.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Renderer.metal; sourceTree = "<group>"; };
 		2BBF10F621EAD2AF001C94E9 /* _Render-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "_Render-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		2BBF10FE21EAD2AF001C94E9 /* Shape_Z.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Shape_Z.xcdatamodel; sourceTree = "<group>"; };
-		2BBF110021EAD2B0001C94E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		2BBF110321EAD2B0001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		2BBF110521EAD2B0001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		2BBF110621EAD2B0001C94E9 /* Shape_Z.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Shape_Z.entitlements; sourceTree = "<group>"; };
 		2BBF112C21EAD38D001C94E9 /* Render-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Render-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		2BBF113021EAD38E001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		2BBF113321EAD38E001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		2BBF113621EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Shape_Z_iOS.xcdatamodel; sourceTree = "<group>"; };
-		2BBF113821EAD38E001C94E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		2BBF113B21EAD38E001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		2BBF113D21EAD38E001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2BBF119721EAD46B001C94E9 /* TopRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TopRegion.swift; sourceTree = "<group>"; };
 		2BBF119821EAD46B001C94E9 /* LeftRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LeftRegion.swift; sourceTree = "<group>"; };
 		2BBF119921EAD46B001C94E9 /* AppShaders.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = AppShaders.metal; sourceTree = "<group>"; };
@@ -978,8 +952,6 @@
 				2B7A3BF223B4583A002EC5FC /* Render-Z */,
 				2B9B29A523BB44BF00C2F387 /* Render-Z iOS */,
 				2BBF119621EAD46B001C94E9 /* 2DApplication */,
-				2BBF10F821EAD2AF001C94E9 /* Shape-Z */,
-				2BBF112D21EAD38E001C94E9 /* Shape-Z iOS */,
 				2BBF11B021EADB46001C94E9 /* Mad4Metal */,
 				2BBF10F721EAD2AF001C94E9 /* Products */,
 				2B5CCB0522169D95005BAA2B /* Frameworks */,
@@ -995,35 +967,6 @@
 				2B9B29A423BB44BF00C2F387 /* Render-Z.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		2BBF10F821EAD2AF001C94E9 /* Shape-Z */ = {
-			isa = PBXGroup;
-			children = (
-				2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */,
-				2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */,
-				2BBF110021EAD2B0001C94E9 /* Assets.xcassets */,
-				2BBF110221EAD2B0001C94E9 /* Main.storyboard */,
-				2BBF110521EAD2B0001C94E9 /* Info.plist */,
-				2BBF110621EAD2B0001C94E9 /* Shape_Z.entitlements */,
-				2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */,
-			);
-			path = "Shape-Z";
-			sourceTree = "<group>";
-		};
-		2BBF112D21EAD38E001C94E9 /* Shape-Z iOS */ = {
-			isa = PBXGroup;
-			children = (
-				2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */,
-				2BBF113021EAD38E001C94E9 /* ViewController.swift */,
-				2BBF113221EAD38E001C94E9 /* Main.storyboard */,
-				2BBF113821EAD38E001C94E9 /* Assets.xcassets */,
-				2BBF113A21EAD38E001C94E9 /* LaunchScreen.storyboard */,
-				2BBF113D21EAD38E001C94E9 /* Info.plist */,
-				2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */,
-				2BBF113521EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld */,
-			);
-			path = "Shape-Z iOS";
 			sourceTree = "<group>";
 		};
 		2BBF119621EAD46B001C94E9 /* 2DApplication */ = {
@@ -1464,13 +1407,11 @@
 				2B6CCE5B231F5E5F00ECA35B /* foreground.tiff in Resources */,
 				2B6CCE4D231F59E700ECA35B /* substract_on.tiff in Resources */,
 				2B57D7902358149600E8BF65 /* GameCuben.tiff in Resources */,
-				2B5FE42322C0A96F0046A435 /* Assets.xcassets in Resources */,
 				2B0271782353FDA1009178F6 /* zoom_minus.tiff in Resources */,
 				2B57D7922358149600E8BF65 /* GameCuben.json in Resources */,
 				2B6CCE53231F5A4500ECA35B /* intersection_off.tiff in Resources */,
 				2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */,
 				2B1F2E13235EA08200838D46 /* Marble.shape-z in Resources */,
-				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
 				2B91CBE62358477300DED7B1 /* Square.json in Resources */,
 				2B91CBE9235848AC00DED7B1 /* Pong.shape-z in Resources */,
 				2B02717A2353FDA1009178F6 /* zoom_plus.tiff in Resources */,
@@ -1487,18 +1428,15 @@
 				2B6CCE5C231F5E5F00ECA35B /* foreground.tiff in Resources */,
 				2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */,
 				2B035153231A195A00ACBB78 /* sz_ui_grey.tiff in Resources */,
-				2BBF113C21EAD38E001C94E9 /* LaunchScreen.storyboard in Resources */,
 				2B8BBA8922A4AA4600E541B9 /* OpenSans.tiff in Resources */,
 				2B6CCE54231F5A4500ECA35B /* intersection_off.tiff in Resources */,
 				2B57D7932358149600E8BF65 /* GameCuben.json in Resources */,
 				2B6CCE5A231F5E5F00ECA35B /* background.tiff in Resources */,
 				2B91CBE52358477300DED7B1 /* Square.tiff in Resources */,
-				2BBF113921EAD38E001C94E9 /* Assets.xcassets in Resources */,
 				2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */,
 				2B6CCE47231F4FD600ECA35B /* union_off.tiff in Resources */,
 				2B6CCE4E231F59E700ECA35B /* substract_on.tiff in Resources */,
 				2B02717B2353FDA1009178F6 /* zoom_plus.tiff in Resources */,
-				2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */,
 				2B6CCE4A231F4FE200ECA35B /* union_on.tiff in Resources */,
 				2B6CCE50231F59E700ECA35B /* substract_off.tiff in Resources */,
 				2B0271792353FDA1009178F6 /* zoom_minus.tiff in Resources */,
@@ -1758,17 +1696,14 @@
 				2B46E95D2243339A0047A94A /* MMTabWidget.swift in Sources */,
 				2BBF11E721EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2B5F506A2298FD3200D3B6C5 /* GameApp.swift in Sources */,
-				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
 				2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D361221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,
 				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
 				2B4CC22A2222301300A47812 /* SceneMaxDelegate.swift in Sources */,
-				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
 				2B46E960224367AF0047A94A /* Material.swift in Sources */,
 				2BBF11D321EADB46001C94E9 /* MMCompute.swift in Sources */,
 				2BBF11C721EADB46001C94E9 /* MMDrawable.swift in Sources */,
 				2BAC26DE226D6B8F00E20ADD /* GameNodes.swift in Sources */,
-				2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */,
 				2B639F1A221A32CD00576542 /* MMFile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1842,17 +1777,14 @@
 				2B46E95E2243339B0047A94A /* MMTabWidget.swift in Sources */,
 				2BBF11E821EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2B5F506B2298FD3200D3B6C5 /* GameApp.swift in Sources */,
-				2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */,
 				2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,
 				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,
 				2B4CC22B2222301300A47812 /* SceneMaxDelegate.swift in Sources */,
-				2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */,
 				2B46E961224367AF0047A94A /* Material.swift in Sources */,
 				2BBF11D421EADB46001C94E9 /* MMCompute.swift in Sources */,
 				2BBF11C821EADB46001C94E9 /* MMDrawable.swift in Sources */,
 				2BAC26DF226D6B8F00E20ADD /* GameNodes.swift in Sources */,
-				2BBF112F21EAD38E001C94E9 /* AppDelegate.swift in Sources */,
 				2B639F1B221A32CD00576542 /* MMFile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1884,30 +1816,6 @@
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
-		2BBF110221EAD2B0001C94E9 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				2BBF110321EAD2B0001C94E9 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		2BBF113221EAD38E001C94E9 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				2BBF113321EAD38E001C94E9 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		2BBF113A21EAD38E001C94E9 /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				2BBF113B21EAD38E001C94E9 /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -1924,6 +1832,8 @@
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Render-Z/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Render-Z";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1951,6 +1861,8 @@
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Render-Z/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Render-Z";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1974,13 +1886,15 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				INFOPLIST_FILE = "Render-Z iOS/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Render-Z";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
-				MARKETING_VERSION = 0.61;
+				MARKETING_VERSION = 0.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderzios;
 				PRODUCT_NAME = "Render-Z";
 				SDKROOT = iphoneos;
@@ -2000,13 +1914,15 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				INFOPLIST_FILE = "Render-Z iOS/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Render-Z";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
-				MARKETING_VERSION = 0.61;
+				MARKETING_VERSION = 0.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderzios;
 				PRODUCT_NAME = "Render-Z";
 				SDKROOT = iphoneos;
@@ -2303,29 +2219,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCVersionGroup section */
-		2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				2BBF10FE21EAD2AF001C94E9 /* Shape_Z.xcdatamodel */,
-			);
-			currentVersion = 2BBF10FE21EAD2AF001C94E9 /* Shape_Z.xcdatamodel */;
-			path = Shape_Z.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-		2BBF113521EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				2BBF113621EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodel */,
-			);
-			currentVersion = 2BBF113621EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodel */;
-			path = Shape_Z_iOS.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-/* End XCVersionGroup section */
 	};
 	rootObject = 2BBF10EE21EAD2AF001C94E9 /* Project object */;
 }

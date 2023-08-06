@@ -660,7 +660,7 @@ func showHelp(_ urlString: String? = nil)
         guard let url = URL(string: urlString!) else { return }
         UIApplication.shared.open(url)
     } else {
-        guard let url = URL(string: "https://www.moenig.io/articles") else { return }
+        guard let url = URL(string: "https://render-z.com") else { return }
         UIApplication.shared.open(url)
     }
 }
