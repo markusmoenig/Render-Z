@@ -450,6 +450,10 @@
 		DD54097F2A7289E000004ADA /* SpaceGif.render-z in Resources */ = {isa = PBXBuildFile; fileRef = DD54097D2A7289E000004ADA /* SpaceGif.render-z */; };
 		DD5409812A7E3D1B00004ADA /* FXShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5409802A7E3D1B00004ADA /* FXShape.swift */; };
 		DD5409822A7E3D1B00004ADA /* FXShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5409802A7E3D1B00004ADA /* FXShape.swift */; };
+		DD54098A2A7F929F00004ADA /* Disc.render-z in Resources */ = {isa = PBXBuildFile; fileRef = DD5409892A7F929F00004ADA /* Disc.render-z */; };
+		DD54098B2A7F929F00004ADA /* Disc.render-z in Resources */ = {isa = PBXBuildFile; fileRef = DD5409892A7F929F00004ADA /* Disc.render-z */; };
+		DD54098D2A7F974600004ADA /* Raymarching.render-z in Resources */ = {isa = PBXBuildFile; fileRef = DD54098C2A7F974600004ADA /* Raymarching.render-z */; };
+		DD54098E2A7F974600004ADA /* Raymarching.render-z in Resources */ = {isa = PBXBuildFile; fileRef = DD54098C2A7F974600004ADA /* Raymarching.render-z */; };
 		DDE024F42A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F52A63CC5300BB6AF8 /* SceneTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */; };
 		DDE024F82A63EB1A00BB6AF8 /* PipelineFX.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */; };
@@ -714,6 +718,8 @@
 		DD5409782A677CDB00004ADA /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 		DD54097D2A7289E000004ADA /* SpaceGif.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "SpaceGif.render-z"; sourceTree = "<group>"; };
 		DD5409802A7E3D1B00004ADA /* FXShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXShape.swift; sourceTree = "<group>"; };
+		DD5409892A7F929F00004ADA /* Disc.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Disc.render-z"; sourceTree = "<group>"; };
+		DD54098C2A7F974600004ADA /* Raymarching.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Raymarching.render-z"; sourceTree = "<group>"; };
 		DDE024EF2A63CA8A00BB6AF8 /* SceneTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneTimeline.swift; sourceTree = "<group>"; };
 		DDE024F72A63EB0D00BB6AF8 /* PipelineFX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineFX.swift; sourceTree = "<group>"; };
 		DDE024FC2A665E9500BB6AF8 /* FXShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXShader.swift; sourceTree = "<group>"; };
@@ -1173,7 +1179,9 @@
 		2BE847BB2453E0EA00409AAE /* Templates */ = {
 			isa = PBXGroup;
 			children = (
+				DD5409892A7F929F00004ADA /* Disc.render-z */,
 				DD54097D2A7289E000004ADA /* SpaceGif.render-z */,
+				DD54098C2A7F974600004ADA /* Raymarching.render-z */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -1346,6 +1354,7 @@
 				2B666FAB2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
 				2B2DAAFE245C183F00067839 /* render-z.tiff in Resources */,
 				2B7A3C0523B4652E002EC5FC /* GameCuben.tiff in Resources */,
+				DD54098D2A7F974600004ADA /* Raymarching.render-z in Resources */,
 				2B7A3C0423B4652E002EC5FC /* GameCuben.json in Resources */,
 				2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */,
 				2B666FB42464D58F00BE3E4F /* rotate.tiff in Resources */,
@@ -1356,6 +1365,7 @@
 				DD54097E2A7289E000004ADA /* SpaceGif.render-z in Resources */,
 				2B2B5FEC242442AD00B9CCF1 /* dev_off.tiff in Resources */,
 				2B7A3C0723B4652E002EC5FC /* OpenSans.tiff in Resources */,
+				DD54098A2A7F929F00004ADA /* Disc.render-z in Resources */,
 				2B666FB72464D5CF00BE3E4F /* scale.tiff in Resources */,
 				DD5409792A677CDB00004ADA /* License.txt in Resources */,
 				2B8E2FE323C71F36005619E4 /* SourceCodePro.json in Resources */,
@@ -1417,12 +1427,14 @@
 				2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */,
 				2B9B29AE23BB44BF00C2F387 /* Main.storyboard in Resources */,
 				2B8E2FE423C71F36005619E4 /* SourceCodePro.json in Resources */,
+				DD54098E2A7F974600004ADA /* Raymarching.render-z in Resources */,
 				2B666FAC2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
 				DD54096A2A66D39F00004ADA /* camera.tiff in Resources */,
 				2B9CB6F72485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B8DB37C2489CEB700D57DC4 /* Soil.tiff in Resources */,
 				2B9CB6F42485CC9900CFFA51 /* Z_green.tiff in Resources */,
 				2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */,
+				DD54098B2A7F929F00004ADA /* Disc.render-z in Resources */,
 				DD54097C2A677CDB00004ADA /* Readme.md in Resources */,
 				2B8DB3882489D20B00D57DC4 /* StoneWall.tiff in Resources */,
 				DD5409702A66D3E700004ADA /* ground.tiff in Resources */,
@@ -1917,7 +1929,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 0.61;
+				MARKETING_VERSION = 0.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderz;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1944,7 +1956,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 0.61;
+				MARKETING_VERSION = 0.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderz;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

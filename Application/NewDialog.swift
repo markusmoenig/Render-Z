@@ -105,18 +105,19 @@ class NewDialog: MMDialog {
         
         // Template Items
         let templatesFX = Template(view, "FX Templates")
+        templatesFX.items.append(TemplateItem(view, "Disc", "Disc"))
         templatesFX.items.append(TemplateItem(view, "SpaceGif", "SpaceGif"))
-        //templates3D.items.append(TemplateItem(view, "Happy", "Happy"))
+        templatesFX.items.append(TemplateItem(view, "Raymarching", "Raymarching"))
         templates.append(templatesFX)
         
-        let materials3D = Template(view, "Material Examples")
+        //let materials3D = Template(view, "Material Examples")
         //materials3D.items.append(TemplateItem(view, "Bricks", "Material_Bricks"))
-        templates.append(materials3D)
+        //templates.append(materials3D)
         
-        let modeling = Template(view, "Modeling and Terrain (Work in Progress)")
+        //let modeling = Template(view, "Modeling and Terrain (Work in Progress)")
         //modeling.items.append(TemplateItem(view, "Bridge", "Bridge"))
         //modeling.items.append(TemplateItem(view, "Willys WiP", "Willys"))
-        templates.append(modeling)
+        //templates.append(modeling)
         
         selectedTempItem = templatesFX.items[0]
         

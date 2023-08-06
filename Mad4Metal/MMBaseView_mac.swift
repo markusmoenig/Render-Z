@@ -447,15 +447,20 @@ func askUserToSave(view: MMView, cb: @escaping (Bool)->())
 /// Show help window
 func showHelp(_ urlString: String? = nil)
 {
+    let url = URL(string: "https://www.render-z.com")!
+    if NSWorkspace.shared.open(url) {
+        print("default browser was successfully opened")
+    }
+    /*
     let appDelegate = (NSApplication.shared.delegate as! AppDelegate)
     
     appDelegate.helpWindowController.showWindow(appDelegate)
     appDelegate.helpWindowController.window!.makeKeyAndOrderFront(appDelegate)
     
-    let url = urlString != nil ? URL(string: urlString!) : URL(string: "https://www.moenig.io/articles")
+    let url = urlString != nil ? URL(string: urlString!) : URL(string: "https://render-z.com")
     
     if appDelegate.webView.url != url {
         let request = URLRequest(url:url!)
         appDelegate.webView.load(request)
-    }
+    }*/
 }

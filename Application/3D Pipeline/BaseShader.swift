@@ -365,13 +365,13 @@ class BaseShader
         time = (Float(timeline.currentFrame) * 1000/60) / 1000
         
         data[0].x = time
-                
-        //inst.data[0].z = 1
-        //inst.data[0].w = 1
         
         data[0].z = Float.random(in: 0.0...1.0)
         data[0].w = Float.random(in: 0.0...1.0)
 
+        data[0].z = 0.5
+        data[0].w = 0.5
+        
         for property in properties {
 
             let dataIndex = property.3

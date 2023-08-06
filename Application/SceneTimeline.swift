@@ -607,6 +607,7 @@ class SceneTimeline            : MMWidget
         let skin : SceneTimelineSkin = SceneTimelineSkin(mmView.openSans, fontScale: 0.4 * graphZoom, graphZoom: graphZoom)
                 
         let r = MMRect(self.rect);
+        r.x += 1;
         r.y = r.y + r.height;
         r.height = 30;
         
@@ -636,13 +637,13 @@ class SceneTimeline            : MMWidget
                 let uuid = globalApp!.project.selected!.items[index].uuid
                 
                 if globalApp!.project.selected!.items[index].componentType == .Shape {
-                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 2.0, fillColor : skin.postFXColor, borderColor: uuid == currentUUID ? skin.selectedBorderColor : skin.postFXColor )
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 32, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.postFXColor : skin.normalInteriorColor, borderColor: skin.postFXColor )
                 } else
                 if globalApp!.project.selected!.items[index].componentType == .Shader {
-                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 2.0, fillColor : skin.renderColor, borderColor: uuid == currentUUID ? skin.selectedBorderColor : skin.renderColor )
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 32, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.groundColor : skin.normalInteriorColor, borderColor: skin.groundColor )
                 } else
                 if globalApp!.project.selected!.items[index].componentType == .Camera3D {
-                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 31, height: r.height, round: 0, borderSize: 2.0, fillColor : skin.objectColor, borderColor: uuid == currentUUID ? skin.selectedBorderColor : skin.objectColor)
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 32, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor, borderColor: skin.objectColor)
                 }
                 
                 mmView.drawText.drawTextCentered(mmView.openSans, text: globalApp!.project.selected!.items[index].libraryName, x: r.x, y: r.y, width: r.width - 31, height: r.height, scale: 0.4, color: uuid == currentUUID ? skin.selectedTextColor : skin.normalTextColor)
