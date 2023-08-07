@@ -608,7 +608,9 @@ class MMTimeline : MMWidget
             if currentFrame >= totalFrames {
                 currentFrame = 0
             }
-            changedCB?(currentFrame)
+            DispatchQueue.main.async {
+                self.changedCB?(self.currentFrame)
+            }
         }
         
         // --- Initialization

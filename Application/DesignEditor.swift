@@ -315,7 +315,7 @@ class DesignEditor          : MMWidget
         }
         
         // Need to update the code display ?
-        if /*needsUpdate ||*/ fragment.width != rect.width * zoom {
+        if needsUpdate || fragment.width != rect.width * zoom {
             update()
         }
 
@@ -325,7 +325,7 @@ class DesignEditor          : MMWidget
         }
         
         // Do the preview
-        drawPreview(mmView: mmView, rect)
+        _ = drawPreview(mmView: mmView, rect)
         
         if globalApp!.currentEditor.textureAlpha >= 1 {
             mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)

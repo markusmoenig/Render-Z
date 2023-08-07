@@ -122,6 +122,8 @@ class PipelineFX            : Pipeline
     var validShaders        : [BaseShader] = []
 
     var pFXInstance         : PFXInstance! = nil
+    
+    var settings            : PipelineRenderSettings? = nil
 
     var maxSamples          : Int = 100
     
@@ -223,6 +225,7 @@ class PipelineFX            : Pipeline
         }
         
         if singlePass == true {
+            self.settings = settings
             self.startId = self.renderId
             checkTextures(widthIn, heightIn)
             
@@ -235,6 +238,7 @@ class PipelineFX            : Pipeline
             
             func startRender()
             {
+                self.settings = settings
                 self.startId = self.renderId
                 checkTextures(widthIn, heightIn)
                 
@@ -246,6 +250,7 @@ class PipelineFX            : Pipeline
             
             func tryToStartRender()
             {
+//                DispatchQueue.main.async {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     if self.renderIsRunning {
                         tryToStartRender()
@@ -312,6 +317,7 @@ class PipelineFX            : Pipeline
         for item in scene.items {
             if item.componentType == .Shader {
                 if let shader = item.shader {
+                    shader.prtInstance = self.pFXInstance
                     shader.render(texture: self.pFXInstance.singlePassTexture!)
                 }
             }
@@ -327,19 +333,36 @@ class PipelineFX            : Pipeline
             // print("Rendering Time:", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
         }
         self.pFXInstance.commandBuffer!.commit()
-                
+        self.pFXInstance.commandBuffer!.waitUntilCompleted()
+
         self.samples += 1
+        
+        if let settings = self.settings {
+            if let cbProgress = settings.cbProgress {
+                cbProgress(self.samples, self.maxSamples)
+            }
+        }
         
         if self.singlePass == false {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.003) {
                 if self.samples < self.maxSamples {
                     self.render_main()
                 } else {
+                    if let settings = self.settings {
+                        if let cbFinished = settings.cbFinished {
+                            cbFinished(self.finalTexture!)
+                        }
+                    }
                     self.renderIsRunning = false
                     globalApp!.mmView.update()
                 }
             }
         } else {
+            if let settings = self.settings {
+                if let cbFinished = settings.cbFinished {
+                    cbFinished(self.finalTexture!)
+                }
+            }
             self.renderIsRunning = false
         }
         globalApp!.mmView.update()

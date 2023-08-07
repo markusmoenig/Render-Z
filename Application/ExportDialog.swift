@@ -36,8 +36,8 @@ class ExportDialog: MMDialog {
     var fpsVar                  : NodeUINumber!
     var maxFramesVar            : NodeUINumber!
 
-    var reflectionVar           : NodeUINumber!
-    var sampleVar               : NodeUINumber!
+    //var reflectionVar           : NodeUINumber!
+    //var sampleVar               : NodeUINumber!
     var statusVar               : NodeUIText!
     
     var settings                = PipelineRenderSettings()
@@ -95,19 +95,19 @@ class ExportDialog: MMDialog {
         statusVar = NodeUIText(c1Node!, variable: "status", title: "Status", value: "Ready")
         c1Node!.uiItems.append(statusVar)
         
-        var reflections : Int = 2
-        var samples     : Int = 4
+//        var reflections : Int = 2
+//        var samples     : Int = 4
         
-        if let renderComp = getComponent(name: "Renderer") {
-            reflections = getComponentPropertyInt(component: renderComp, name: "reflections", defaultValue: 2)
-            samples = getComponentPropertyInt(component: renderComp, name: "antiAliasing", defaultValue: 4)
-        }
+//        if let renderComp = getComponent(name: "Renderer") {
+//            reflections = getComponentPropertyInt(component: renderComp, name: "reflections", defaultValue: 2)
+//            samples = getComponentPropertyInt(component: renderComp, name: "antiAliasing", defaultValue: 4)
+//        }
         
-        reflectionVar = NodeUINumber(c2Node!, variable: "reflections", title: "Reflections", range: SIMD2<Float>(1, 10), int: true, value: Float(reflections))
-        c2Node!.uiItems.append(reflectionVar)
-        
-        sampleVar = NodeUINumber(c2Node!, variable: "samples", title: "AA Samples", range: SIMD2<Float>(1, 50), int: true, value: Float(samples))
-        c2Node!.uiItems.append(sampleVar)
+//        reflectionVar = NodeUINumber(c2Node!, variable: "reflections", title: "Reflections", range: SIMD2<Float>(1, 10), int: true, value: Float(reflections))
+//        c2Node!.uiItems.append(reflectionVar)
+//
+//        sampleVar = NodeUINumber(c2Node!, variable: "samples", title: "AA Samples", range: SIMD2<Float>(1, 50), int: true, value: Float(samples))
+//        c2Node!.uiItems.append(sampleVar)
         
         maxFramesVar = NodeUINumber(c2Node!, variable: "maxFrames", title: "Max. Frames", range: SIMD2<Float>(1, 10000), int: true, value: 100)
         maxFramesVar.isDisabled = true
@@ -151,29 +151,34 @@ class ExportDialog: MMDialog {
     override func ok() {
         
         self.okButton.isDisabled = true
-        settings.reflections = Int(reflectionVar.value)
-        settings.samples = Int(sampleVar.value)
+//        settings.reflections = Int(reflectionVar.value)
+//        settings.samples = Int(sampleVar.value)
         
         if tabButton.index == 0 {
             settings.cbProgress = { (current, of) in
-                self.statusVar.value = "\(current) of \(of) Samples"
-                self.mmView.update()
+                DispatchQueue.main.async {
+                    self.statusVar.value = "\(current) of \(of) Samples"
+                    self.mmView.update()
+                }
             }
             
             settings.cbFinished = { (texture) in
                 
-                self.statusVar.value = "Finished"
-                self.mmView.update()
-
-                super.ok()
-                if let image = self.makeCGIImage(texture: texture, forImage: true) {
-                    globalApp!.mmFile.saveImage(image: image)
-                    self._ok()
+                DispatchQueue.main.async {
+                    
+                    self.statusVar.value = "Finished"
+                    self.mmView.update()
+                    
+                    super.ok()
+                    if let image = self.makeCGIImage(texture: texture, forImage: true) {
+                        globalApp!.mmFile.saveImage(image: image)
+                        self._ok()
+                    }
+                    
+                    self.exportInProgress = false
+                    self.okButton.isDisabled = false
+                    self.okButton.removeState(.Checked)
                 }
-                
-                self.exportInProgress = false
-                self.okButton.isDisabled = false
-                self.okButton.removeState(.Checked)
             }
             
             exportInProgress = true
@@ -220,37 +225,41 @@ class ExportDialog: MMDialog {
         
         ImageAnimator.removeFileAtURL(fileURL: videoSettings!.outputURL)
         self.imageAnimator!.videoWriter.start()
+    
         
         settings.cbFinished = { (texture) in
-                            
-            let frameDuration = CMTimeMake(value: Int64(ImageAnimator.kTimescale / self.videoSettings!.fps), timescale: ImageAnimator.kTimescale)
-            let presentationTime = CMTimeMultiply(frameDuration, multiplier: self.currentFrame)
-            self.currentFrame += 1
-            
-            self.statusVar.value = "\(self.currentFrame) of \(self.maxFrames) Frames"
-            self.mmView.update()
-
-            #if os(OSX)
-            let imageMode = false
-            #else
-            let imageMode = true
-            #endif
-            
-            if let image = self.makeCGIImage(texture: texture, forImage: imageMode) {
-                let _ = self.imageAnimator!.videoWriter.addImage(image: image, withPresentationTime: presentationTime)
-            }
-
-            if self.currentFrame < self.maxFrames {
-                self.timeline.currentFrame += Int(30/self.videoSettings!.fps)
-                //print(self.timeline.currentFrame)
-                self.pipeline.render(self.widthVar.value, self.heightVar.value, settings: self.settings)
-            } else {
-                self.finishVideoEncoding()
-                self.exportInProgress = false
-                self.okButton.isDisabled = false
-                self.okButton.removeState(.Checked)
-                self.statusVar.value = "Finished"
+                           
+            DispatchQueue.main.async {
+                
+                let frameDuration = CMTimeMake(value: Int64(ImageAnimator.kTimescale / self.videoSettings!.fps), timescale: ImageAnimator.kTimescale)
+                let presentationTime = CMTimeMultiply(frameDuration, multiplier: self.currentFrame)
+                self.currentFrame += 1
+                
+                self.statusVar.value = "\(self.currentFrame) of \(self.maxFrames) Frames"
                 self.mmView.update()
+                
+#if os(OSX)
+                let imageMode = false
+#else
+                let imageMode = true
+#endif
+                
+                if let image = self.makeCGIImage(texture: texture, forImage: imageMode) {
+                    let _ = self.imageAnimator!.videoWriter.addImage(image: image, withPresentationTime: presentationTime)
+                }
+                
+                if self.currentFrame < self.maxFrames {
+                    self.timeline.currentFrame += Int(30/self.videoSettings!.fps)
+                    //print(self.timeline.currentFrame)
+                    self.pipeline.render(self.widthVar.value, self.heightVar.value, settings: self.settings)
+                } else {
+                    self.finishVideoEncoding()
+                    self.exportInProgress = false
+                    self.okButton.isDisabled = false
+                    self.okButton.removeState(.Checked)
+                    self.statusVar.value = "Finished"
+                    self.mmView.update()
+                }
             }
         }
         settings.cbProgress = nil
@@ -520,8 +529,8 @@ class ImageAnimator {
         // The VideoWriter will fail if a file exists at the URL, so clear it out first.
         ImageAnimator.removeFileAtURL(fileURL: settings.outputURL)
 
-        videoWriter.start()
-        videoWriter.render(appendPixelBuffers: appendPixelBuffers) {
+        self.videoWriter.start()
+        self.videoWriter.render(appendPixelBuffers: appendPixelBuffers) {
             ImageAnimator.saveToLibrary(videoURL: self.settings.outputURL)
             completion?()
         }
@@ -631,6 +640,10 @@ class VideoWriter {
         let image = UIImage(cgImage: image)
         let pixelBuffer = VideoWriter.pixelBufferFromImage(image: image, pixelBufferPool: pixelBufferAdaptor.pixelBufferPool!, size: renderSettings.size)
         #endif
+        
+        while pixelBufferAdaptor.assetWriterInput.isReadyForMoreMediaData == false {
+            sleep(10)
+        }
         
         return pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: presentationTime)
     }
