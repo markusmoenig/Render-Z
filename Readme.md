@@ -1,7 +1,9 @@
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/) [![Version](https://img.shields.io/badge/version-0.7.0-yellow.svg)](https://shields.io/) [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/BMStWPhByj) [![Twitter](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/markusmoenig)
 
 
-Render-Z - pronounced *Render That* - is a visual metal shader editor for macOS and iPadOS. Render-Z is open source and licensed under the MIT. It will soon be available on the Mac and iOS AppStores.
+Render-Z - pronounced *Render That* - is a visual metal shader editor for macOS and iPadOS. Render-Z is open source and licensed under the MIT.
+
+Render-Z is currently available via TestFlight for macOS and iPadOS, use the link [here](https://testflight.apple.com/join/HjxMytcc).
 
 ### Developers Create and Edit Shaders Visually
 
