@@ -7,6 +7,7 @@ Render-Z - pronounced *Render That* - is a visual metal shader editor for macOS 
 
 * Simply drag and drop functions and variables
 * Integrated workflow for being able to create complex expressions
+* Share functions and shaders via iCloud publically or privately
 * Expose variables to artists
 
 ![Screenshot](images/raymarching_screenshot.png)
