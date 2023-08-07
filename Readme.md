@@ -15,7 +15,12 @@ Render-Z - pronounced *Render That* - is a visual metal shader editor for macOS 
 
 * Variables exposed by developers can be edited by Gizmos in the Artist Editor
 * A timeline for variables makes animation easy
+* Export images and videos
 
 ![Screenshot](images/artist_raymarching.png)
 
+### Use Render-Z to
 
+* Learn and explore the Metal shader language
+* Create demos and presentations utilizing Metal shaders
+* Raytrace images of procedural content with the integrated BSDF Pathracer (WiP)

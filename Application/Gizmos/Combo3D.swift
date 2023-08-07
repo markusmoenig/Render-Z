@@ -630,11 +630,11 @@ class GizmoCombo3D          : GizmoBase
     
     func computeGizmoData() -> GIZMO3D
     {
-        /*
         let origin = getCameraPropertyValue3("origin")
         let lookAt = getCameraPropertyValue3("lookAt")
         let fov = getCameraPropertyValue("fov")
 
+        /*
         var hierarchyX : Float = getHierarchyValue(component, "_posX")
         var hierarchyY : Float = getHierarchyValue(component, "_posY")
         var hierarchyZ : Float = getHierarchyValue(component, "_posZ")

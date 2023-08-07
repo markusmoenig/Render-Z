@@ -124,7 +124,7 @@ class GizmoBase              : MMWidget
         }
     
         return value
-    }
+    }*/
     
     /// Returns a property value of the camera
     func getCameraPropertyValue(_ name: String, defaultValue: Float = 0) -> Float
@@ -134,13 +134,16 @@ class GizmoBase              : MMWidget
             return cameraCB(name)
         }
         
-        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
-
-        for uuid in camera.properties {
-            let rc = camera.getPropertyOfUUID(uuid)
-            if let frag = rc.0 {
-                if frag.name == name {
-                    return rc.1!.values["value"]!
+        if globalApp!.project.selected!.items.isEmpty == false {
+            let camera : CodeComponent = globalApp!.project.selected!.items[0]
+            if camera.componentType == .Camera3D {
+                for uuid in camera.properties {
+                    let rc = camera.getPropertyOfUUID(uuid)
+                    if let frag = rc.0 {
+                        if frag.name == name {
+                            return rc.1!.values["value"]!
+                        }
+                    }
                 }
             }
         }
@@ -151,18 +154,21 @@ class GizmoBase              : MMWidget
     /// Returns a property value of the camera
     func getCameraPropertyValue3(_ name: String, defaultValue: SIMD3<Float> = SIMD3<Float>(0,0,0)) -> SIMD3<Float>
     {
-        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
-
-        for uuid in camera.properties {
-            let rc = camera.getPropertyOfUUID(uuid)
-            if let frag = rc.0 {
-                if frag.name == name && frag.typeName == "float3" {
-                    let value = extractValueFromFragment( rc.1! )
-                    return SIMD3<Float>(value.x, value.y, value.z)
+        if globalApp!.project.selected!.items.isEmpty == false {
+            let camera : CodeComponent = globalApp!.project.selected!.items[0]
+            if camera.componentType == .Camera3D {
+                for uuid in camera.properties {
+                    let rc = camera.getPropertyOfUUID(uuid)
+                    if let frag = rc.0 {
+                        if frag.name == name && frag.typeName == "float3" {
+                            let value = extractValueFromFragment( rc.1! )
+                            return SIMD3<Float>(value.x, value.y, value.z)
+                        }
+                    }
                 }
             }
         }
         
         return defaultValue
-    }*/
+    }
 }
