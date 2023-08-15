@@ -45,16 +45,20 @@ class MMFile : NSObject
             }
         }
         
-        query = NSMetadataQuery()
-        query.predicate = NSPredicate.init(format: "%K BEGINSWITH %@", argumentArray: [NSMetadataItemPathKey, self.containerUrl!.path])
-        query.searchScopes = [NSMetadataQueryUbiquitousDocumentsScope]
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.updateCloudData), name: NSNotification.Name.NSMetadataQueryDidFinishGathering, object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.updateCloudData), name: NSNotification.Name.NSMetadataQueryDidUpdate, object: nil)
-        
-        query.enableUpdates()
-        query.start()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            if let url = self.containerUrl {
+                self.query = NSMetadataQuery()
+                self.query.predicate = NSPredicate.init(format: "%K BEGINSWITH %@", argumentArray: [NSMetadataItemPathKey, url.path])
+                self.query.searchScopes = [NSMetadataQueryUbiquitousDocumentsScope]
+                
+                NotificationCenter.default.addObserver(self, selector: #selector(self.updateCloudData), name: NSNotification.Name.NSMetadataQueryDidFinishGathering, object: nil)
+                
+                NotificationCenter.default.addObserver(self, selector: #selector(self.updateCloudData), name: NSNotification.Name.NSMetadataQueryDidUpdate, object: nil)
+                
+                self.query.enableUpdates()
+                self.query.start()
+            }
+        }
     }
     
     @objc func updateCloudData(notification: NSNotification)
