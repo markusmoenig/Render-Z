@@ -609,9 +609,9 @@ class SceneTimeline            : MMWidget
         let r = MMRect(self.rect);
         r.x += 1;
         r.y = r.y + r.height;
-        r.height = 30;
+        r.height = 40;
         
-        r.y -= 31;
+        r.y -= 41;
         
         let tracks = globalApp!.project.selected!.items.count
         
@@ -637,16 +637,16 @@ class SceneTimeline            : MMWidget
                 let uuid = globalApp!.project.selected!.items[index].uuid
                 
                 if globalApp!.project.selected!.items[index].componentType == .Shape {
-                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 32, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.postFXColor : skin.normalInteriorColor, borderColor: skin.postFXColor )
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 42, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.postFXColor : skin.normalInteriorColor, borderColor: skin.postFXColor )
                 } else
                 if globalApp!.project.selected!.items[index].componentType == .Shader {
-                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 32, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.groundColor : skin.normalInteriorColor, borderColor: skin.groundColor )
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 42, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.groundColor : skin.normalInteriorColor, borderColor: skin.groundColor )
                 } else
                 if globalApp!.project.selected!.items[index].componentType == .Camera3D {
-                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 32, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor, borderColor: skin.objectColor)
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 42, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.objectColor : skin.normalInteriorColor, borderColor: skin.objectColor)
                 }
                 
-                mmView.drawText.drawTextCentered(mmView.openSans, text: globalApp!.project.selected!.items[index].libraryName, x: r.x, y: r.y, width: r.width - 31, height: r.height, scale: 0.4, color: uuid == currentUUID ? skin.selectedTextColor : skin.normalTextColor)
+                mmView.drawText.drawTextCentered(mmView.openSans, text: globalApp!.project.selected!.items[index].libraryName, x: r.x, y: r.y, width: r.width - 41, height: r.height, scale: 0.4, color: uuid == currentUUID ? skin.selectedTextColor : skin.normalTextColor)
                 
                 componentMap[uuid] = MMRect(r)
                 
@@ -703,13 +703,13 @@ class SceneTimeline            : MMWidget
                 menus[index].setItems(items)
             }
             
-            menus[index].rect.x = rect.x + rect.width - 30
+            menus[index].rect.x = rect.x + rect.width - 40
             menus[index].rect.y = r.y
             menus[index].rect.y = r.y
-            menus[index].rect.width = 30
-            menus[index].rect.height = 30
+            menus[index].rect.width = 40
+            menus[index].rect.height = 40
 
-            r.y -= 31;
+            r.y -= 41;
             
             if menus[index].states.contains(.Opened) == false {
                 menus[index].draw()
