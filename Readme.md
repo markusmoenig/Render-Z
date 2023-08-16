@@ -27,3 +27,5 @@ Render-Z is currently available via TestFlight for macOS and iPadOS, use the lin
 * Learn and explore the Metal shader language
 * Create demos and presentations utilizing Metal shaders
 * Raytrace images of procedural content with the integrated BSDF Pathracer (WiP)
+
+![Screenshot](images/spacegif.png)
