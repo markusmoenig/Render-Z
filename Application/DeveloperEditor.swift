@@ -15,7 +15,9 @@ class DeveloperEditor   : Editor
     
     let codeEditor      : CodeEditor
     var codeProperties  : CodeProperties
-    
+
+    var playButton      : MMButtonWidget!
+
     var navButton       : MMButtonWidget!
     var showButton      : MMButtonWidget!
     var liveButton      : MMButtonWidget!
@@ -32,6 +34,7 @@ class DeveloperEditor   : Editor
         liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
         liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
 
+        playButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "PLAY" )
         navButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "MAP" )
         showButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "CODE" )
         liveButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "LIVE" )
@@ -40,6 +43,22 @@ class DeveloperEditor   : Editor
         showButton.rect.width += 4
 
         super.init()
+        
+        playButton.clicked = { (event) -> Void in
+            
+            let timeline = globalApp!.artistEditor.timeline
+            if timeline.isPlaying == false {
+                timeline.isPlaying = true
+                timeline.ownsPlayback = false
+                timeline.currentFrame = 0
+                self.playButton.addState(.Checked)
+                self.mmView.lockFramerate(true)
+            } else {
+                timeline.isPlaying = false
+                self.playButton.removeState(.Checked)
+                self.mmView.unlockFramerate(true)
+            }
+        }
         
         navButton.clicked = { (event) -> Void in
             let editor = globalApp!.developerEditor.codeEditor
@@ -83,13 +102,13 @@ class DeveloperEditor   : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: codeList, codeEditor, codeProperties, showButton, liveButton, navButton)
+        mmView.registerWidgets(widgets: codeList, codeEditor, codeProperties, playButton, showButton, liveButton, navButton)
     }
     
     override func deactivate()
     {
         codeProperties.clear()
-        mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties, showButton, liveButton, navButton)
+        mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties, playButton, showButton, liveButton, navButton)
     }
     
     override func render()
@@ -137,6 +156,10 @@ class DeveloperEditor   : Editor
         if region.type == .Top {
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 43, spacing: 10, widgets: globalApp!.topRegion!.graphButton)
             globalApp!.topRegion!.graphButton.draw()
+            
+            playButton.rect.x = (globalApp!.topRegion!.rect.width - navButton.rect.width - showButton.rect.width - liveButton.rect.width - 24 - 220) / 2
+            playButton.rect.y = 4 + 44
+            playButton.draw()
             
             navButton.rect.x = (globalApp!.topRegion!.rect.width - navButton.rect.width - showButton.rect.width - liveButton.rect.width - 24) / 2
             navButton.rect.y = 4 + 44

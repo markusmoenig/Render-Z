@@ -320,7 +320,7 @@ class DesignEditor          : MMWidget
         }
 
         // Is playing ?
-        if globalApp!.currentPipeline!.codeBuilder.isPlaying {
+        if globalApp!.artistEditor.timeline.isPlaying {
             globalApp!.currentPipeline!.render(rect.width, rect.height)
         }
         

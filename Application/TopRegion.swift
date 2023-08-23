@@ -254,6 +254,44 @@ class TopRegion: MMRegion
     
     override func build()
     {
+        let timeline = globalApp!.artistEditor.timeline
+
+        if timeline.isPlaying {
+            timeline.currentFrame += 1
+            if timeline.ownsPlayback {
+                if timeline.currentFrame >= timeline.totalFrames {
+                    timeline.currentFrame = 0
+                }
+            }
+            DispatchQueue.main.async {
+                timeline.changedCB?(timeline.currentFrame)
+            }
+            
+            if !globalApp!.artistEditor.playButton.states.contains(.Checked) {
+                globalApp!.artistEditor.playButton.addState(.Checked)
+            }
+            
+            if !globalApp!.developerEditor.playButton.states.contains(.Checked) {
+                globalApp!.developerEditor.playButton.addState(.Checked)
+            }
+            
+            if !timeline.playButton.states.contains(.Checked) {
+                timeline.playButton.addState(.Checked)
+            }
+        } else {
+            if globalApp!.artistEditor.playButton.states.contains(.Checked) {
+                globalApp!.artistEditor.playButton.removeState(.Checked)
+            }
+            
+            if globalApp!.developerEditor.playButton.states.contains(.Checked) {
+                globalApp!.developerEditor.playButton.removeState(.Checked)
+            }
+            
+            if timeline.playButton.states.contains(.Checked) {
+                timeline.playButton.removeState(.Checked)
+            }
+        }
+        
         mmView.drawBox.draw( x: 1, y: 0, width: mmView.renderer.width - 1, height: mmView.skin.ToolBar.height, round: 0, borderSize: mmView.skin.ToolBar.borderSize, fillColor : mmView.skin.ToolBar.color, borderColor: mmView.skin.ToolBar.borderColor )
         //mmView.drawBoxGradient.draw( x: 1, y: 0, width: mmView.renderer.width - 1, height: 44, round: 0, borderSize: 1, uv1: float2( 0, 0 ), uv2: float2( 0, 1 ), gradientColor1 : float4(0.275, 0.275, 0.275, 1.000), gradientColor2 : float4(0.153, 0.153, 0.153, 1.000), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         

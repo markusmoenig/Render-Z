@@ -86,6 +86,7 @@ class MMTimeline : MMWidget
 
     var isRecording             : Bool = false
     var isPlaying               : Bool = false
+    var ownsPlayback            : Bool = false
 
     var changedCB               : ((Int)->())?
     
@@ -186,16 +187,15 @@ class MMTimeline : MMWidget
         }
 
         playButton.clicked = { (event) in
-            
             if !self.isPlaying {
                 
                 self.isPlaying = true
+                self.ownsPlayback = true
                 self.mmView.lockFramerate()
                 globalApp!.currentPipeline?.setMinimalPreview(true)
-
             } else {
-
                 self.isPlaying = false
+                self.ownsPlayback = false
                 self.mmView.unlockFramerate()
                 self.playButton.removeState(.Checked)
                 globalApp!.currentPipeline?.setMinimalPreview(false)
@@ -602,16 +602,6 @@ class MMTimeline : MMWidget
         mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor: SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: SIMD4<Float>(repeating: 0) )// mmView.skin.Widget.borderColor )
         
         let skin = mmView.skin.TimelineWidget
-        
-        if isPlaying {
-            currentFrame += 1
-            if currentFrame >= totalFrames {
-                currentFrame = 0
-            }
-            DispatchQueue.main.async {
-                self.changedCB?(self.currentFrame)
-            }
-        }
         
         // --- Initialization
         

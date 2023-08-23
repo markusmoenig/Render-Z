@@ -35,6 +35,8 @@ class ArtistEditor          : Editor
     var currentSamples      : Int = 0
     var samplesLabel        : MMShadowTextLabel
     
+    var playButton          : MMButtonWidget
+    
     var componentId         : Int? = nil
             
     required init(_ view: MMView)
@@ -52,12 +54,12 @@ class ArtistEditor          : Editor
         timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
         
-//        var liveSkin = MMSkinButton()
-//        liveSkin.borderColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
-//        liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
-//        liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        var liveSkin = MMSkinButton()
+        liveSkin.borderColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
 
-//        playButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "PLAY" )
+        playButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "PLAY" )
         
 //        groundButton = MMButtonWidget( mmView, iconName: "ground" )
 //        groundButton.iconZoom = 2
@@ -86,19 +88,22 @@ class ArtistEditor          : Editor
         
         super.init()
         
-        /*
         playButton.clicked = { (event) -> Void in
-            if self.physics3D == nil {
-                self.physics3D = Physics3D(scene: globalApp!.project.selected!)
+            
+            if self.timeline.isPlaying == false {
+                self.timeline.isPlaying = true
+                self.timeline.ownsPlayback = false
+                self.timeline.currentFrame = 0
+                self.playButton.addState(.Checked)
                 self.mmView.lockFramerate(true)
             } else {
+                self.timeline.isPlaying = false
                 self.playButton.removeState(.Checked)
-                self.physics3D!.end()
-                self.physics3D = nil
                 self.mmView.unlockFramerate(true)
             }
         }
         
+        /*
         materialButton.clicked = { (event) -> Void in
             if let component = self.designEditor.designComponent {
                 if component.componentType != .Material3D {
@@ -184,7 +189,7 @@ class ArtistEditor          : Editor
         }
         
         timeline.changedCB = { (frame) in
-            self.updateOnNextDraw(compile: false)
+            //globalApp!.currentEditor.updateOnNextDraw(compile: false)
         }
         
         designEditor.editor = self
@@ -193,7 +198,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, cameraButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, cameraButton, playButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -202,7 +207,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton, cameraButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, cameraButton, playButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -252,9 +257,14 @@ class ArtistEditor          : Editor
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
             
+            playButton.rect.x = (globalApp!.topRegion!.rect.width - (playButton.rect.width + cameraButton.rect.width + 140)) / 2
+            playButton.rect.y = 4 + 44
+            playButton.draw()
+            
             cameraButton.rect.x = (globalApp!.topRegion!.rect.width - cameraButton.rect.width) / 2
             cameraButton.rect.y = 4 + 44
             cameraButton.draw()
+
         } else
         if region.type == .Left {
             region.rect.width = 0
