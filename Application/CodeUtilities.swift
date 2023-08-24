@@ -741,12 +741,12 @@ func findDefaultComponentForStageChildren(stageType: Stage.StageType, componentT
         }
     }
     return result
-}
+}*/
 
 func getGlobalVariableValue(withName: String) -> SIMD4<Float>?
 {
     var result: SIMD4<Float>? = nil
-    let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getGlobalVariable()
+    let globalVars = globalApp!.project.selected!.getGlobalVariables()
     if let variableComp = globalVars[withName] {
         for uuid in variableComp.properties {
             let rc = variableComp.getPropertyOfUUID(uuid)
@@ -762,7 +762,7 @@ func getGlobalVariableValue(withName: String) -> SIMD4<Float>?
         }
     }
     return result
-}*/
+}
 
 // Get the variable from a variable component
 func getVariable(from: CodeComponent) -> CodeFragment?

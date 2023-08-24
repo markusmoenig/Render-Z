@@ -610,40 +610,47 @@ class CodeFragment          : Codable, Equatable
                 }
             } else {
                 // Check for global variable
-                /*
-                let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getGlobalVariable()
-                if let variableComp = globalVars[self.name] {
-                    // Global!
-                    name = (isNegated() ? " -" : "") + self.name
-                    codeName = (isNegated() ? " -" : "") + self.name
-                    ctx.cComponent!.globalVariables[variableComp.uuid] = variableComp
-                    addCode = false
-                    
-                    let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
-                    ctx.cComponent!.inputDataList.append(variableComp.uuid)
-                    ctx.cComponent!.inputComponentList.append(ctx.cComponent!)
+                var found = false
+                
+                for variableComp in globalApp!.project.selected!.items {
+                    if variableComp.componentType == .Variable && variableComp.libraryName == self.name {
+                        
+                        found = true
+                                                
+                        // Global!
+                        name = (isNegated() ? " -" : "") + self.name
+                        codeName = (isNegated() ? " -" : "") + self.name
+                        ctx.cComponent!.globalVariables[variableComp.uuid] = variableComp
+                        addCode = false
+                        
+                        let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
+                        ctx.cComponent!.inputDataList.append(variableComp.uuid)
+                        ctx.cComponent!.inputComponentList.append(ctx.cComponent!)
 
-                    let components = evaluateComponents()
-                    
-                    if ctx.cFunction!.functionType == .FreeFlow {
-                        ctx.addCode( "__funcData->__data[\(dataIndex)]" )
-                    } else {
-                        ctx.addCode( "__data[\(dataIndex)]" )
+                        let components = evaluateComponents()
+                        
+                        if ctx.cFunction!.functionType == .FreeFlow {
+                            ctx.addCode( "__funcData->__data[\(dataIndex)]" )
+                        } else {
+                            ctx.addCode( "__data[\(dataIndex)]" )
+                        }
+                                                
+                        if components == 1 {
+                            ctx.addCode( ".x" )
+                        } else
+                        if components == 2 {
+                            ctx.addCode( ".xy" )
+                        } else
+                        if components == 3 {
+                            ctx.addCode( ".xyz" )
+                        }
                     }
-                    
-                    if components == 1 {
-                        ctx.addCode( ".x" )
-                    } else
-                    if components == 2 {
-                        ctx.addCode( ".xy" )
-                    } else
-                    if components == 3 {
-                        ctx.addCode( ".xyz" )
-                    }
-                } else {
+                }
+                
+                if !found {
                     name = "NOT FOUND"
                     invalid = true
-                }*/
+                }
             }
                 
                 /*

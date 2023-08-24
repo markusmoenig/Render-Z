@@ -700,7 +700,7 @@ class NodeUINumber : NodeUI
         super.init(node, brand: .Number, variable: variable, title: title)
         
         if valueRandom != nil {
-            supportsRandom = true
+            //supportsRandom = true
         }
         supportsTitleHover = true
     }
@@ -1268,7 +1268,7 @@ class NodeUINumber3 : NodeUI
         
         super.init(node, brand: .Number, variable: variable, title: title)
         if valueRandom != nil {
-            supportsRandom = true
+            //supportsRandom = true
         }
         supportsTitleHover = true
     }
@@ -1755,7 +1755,7 @@ class NodeUIColor : NodeUI
         }
         
         if valueRandom != nil {
-            supportsRandom = true
+            //supportsRandom = true
         }
         supportsTitleHover = true
     }

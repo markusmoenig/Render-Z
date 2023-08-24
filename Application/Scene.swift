@@ -394,6 +394,18 @@ class Scene                 : Codable, Equatable
             imageItem!.componentLists["images"]!.append(component)
         }*/
     }
+    
+    // Get all Variable Components
+    func getGlobalVariables() -> [String:CodeComponent]
+    {
+        var compMap : [String:CodeComponent] = [:]
+        for comp in items {
+            if comp.componentType == .Variable {
+                compMap[comp.libraryName] = comp
+            }
+        }
+        return compMap
+    }
 }
 
 class Project               : Codable, Equatable

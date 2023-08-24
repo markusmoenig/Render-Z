@@ -345,7 +345,6 @@ class GizmoCamera3D         : GizmoBase
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.mmView.unlockFramerate()
                 self.dispatched = false
-                globalApp!.sceneGraph.xrayUpdateLocked = false
             }
             dispatched = true
         }

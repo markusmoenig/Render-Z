@@ -174,26 +174,14 @@ class SceneTimeline            : MMWidget
     var infoBoolButton          : MMButtonWidget!
     var infoModifierButton      : MMButtonWidget!
     
-    //var xrayShader              : XRayShader? = nil
-    //var xrayTexture             : MTLTexture? = nil
-    
-    var xrayOrigin              = float3(0,0,5)
-    var xrayLookAt              = float3(0,0,0)
-    
-    var xrayCamera              : CodeComponent? = nil
-    var xrayAngle               : Float = 0
-    var xrayZoom                : Float = 5
-    
-    var xraySelectedId          : Int = -1
-    
-    var xrayNeedsUpdate         : Bool = false
-    var xrayUpdateLocked        : Bool = false
-    
     var shapesTB                : MMTextBuffer? = nil
     var addMaterialTB           : MMTextBuffer? = nil
     var useLastMaterialTB       : MMTextBuffer? = nil
     
     var currentMaxComponent     : CodeComponent? = nil
+    var dragComponent           : CodeComponent? = nil
+    var clickedComponent        : CodeComponent? = nil
+
     
     override init(_ view: MMView)
     {
@@ -521,13 +509,18 @@ class SceneTimeline            : MMWidget
     {
         mouseIsDown = true
         clickWasConsumed = false
-        
+        dragComponent = nil
+        clickedComponent = nil
+
         //let realX       : Float = (x - rect.x)
         //let realY       : Float = (y - rect.y)
         for (uuid, rect) in componentMap {
             if rect.contains(event.x, event.y) {
                 if let comp = globalApp!.project.selected?.componentOfUUID(uuid) {
-                    self.setCurrent(component: comp)
+                    if comp.componentType == .Variable {
+                        dragComponent = comp
+                    }
+                    clickedComponent = comp
                 }
             }
         }
@@ -562,11 +555,81 @@ class SceneTimeline            : MMWidget
     {
         mousePos.x = event.x
         mousePos.y = event.y
+        
+        // Drag and Drop
+        if let comp = clickedComponent, comp.componentType == .Variable, mmView.dragSource == nil {
+            if distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) > 5 {
+                // VARIABLE, START A DRAG OPERATION WITH A CODE FRAGMENT
+                //CodeFragment(.VariableDefinition, "float", "", [.Selectable, .Dragable, .Monitorable], ["float"], "float" )
+                    
+                var frag     : CodeFragment? = nil
+                var dragName : String = ""
+                
+                if comp.componentType == .Variable {
+                    dryRunComponent(comp)
+                    var variable : CodeFragment? = nil
+                                        
+                    for uuid in comp.properties {
+                        if let p = comp.getPropertyOfUUID(uuid).0 {
+                            if p.values["variable"] == 1 {
+                                variable = p
+                                break
+                            }
+                        }
+                    }
+                    if let variable = variable {
+                        frag = CodeFragment(.VariableReference, variable.typeName, variable.name, [.Selectable, .Dragable, .Monitorable], [variable.typeName], variable.typeName )
+                        frag!.referseTo = nil
+                        frag!.name = variable.name
+                        frag!.values["variable"] = 1
+                        dragName = variable.name
+                    }
+                } /*else
+                if comp.componentType == .Image {
+                    frag = CodeFragment(.Primitive, "float4", comp.libraryName, [.Selectable, .Dragable, .Monitorable], ["float2"], "float4" )
+                    frag!.referseTo = nil
+                    frag!.name = comp.libraryName
+                    frag!.values["variable"] = 1
+                    frag!.values["image"] = 1
+                    dragName = comp.libraryName
+                }*/
+                
+                if let frag = frag {
+                    // Create Drag Item
+                    var drag = SourceListDrag()
+                    drag.id = "SourceFragmentItem"
+                    drag.name = dragName
+                    
+                    if let compRect = componentMap[comp.uuid] {
+                        print(rect.y, compRect.y)
+                        drag.pWidgetOffset!.x = (event.x - rect.x) - (compRect.x - rect.x) - (event.x - rect.x)
+                        drag.pWidgetOffset!.y = (event.y - rect.y) - (compRect.y - rect.y)
+                    }
+                    
+                    drag.codeFragment = frag
+                                                    
+                    let width = mmView.openSans.getTextRect(text: dragName, scale: 0.44).width + 20
+                    let texture = globalApp!.developerEditor.codeList.listWidget.createGenericThumbnail(dragName, width)
+                    drag.previewWidget = MMTextureWidget(mmView, texture: texture)
+                    drag.previewWidget!.zoom = 2
+                    
+                    drag.sourceWidget = globalApp!.developerEditor.codeEditor
+                    mmView.dragStarted(source: drag)
+                }
+                clickedComponent = nil
+            }
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
         mouseIsDown = false
+        if let clickedComponent = clickedComponent {
+            if clickedComponent != self.currentComponent {
+                self.setCurrent(component: clickedComponent)
+            }
+        }
+        clickedComponent = nil
     }
     
     /// Click at the given position
@@ -636,8 +699,8 @@ class SceneTimeline            : MMWidget
             if index < globalApp!.project.selected!.items.count {
                 let uuid = globalApp!.project.selected!.items[index].uuid
                 
-                if globalApp!.project.selected!.items[index].componentType == .Shape {
-                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 42, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.postFXColor : skin.normalInteriorColor, borderColor: skin.postFXColor )
+                if globalApp!.project.selected!.items[index].componentType == .Variable {
+                    mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 42, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.variablesColor : skin.normalInteriorColor, borderColor: skin.variablesColor )
                 } else
                 if globalApp!.project.selected!.items[index].componentType == .Shader {
                     mmView.drawBox.draw( x: r.x, y: r.y, width: r.width - 42, height: r.height, round: 10, borderSize: 2.0, fillColor : uuid == currentUUID ? skin.groundColor : skin.normalInteriorColor, borderColor: skin.groundColor )
@@ -656,6 +719,7 @@ class SceneTimeline            : MMWidget
                                 let undo = globalApp!.currentEditor.undoComponentStart("Rename Shader")
                                 let comp = globalApp!.project.selected!.items[index]
                                 comp.libraryName = value
+                                comp.name = value
                                 globalApp!.currentEditor.setComponent(comp)
                                 globalApp!.currentEditor.undoComponentEnd(undo)
                                 self.mmView.update()
@@ -678,13 +742,21 @@ class SceneTimeline            : MMWidget
                         self.needsUpdate = true
                         self.mmView.update()
                     }),
-                    MMMenuItem(text: "Add Shape", cb: { () in
-                        let codeComponent = CodeComponent(.Shape, "Shape")
-                        codeComponent.createDefaultFunction(.Shape)
-                        globalApp!.project.selected!.items.append(codeComponent)
-                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                        self.needsUpdate = true
-                        self.mmView.update()
+                    MMMenuItem(text: "Add Variable", cb: { () in
+                        getStringDialog(view: self.mmView, title: "New Variable", message: "Variable name", defaultValue: "New Variable", cb: { (variableName) -> Void in
+                                getStringDialog(view: self.mmView, title: "Variable Type", message: "Type", defaultValue: "float4", cb: { (variableType) -> Void in
+                                    let validTypes = ["float", "float2", "float3", "float4", "int"]
+                                    if validTypes.contains(variableType) {
+                                        let varComponent = CodeComponent(.Variable, variableName)
+                                        varComponent.name = variableName
+                                        varComponent.createVariableFunction(variableName, variableType, variableName)
+                                        globalApp!.project.selected!.items.append(varComponent)
+                                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                        self.needsUpdate = true
+                                        self.mmView.update()
+                                    }
+                            } )
+                        } )
                     }),
                     MMMenuItem(text: "Add Camera", cb: { () in
                         self.clearSelection()
